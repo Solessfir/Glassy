@@ -26,6 +26,10 @@ function ScrollOverlayFrame:UpdateUnreadLayout()
     self.icon:SetPoint("BOTTOMLEFT", getLeftTextPadding(), math.max(0, (self.unreadRowHeight - 16) / 2))
 end
 
+function ScrollOverlayFrame:GetUnreadRowHeight()
+    return self.unreadRowHeight or MIN_UNREAD_ROW_HEIGHT
+end
+
 function ScrollOverlayFrame:SetUnreadRowHeight(rowHeight)
     self.unreadRowHeight = math.max(MIN_UNREAD_ROW_HEIGHT, rowHeight or MIN_UNREAD_ROW_HEIGHT)
     self:SetHeight(self.unreadRowHeight + OVERLAY_FADE_HEIGHT)
@@ -40,6 +44,10 @@ function ScrollOverlayFrame:SetUnreadRowHeight(rowHeight)
     end
     if self.icon then
       self:UpdateUnreadLayout()
+    end
+    local parent = self:GetParent()
+    if parent and parent.UpdateViewportHeight then
+      parent:UpdateViewportHeight(self.unreadRowHeight)
     end
     self:UpdateFrame()
 end

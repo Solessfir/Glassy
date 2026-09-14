@@ -8,6 +8,7 @@ local AceGUI = Core.Libs.AceGUI
 local LSM = Core.Libs.LSM
 local L = function(text) return Core:Localize(text) end
 local MAX_ACTIVE_TAB_HIGHLIGHT = 1
+local MAX_TAB_HOVER_HIGHLIGHT = 1
 local MAX_COMBAT_LOG_BAR_OFFSET = 500
 local MIN_FRAME_HEIGHT = 100
 local MAX_TEXT_LEFT_PADDING = 100
@@ -331,6 +332,12 @@ local function normalizeActiveTabHighlight()
   Core.db.profile.activeTabHighlightStrength = math.max(0, math.min(MAX_ACTIVE_TAB_HIGHLIGHT, strength))
 end
 
+local function normalizeTabHoverHighlight()
+  local strength = tonumber(Core.db.profile.tabHoverHighlightStrength) or
+    Core.defaults.profile.tabHoverHighlightStrength
+  Core.db.profile.tabHoverHighlightStrength = math.max(0, math.min(MAX_TAB_HOVER_HIGHLIGHT, strength))
+end
+
 local function normalizeEditBox()
   Core.db.profile.dynamicEditBox = Core.db.profile.dynamicEditBox ~= false
 end
@@ -416,6 +423,7 @@ function C:OnEnable()
   normalizeFrameHeight()
   normalizeTextLeftPadding()
   normalizeActiveTabHighlight()
+  normalizeTabHoverHighlight()
   normalizeEditBox()
   normalizeCombatLogBar()
   normalizeTimestamps()
@@ -508,11 +516,30 @@ function C:OnEnable()
                     Core:Dispatch(UpdateConfig("activeTabHighlightStrength"))
                   end,
                 },
+                tabHoverHighlightStrength = {
+                  name = "Tab hover highlight",
+                  desc = "Brightens a chat tab while the pointer is over it. A value of 0 disables the highlight; 1 applies the strongest highlight.\nDefault: "..
+                    Core.defaults.profile.tabHoverHighlightStrength.."\nMin: 0\nMax: "..MAX_TAB_HOVER_HIGHLIGHT,
+                  type = "range",
+                  order = 3.5,
+                  min = 0,
+                  max = MAX_TAB_HOVER_HIGHLIGHT,
+                  softMin = 0,
+                  softMax = MAX_TAB_HOVER_HIGHLIGHT,
+                  step = 0.05,
+                  get = function ()
+                    return Core.db.profile.tabHoverHighlightStrength
+                  end,
+                  set = function (_, input)
+                    Core.db.profile.tabHoverHighlightStrength = input
+                    Core:Dispatch(UpdateConfig("tabHoverHighlightStrength"))
+                  end,
+                },
                 chatTabTooltips = {
                   name = "Chat tab tooltips",
                   desc = "Show interaction hints when hovering over chat tabs.\nDefault: on",
                   type = "toggle",
-                  order = 3.5,
+                  order = 3.6,
                   get = function ()
                     return Core.db.profile.chatTabTooltips
                   end,
@@ -1777,6 +1804,7 @@ function C:RefreshConfig()
   normalizeFrameHeight()
   normalizeTextLeftPadding()
   normalizeActiveTabHighlight()
+  normalizeTabHoverHighlight()
   normalizeEditBox()
   normalizeCombatLogBar()
   normalizeTimestamps()
@@ -1792,6 +1820,7 @@ function C:RefreshConfig()
   Core:Dispatch(UpdateConfig("framePosition"))
   Core:Dispatch(UpdateConfig("textLeftPadding"))
   Core:Dispatch(UpdateConfig("activeTabHighlightStrength"))
+  Core:Dispatch(UpdateConfig("tabHoverHighlightStrength"))
   Core:Dispatch(UpdateConfig("chatTabTooltips"))
   Core:Dispatch(UpdateConfig("headerBackgroundColor"))
   Core:Dispatch(UpdateConfig("backgroundFade"))

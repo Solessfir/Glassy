@@ -675,7 +675,7 @@ function ChatDockMixin:Init(parent)
           self:UpdateFadeSettings()
         end
 
-        if key == "activeTabHighlightStrength" then
+        if key == "activeTabHighlightStrength" or key == "tabHoverHighlightStrength" then
           self:UpdateTabVisualStates()
         end
       end)

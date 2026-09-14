@@ -4,7 +4,7 @@ Core:RegisterCompactTranslations("frFR", {
   GENERAL="Général", ABOUT="À propos", INFO="Informations", VERSION="Version :", WHATS_NEW="Nouveautés", OPEN_CONFIG="Ouvrir les options",
   TOGGLE_MOVER="Afficher ou masquer le cadre de déplacement", OPEN_DEBUG="Ouvrir le rapport de disposition copiable", OPEN_NEWS_COMMAND="Ouvrir l’historique des versions", COMMANDS="Commandes", REPORT_ISSUE="Signaler un problème",
   LOCK_FRAME="Verrouiller le cadre", UNLOCK_FRAME="Déverrouiller le cadre", APPEARANCE="Apparence", FONT="Police",
-  FONT_OUTLINE="Contour de police", LEFT_TEXT_PADDING="Marge gauche du texte", ACTIVE_TAB_HIGHLIGHT="Surbrillance de l’onglet actif",
+  FONT_OUTLINE="Contour de police", LEFT_TEXT_PADDING="Marge gauche du texte", ACTIVE_TAB_HIGHLIGHT="Surbrillance de l’onglet actif", TAB_HOVER_HIGHLIGHT="Surbrillance de l’onglet au survol",
   CHAT_TAB_TOOLTIPS="Infobulles des onglets", HEADER_BACKGROUND="Arrière-plan de l’en-tête",
   LEFT_FADE_DISTANCE="Distance de fondu gauche", RIGHT_FADE_DISTANCE="Distance de fondu droite", FRAME="Cadre",
   WIDTH="Largeur", HEIGHT="Hauteur", HORIZONTAL_OFFSET="Décalage horizontal", VERTICAL_OFFSET="Décalage vertical",

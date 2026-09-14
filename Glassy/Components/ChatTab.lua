@@ -48,7 +48,6 @@ local tabTexs = {
 local retailTabTexs = {"Left", "Middle", "Right", "ActiveLeft", "ActiveMiddle", "ActiveRight", "HighlightLeft", "HighlightMiddle", "HighlightRight"}
 
 local ChatTabMixin = {}
-local TAB_HOVER_BRIGHTNESS = 1.15
 
 if Menu and Menu.ModifyMenu and MenuUtil and ToggleChannelFrame then
   Menu.ModifyMenu("MENU_FCF_TAB", function (owner, rootDescription)
@@ -98,7 +97,8 @@ function ChatTabMixin:UpdateVisualState()
     brightness = 1 + math.max(0, math.min(1, tonumber(Core.db.profile.activeTabHighlightStrength) or 0))
   end
   if self.glassyHovered then
-    brightness = math.max(brightness, TAB_HOVER_BRIGHTNESS)
+    local hoverStrength = math.max(0, math.min(1, tonumber(Core.db.profile.tabHoverHighlightStrength) or 0))
+    brightness = math.max(brightness, 1 + hoverStrength)
   end
 
   self.glassyHooks.hooks[self.Text].SetTextColor(
@@ -309,7 +309,7 @@ function ChatTabMixin:Init(slidingMessageFrame, dock)
           dock:UpdateTabOrder()
         end
 
-        if key == "activeTabHighlightStrength" then
+        if key == "activeTabHighlightStrength" or key == "tabHoverHighlightStrength" then
           self:UpdateVisualState()
         end
 

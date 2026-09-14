@@ -46,6 +46,7 @@ Core.defaults = {
     frameHeight = 230,
     textLeftPadding = 15,
     activeTabHighlightStrength = 0,
+    tabHoverHighlightStrength = 0.15,
     chatTabTooltips = true,
     backgroundFadeLeftWidth = 0,
     backgroundFadeRightWidth = 250,

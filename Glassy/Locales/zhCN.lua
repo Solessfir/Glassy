@@ -4,7 +4,7 @@ Core:RegisterCompactTranslations("zhCN", {
   GENERAL="常规", ABOUT="关于", INFO="信息", VERSION="版本：", WHATS_NEW="更新内容", OPEN_CONFIG="打开设置",
   TOGGLE_MOVER="显示或隐藏 Glassy 移动框", OPEN_DEBUG="打开可复制的布局报告", OPEN_NEWS_COMMAND="打开版本历史", COMMANDS="命令", REPORT_ISSUE="报告问题", LOCK_FRAME="锁定框体",
   UNLOCK_FRAME="解锁框体", APPEARANCE="外观", FONT="字体", FONT_OUTLINE="字体描边", LEFT_TEXT_PADDING="文字左边距",
-  ACTIVE_TAB_HIGHLIGHT="高亮当前标签", CHAT_TAB_TOOLTIPS="聊天标签提示", HEADER_BACKGROUND="标题背景",
+  ACTIVE_TAB_HIGHLIGHT="高亮当前标签", TAB_HOVER_HIGHLIGHT="鼠标悬停标签高亮", CHAT_TAB_TOOLTIPS="聊天标签提示", HEADER_BACKGROUND="标题背景",
   LEFT_FADE_DISTANCE="左侧渐隐距离", RIGHT_FADE_DISTANCE="右侧渐隐距离", FRAME="框体", WIDTH="宽度", HEIGHT="高度",
   HORIZONTAL_OFFSET="水平偏移", VERTICAL_OFFSET="垂直偏移", ANCHOR="锚点", TOP_LEFT="左上", TOP_RIGHT="右上",
   BOTTOM_LEFT="左下", BOTTOM_RIGHT="右下", NONE="无", OUTLINE="描边", OUTLINE_MONOCHROME="单色描边",

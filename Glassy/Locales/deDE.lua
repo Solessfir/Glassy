@@ -5,7 +5,7 @@ Core:RegisterCompactTranslations("deDE", {
   OPEN_CONFIG="Einstellungen öffnen", TOGGLE_MOVER="Glassy-Verschieber ein-/ausblenden",
   OPEN_DEBUG="Kopierbaren Layoutbericht öffnen", OPEN_NEWS_COMMAND="Versionsverlauf öffnen", COMMANDS="Befehle", REPORT_ISSUE="Problem melden", LOCK_FRAME="Fenster sperren", UNLOCK_FRAME="Fenster entsperren",
   APPEARANCE="Aussehen", FONT="Schriftart", FONT_OUTLINE="Schriftkontur", LEFT_TEXT_PADDING="Linker Textabstand",
-  ACTIVE_TAB_HIGHLIGHT="Aktiven Tab hervorheben", CHAT_TAB_TOOLTIPS="Chat-Tab-Tooltips",
+  ACTIVE_TAB_HIGHLIGHT="Aktiven Tab hervorheben", TAB_HOVER_HIGHLIGHT="Tab bei Mausberührung hervorheben", CHAT_TAB_TOOLTIPS="Chat-Tab-Tooltips",
   HEADER_BACKGROUND="Kopfzeilenhintergrund", LEFT_FADE_DISTANCE="Linke Ausblendstrecke",
   RIGHT_FADE_DISTANCE="Rechte Ausblendstrecke", FRAME="Fenster", WIDTH="Breite", HEIGHT="Höhe",
   HORIZONTAL_OFFSET="Horizontaler Versatz", VERTICAL_OFFSET="Vertikaler Versatz", ANCHOR="Anker",

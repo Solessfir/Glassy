@@ -32,6 +32,7 @@ local Mixin = Mixin
 local SlidingMessageFrameMixin = {}
 
 local RENDERED_MESSAGE_LIMIT = 128
+local DEFAULT_UNREAD_ROW_HEIGHT = 24
 
 local function getMessageTopInset(isCombatLog)
   local inset = Constants.DOCK_HEIGHT + 5
@@ -111,6 +112,23 @@ local function getMessageFrameHeight(isCombatLog)
   return math.max(1, frameHeight - getMessageTopInset(isCombatLog) + reusableHeight)
 end
 
+function SlidingMessageFrameMixin:UpdateViewportHeight(unreadRowHeight)
+  if self.state.scrollAtBottom then
+    self:SetHeight(self.config.height + self.config.overflowHeight)
+  else
+    local reservedHeight = unreadRowHeight
+    if reservedHeight == nil and self.overlay and self.overlay.GetUnreadRowHeight then
+      reservedHeight = self.overlay:GetUnreadRowHeight()
+    end
+    reservedHeight = math.max(0, tonumber(reservedHeight) or DEFAULT_UNREAD_ROW_HEIGHT)
+    self:SetHeight(math.max(1, self.config.height - reservedHeight))
+  end
+
+  if self.slider then
+    self:UpdateScrollChildRect()
+  end
+end
+
 function SlidingMessageFrameMixin:ApplyDynamicEditBoxHeight(nextHeight)
   local previousHeight = self.config.height
   if previousHeight == nextHeight then
@@ -121,11 +139,7 @@ function SlidingMessageFrameMixin:ApplyDynamicEditBoxHeight(nextHeight)
   local heightDifference = nextHeight - previousHeight
   local previousScroll = self:GetVerticalScroll()
   self.config.height = nextHeight
-  if self.state.scrollAtBottom then
-    self:SetHeight(nextHeight + self.config.overflowHeight)
-  else
-    self:SetHeight(nextHeight)
-  end
+  self:UpdateViewportHeight()
 
   local minimumSliderHeight = nextHeight + self.config.overflowHeight
   self.slider:SetHeight(math.max(minimumSliderHeight, self.slider:GetHeight() + heightDifference))
@@ -534,14 +548,14 @@ function SlidingMessageFrameMixin:Init(chatFrame)
     if self.state.scrollAtBottom then
       -- If scrolled to the bottom, the height of the scroll frame should
       -- include overflow to account for slide up animations
-      self:SetHeight(self.config.height + self.config.overflowHeight)
+      self:UpdateViewportHeight()
+      self:SetVerticalScroll(self:GetVerticalScrollRange() + self.config.overflowHeight)
       self.overlay:Hide()
       self.overlay:HideNewMessageAlert()
       self.state.unreadMessages = false
     else
-      -- If not, the height should fit the frame exactly so messages don't spill
-      -- under the edit box area
-      self:SetHeight(self.config.height)
+      -- While scrolled back, reserve the bottom row for the return-to-latest control so it never covers a chat message.
+      self:UpdateViewportHeight()
       self.overlay:Show()
     end
 
