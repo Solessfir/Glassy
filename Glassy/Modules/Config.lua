@@ -537,7 +537,7 @@ function C:OnEnable()
                 },
                 chatTabTooltips = {
                   name = "Chat tab tooltips",
-                  desc = "Show interaction hints when hovering over chat tabs.\nDefault: on",
+                  desc = "Show interaction hints when hovering over chat tabs.\nDefault: off",
                   type = "toggle",
                   order = 3.6,
                   get = function ()
@@ -553,7 +553,7 @@ function C:OnEnable()
                   desc = "Choose the color and opacity behind the chat tabs and Combat Log filter bar.\nDefault: black at 40% opacity.",
                   type = "color",
                   hasAlpha = true,
-                  order = 3.6,
+                  order = 3.7,
                   get = function ()
                     local color = Core.db.profile.headerBackgroundColor
                     return color.r, color.g, color.b, color.a
@@ -568,7 +568,7 @@ function C:OnEnable()
                   desc = "Controls how gradually Glassy backgrounds fade at the left edge. Shorter distances create a sharper fade; 0 disables it.\nDefault: "..
                     Core.defaults.profile.backgroundFadeLeftWidth.." px\nMin: 0\nMax: 1000",
                   type = "range",
-                  order = 3.7,
+                  order = 3.8,
                   min = 0,
                   max = 1000,
                   softMin = 0,
@@ -587,7 +587,7 @@ function C:OnEnable()
                   desc = "Controls how gradually Glassy backgrounds fade at the right edge. Shorter distances create a sharper fade; 0 disables it.\nDefault: "..
                     Core.defaults.profile.backgroundFadeRightWidth.." px\nMin: 0\nMax: 1000",
                   type = "range",
-                  order = 3.8,
+                  order = 3.9,
                   min = 0,
                   max = 1000,
                   softMin = 0,
