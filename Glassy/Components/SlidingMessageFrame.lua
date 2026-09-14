@@ -34,12 +34,17 @@ local SlidingMessageFrameMixin = {}
 local RENDERED_MESSAGE_LIMIT = 128
 local DEFAULT_UNREAD_ROW_HEIGHT = 24
 
-local function getMessageTopInset(isCombatLog)
-  local inset = Constants.DOCK_HEIGHT + 5
+local function getBaseMessageTopInset(isCombatLog)
+  local inset = Constants.DOCK_HEIGHT
   if isCombatLog and Core.db.profile.combatLogBarPosition == "BELOW" then
     inset = inset + Constants.COMBAT_LOG_BAR_HEIGHT
   end
   return inset
+end
+
+local function getMessageTopInset(isCombatLog)
+  local offset = tonumber(Core.db.profile.tabMessageSpacing) or Core.defaults.profile.tabMessageSpacing
+  return getBaseMessageTopInset(isCombatLog) + offset
 end
 
 local function getScrollbackLimit()
@@ -109,7 +114,7 @@ local function getMessageFrameHeight(isCombatLog)
       end
     end
   end
-  return math.max(1, frameHeight - getMessageTopInset(isCombatLog) + reusableHeight)
+  return math.max(1, frameHeight - getBaseMessageTopInset(isCombatLog) + reusableHeight)
 end
 
 function SlidingMessageFrameMixin:UpdateViewportHeight(unreadRowHeight)
@@ -702,6 +707,7 @@ function SlidingMessageFrameMixin:Init(chatFrame)
           key == "messageFontSize" or
           key == "frameWidth" or
           key == "frameHeight" or
+          key == "tabMessageSpacing" or
           key == "textLeftPadding" or
           key == "messageLeading" or
           key == "messageLinePadding" or

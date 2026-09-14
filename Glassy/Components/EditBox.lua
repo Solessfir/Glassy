@@ -7,6 +7,7 @@ local super = Utils.super
 local EditBoxLayoutChanged = Constants.ACTIONS.EditBoxLayoutChanged
 local EditBoxVisibilityChanged = Constants.ACTIONS.EditBoxVisibilityChanged
 local UPDATE_CONFIG = Constants.EVENTS.UPDATE_CONFIG
+local CreateSeparatorFrame = Core.Components.CreateSeparatorFrame
 
 -- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
 -- luacheck: push ignore 113
@@ -39,8 +40,11 @@ local function getBackgroundEasing()
 end
 
 local function hasVisibleBackground()
-  local color = Core.db.profile.editBoxBackgroundColor
-  return color and (tonumber(color.a) or 0) > 0
+  local backgroundColor = Core.db.profile.editBoxBackgroundColor
+  local separatorColor = Core.db.profile.editBoxMessageSeparatorColor
+  return
+    (backgroundColor and (tonumber(backgroundColor.a) or 0) > 0) or
+    (separatorColor and (tonumber(separatorColor.a) or 0) > 0)
 end
 
 local function hideExternalBackgrounds(editBox)
@@ -72,6 +76,13 @@ function EditBoxMixin:UpdateGlassyBackground()
   local configuredOpacity = math.max(0, math.min(1, tonumber(color and color.a) or 0))
   self:SetGradientBackground(color, configuredOpacity * self:GetBackgroundAlpha())
 
+  if self.messageSeparator then
+    self.messageSeparator:SetSeparatorColor(
+      Core.db.profile.editBoxMessageSeparatorColor,
+      self:GetBackgroundAlpha()
+    )
+  end
+
   if configuredOpacity == 0 then
     self.leftBg:Hide()
     self.centerBg:Hide()
@@ -84,6 +95,22 @@ function EditBoxMixin:UpdateGlassyBackground()
   self.centerBg:Show()
   self.centerBg:SetAlpha(1)
   self.rightBg:SetAlpha(1)
+end
+
+function EditBoxMixin:UpdateMessageSeparator()
+  self.messageSeparator:ClearAllPoints()
+  if Core.db.profile.editBoxAnchor.position == "ABOVE" then
+    self.messageSeparator:SetPoint("BOTTOMLEFT")
+    self.messageSeparator:SetPoint("BOTTOMRIGHT")
+  else
+    self.messageSeparator:SetPoint("TOPLEFT")
+    self.messageSeparator:SetPoint("TOPRIGHT")
+  end
+
+  self.messageSeparator:SetSeparatorColor(
+    Core.db.profile.editBoxMessageSeparatorColor,
+    self:GetBackgroundAlpha()
+  )
 end
 
 function EditBoxMixin:StopBackgroundAlphaTransition()
@@ -221,6 +248,11 @@ function EditBoxMixin:Init(parent)
 
   self.glassyBackgroundAlpha = 1
   self:UpdateGlassyBackground()
+
+  if self.messageSeparator == nil then
+    self.messageSeparator = CreateSeparatorFrame(self)
+  end
+  self:UpdateMessageSeparator()
 
   local Ypadding = self.header:GetLineHeight() * 0.66
   self:SetHeight(self.header:GetLineHeight() + Ypadding * 2)
@@ -385,6 +417,7 @@ function EditBoxMixin:Init(parent)
     if key == "frameWidth" then
       self:SetWidth(Core.db.profile.frameWidth)
       self:UpdateGlassyBackground()
+      self:UpdateMessageSeparator()
     end
 
     if key == "textLeftPadding" then
@@ -394,6 +427,9 @@ function EditBoxMixin:Init(parent)
 
     if key == "editBoxBackgroundColor" or key == "backgroundFade" then
       self:UpdateGlassyBackground()
+      if key == "backgroundFade" then
+        self:UpdateMessageSeparator()
+      end
       if not hasVisibleBackground() then
         self:StopBackgroundAlphaTransition()
         self:SetBackgroundAlpha(1)
@@ -405,6 +441,11 @@ function EditBoxMixin:Init(parent)
 
     if key == "editBoxAnchor" then
       updateAnchor()
+      self:UpdateMessageSeparator()
+    end
+
+    if key == "editBoxMessageSeparatorColor" then
+      self:UpdateMessageSeparator()
     end
 
     if (

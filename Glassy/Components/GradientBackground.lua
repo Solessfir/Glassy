@@ -1,6 +1,24 @@
 local Core = unpack(select(2, ...))
 
+-- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
+-- luacheck: push ignore 113
+local CreateFrame = CreateFrame
+local GetPhysicalScreenSize = GetPhysicalScreenSize
+local Mixin = Mixin
+-- luacheck: pop
+
 local GradientBackgroundMixin = {}
+
+local function getPhysicalPixelHeight(region)
+  if type(GetPhysicalScreenSize) == "function" then
+    local _, physicalHeight = GetPhysicalScreenSize()
+    local effectiveScale = region:GetEffectiveScale()
+    if physicalHeight and physicalHeight > 0 and effectiveScale and effectiveScale > 0 then
+      return 768 / physicalHeight / effectiveScale
+    end
+  end
+  return 1
+end
 
 local function clampColorChannel(value, fallback)
   return math.max(0, math.min(1, tonumber(value) or fallback))
@@ -9,12 +27,13 @@ end
 function GradientBackgroundMixin:Init()
 end
 
-function GradientBackgroundMixin:SetGradientBackground(color, opacity, horizontalInset)
+function GradientBackgroundMixin:SetGradientBackground(color, opacity, horizontalInset, bottomInset)
   local red = clampColorChannel(color and color.r, 0)
   local green = clampColorChannel(color and color.g, 0)
   local blue = clampColorChannel(color and color.b, 0)
   local alpha = clampColorChannel(opacity, clampColorChannel(color and color.a, 1))
   horizontalInset = horizontalInset or 0
+  bottomInset = bottomInset or 0
   local availableWidth = math.max(1, self:GetWidth() + horizontalInset * 2)
   local leftWidth = math.max(0, tonumber(Core.db.profile.backgroundFadeLeftWidth) or 0)
   local rightWidth = math.max(0, tonumber(Core.db.profile.backgroundFadeRightWidth) or 0)
@@ -32,7 +51,7 @@ function GradientBackgroundMixin:SetGradientBackground(color, opacity, horizonta
 
   self.leftBg:ClearAllPoints()
   self.leftBg:SetPoint("TOPLEFT", self, "TOPLEFT", -horizontalInset, 0)
-  self.leftBg:SetPoint("BOTTOMLEFT", self, "BOTTOMLEFT", -horizontalInset, 0)
+  self.leftBg:SetPoint("BOTTOMLEFT", self, "BOTTOMLEFT", -horizontalInset, bottomInset)
   if leftWidth > 0 then
     self.leftBg:SetWidth(leftWidth)
     self.leftBg:SetGradient(
@@ -52,7 +71,7 @@ function GradientBackgroundMixin:SetGradientBackground(color, opacity, horizonta
 
   self.rightBg:ClearAllPoints()
   self.rightBg:SetPoint("TOPRIGHT", self, "TOPRIGHT", horizontalInset, 0)
-  self.rightBg:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", horizontalInset, 0)
+  self.rightBg:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", horizontalInset, bottomInset)
   if rightWidth > 0 then
     self.rightBg:SetWidth(rightWidth)
     self.rightBg:SetGradient(
@@ -78,9 +97,26 @@ function GradientBackgroundMixin:SetGradientBackground(color, opacity, horizonta
   if rightWidth > 0 then
     self.centerBg:SetPoint("BOTTOMRIGHT", self.rightBg, "BOTTOMLEFT")
   else
-    self.centerBg:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", horizontalInset, 0)
+    self.centerBg:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", horizontalInset, bottomInset)
   end
   self.centerBg:SetColorTexture(red, green, blue, alpha)
 end
 
+function GradientBackgroundMixin:SetSeparatorColor(color, opacityMultiplier)
+  local multiplier = clampColorChannel(opacityMultiplier, 1)
+  local alpha = clampColorChannel(color and color.a, 0) * multiplier
+  self:SetShown(alpha > 0)
+  if alpha > 0 then
+    self:SetGradientBackground(color, alpha)
+  end
+end
+
 Core.Components.GradientBackgroundMixin = GradientBackgroundMixin
+
+function Core.Components.CreateSeparatorFrame(parent)
+  local frame = CreateFrame("Frame", nil, parent)
+  local object = Mixin(frame, GradientBackgroundMixin)
+  GradientBackgroundMixin.Init(object)
+  object:SetHeight(getPhysicalPixelHeight(object))
+  return object
+end

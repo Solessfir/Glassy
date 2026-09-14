@@ -45,11 +45,24 @@ function ScrollOverlayFrame:SetUnreadRowHeight(rowHeight)
     if self.icon then
       self:UpdateUnreadLayout()
     end
+    if self.centerBg then
+      self:UpdateBackground()
+    end
     local parent = self:GetParent()
     if parent and parent.UpdateViewportHeight then
       parent:UpdateViewportHeight(self.unreadRowHeight)
     end
     self:UpdateFrame()
+end
+
+function ScrollOverlayFrame:UpdateBackground()
+    local color = Core.db.profile.chatBackgroundColor
+    self:SetGradientBackground(color, color.a, nil, self:GetUnreadRowHeight())
+end
+
+function ScrollOverlayFrame:UpdateUnreadBackground()
+    local color = Core.db.profile.unreadMessageBackgroundColor
+    self.snapToBottomFrame:SetGradientBackground(color, color.a)
 end
 
 function ScrollOverlayFrame:UpdateFrame()
@@ -75,8 +88,7 @@ function ScrollOverlayFrame:Init()
     self.mask:SetSize(16, self:GetHeight())
     self.mask:SetPoint("CENTER", 0, -self:GetHeight() / 2)
 
-    local backgroundColor = Core.db.profile.chatBackgroundColor
-    self:SetGradientBackground(backgroundColor, backgroundColor.a)
+    self:UpdateBackground()
 
     self.leftBg:AddMaskTexture(self.mask)
     self.centerBg:AddMaskTexture(self.mask)
@@ -94,11 +106,16 @@ function ScrollOverlayFrame:Init()
     -- See new messages click area
     if self.snapToBottomFrame == nil then
       self.snapToBottomFrame = CreateFrame("Frame", nil, self)
+      local GradientBackgroundMixin = Core.Components.GradientBackgroundMixin
+      Mixin(self.snapToBottomFrame, GradientBackgroundMixin)
+      GradientBackgroundMixin.Init(self.snapToBottomFrame)
+      self.snapToBottomFrame:SetFrameLevel(self:GetFrameLevel())
     end
     self.snapToBottomFrame:SetHeight(self.unreadRowHeight)
     self.snapToBottomFrame:SetPoint("BOTTOMLEFT")
     self.snapToBottomFrame:SetPoint("BOTTOMRIGHT")
     self.snapToBottomFrame:EnableMouse(true)
+    self:UpdateUnreadBackground()
 
     if self.newMessageAlertFrame == nil then
       self.newMessageAlertFrame = CreateNewMessageAlertFrame(self)
@@ -133,8 +150,11 @@ function ScrollOverlayFrame:Init()
           end
 
           if key == "chatBackgroundColor" or key == "backgroundFade" then
-            backgroundColor = Core.db.profile.chatBackgroundColor
-            self:SetGradientBackground(backgroundColor, backgroundColor.a)
+            self:UpdateBackground()
+          end
+
+          if key == "unreadMessageBackgroundColor" or key == "backgroundFade" then
+            self:UpdateUnreadBackground()
           end
         end)
       }

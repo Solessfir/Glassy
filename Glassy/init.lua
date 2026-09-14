@@ -46,8 +46,15 @@ Core.defaults = {
     frameHeight = 230,
     textLeftPadding = 15,
     activeTabHighlightStrength = 0,
-    tabHoverHighlightStrength = 0.15,
+    tabHoverHighlightStrength = 0.65,
     chatTabTooltips = false,
+    tabMessageSeparatorColor = {
+      r = 0.8745,
+      g = 0.7294,
+      b = 0.4118,
+      a = 0,
+    },
+    tabMessageSpacing = 0,
     backgroundFadeLeftWidth = 0,
     backgroundFadeRightWidth = 250,
     headerBackgroundColor = {
@@ -75,6 +82,12 @@ Core.defaults = {
     editBoxEasing = "OutCubic",
     editBoxBackgroundEasing = "OutCubic",
     editBoxFontSize = 12,
+    editBoxMessageSeparatorColor = {
+      r = 0.8745,
+      g = 0.7294,
+      b = 0.4118,
+      a = 0,
+    },
     editBoxBackgroundColor = {
       r = 0,
       g = 0,
@@ -89,6 +102,18 @@ Core.defaults = {
     -- Messages
     messageFontSize = 12,
     chatBackgroundColor = {
+      r = 0,
+      g = 0,
+      b = 0,
+      a = 0.4,
+    },
+    unreadMessageSeparatorColor = {
+      r = 0.8745,
+      g = 0.7294,
+      b = 0.4118,
+      a = 0.65,
+    },
+    unreadMessageBackgroundColor = {
       r = 0,
       g = 0,
       b = 0,

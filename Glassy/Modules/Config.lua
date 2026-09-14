@@ -9,9 +9,11 @@ local LSM = Core.Libs.LSM
 local L = function(text) return Core:Localize(text) end
 local MAX_ACTIVE_TAB_HIGHLIGHT = 1
 local MAX_TAB_HOVER_HIGHLIGHT = 1
+local MAX_TAB_MESSAGE_OFFSET = 50
 local MAX_COMBAT_LOG_BAR_OFFSET = 500
 local MIN_FRAME_HEIGHT = 100
 local MAX_TEXT_LEFT_PADDING = 100
+local CURRENT_SETTINGS_VERSION = 2
 
 local OpenNews = Constants.ACTIONS.OpenNews
 local LockMover = Constants.ACTIONS.LockMover
@@ -297,6 +299,8 @@ local function normalizeBackgroundColors()
   local defaults = Core.defaults.profile
   local chatColor = rawget(profile, "chatBackgroundColor")
   local editBoxColor = rawget(profile, "editBoxBackgroundColor")
+  local legacyTabSeparator = rawget(profile, "tabMessageSeparator")
+  local legacyEditBoxSeparator = rawget(profile, "editBoxMessageSeparator")
 
   profile.headerBackgroundColor = normalizeColor(
     rawget(profile, "headerBackgroundColor"),
@@ -312,8 +316,40 @@ local function normalizeBackgroundColors()
     defaults.editBoxBackgroundColor,
     editBoxColor == nil and tonumber(rawget(profile, "editBoxBackgroundOpacity")) or nil
   )
+  profile.tabMessageSeparatorColor = normalizeColor(
+    rawget(profile, "tabMessageSeparatorColor"),
+    defaults.tabMessageSeparatorColor,
+    type(legacyTabSeparator) == "boolean" and (legacyTabSeparator and 0.65 or 0) or nil
+  )
+  profile.editBoxMessageSeparatorColor = normalizeColor(
+    rawget(profile, "editBoxMessageSeparatorColor"),
+    defaults.editBoxMessageSeparatorColor,
+    type(legacyEditBoxSeparator) == "boolean" and (legacyEditBoxSeparator and 0.65 or 0) or nil
+  )
+  profile.unreadMessageSeparatorColor = normalizeColor(
+    rawget(profile, "unreadMessageSeparatorColor"),
+    defaults.unreadMessageSeparatorColor
+  )
+  profile.unreadMessageBackgroundColor = normalizeColor(
+    rawget(profile, "unreadMessageBackgroundColor"),
+    defaults.unreadMessageBackgroundColor
+  )
   profile.chatBackgroundOpacity = nil
   profile.editBoxBackgroundOpacity = nil
+  profile.tabMessageSeparator = nil
+  profile.editBoxMessageSeparator = nil
+end
+
+local function migrateSettings()
+  local profile = Core.db.profile
+  local version = tonumber(rawget(profile, "settingsVersion")) or 0
+  if version < 1 and rawget(profile, "tabHoverHighlightStrength") == 0.15 then
+    profile.tabHoverHighlightStrength = nil
+  end
+  if version < 2 and rawget(profile, "tabMessageSpacing") == 5 then
+    profile.tabMessageSpacing = nil
+  end
+  profile.settingsVersion = CURRENT_SETTINGS_VERSION
 end
 
 local function normalizeFrameHeight()
@@ -324,6 +360,14 @@ end
 local function normalizeTextLeftPadding()
   local padding = tonumber(Core.db.profile.textLeftPadding) or Core.defaults.profile.textLeftPadding
   Core.db.profile.textLeftPadding = math.max(0, math.min(MAX_TEXT_LEFT_PADDING, math.floor(padding)))
+end
+
+local function normalizeTabMessageSpacing()
+  local spacing = tonumber(Core.db.profile.tabMessageSpacing) or Core.defaults.profile.tabMessageSpacing
+  Core.db.profile.tabMessageSpacing = math.max(
+    0,
+    math.min(MAX_TAB_MESSAGE_OFFSET, math.floor(spacing))
+  )
 end
 
 local function normalizeActiveTabHighlight()
@@ -418,9 +462,11 @@ local function normalizeAnimationEasings()
 end
 
 function C:OnEnable()
+  migrateSettings()
   normalizeBackgroundColors()
   normalizeBackgroundFades()
   normalizeFrameHeight()
+  normalizeTabMessageSpacing()
   normalizeTextLeftPadding()
   normalizeActiveTabHighlight()
   normalizeTabHoverHighlight()
@@ -548,12 +594,46 @@ function C:OnEnable()
                     Core:Dispatch(UpdateConfig("chatTabTooltips"))
                   end,
                 },
+                tabMessageSeparatorColor = {
+                  name = "Separator",
+                  desc = "Choose the separator color and opacity between chat tabs and messages. Set opacity to 0 to hide it.\nDefault: gold at 0% opacity.",
+                  type = "color",
+                  hasAlpha = true,
+                  order = 3.7,
+                  get = function ()
+                    local color = Core.db.profile.tabMessageSeparatorColor
+                    return color.r, color.g, color.b, color.a
+                  end,
+                  set = function (_, r, g, b, a)
+                    Core.db.profile.tabMessageSeparatorColor = {r = r, g = g, b = b, a = a}
+                    Core:Dispatch(UpdateConfig("tabMessageSeparatorColor"))
+                  end,
+                },
+                tabMessageSpacing = {
+                  name = "Vertical offset",
+                  desc = "Moves messages down from the chat tabs.\nDefault: "..
+                    Core.defaults.profile.tabMessageSpacing.." px\nMin: 0\nMax: "..MAX_TAB_MESSAGE_OFFSET,
+                  type = "range",
+                  order = 3.75,
+                  min = 0,
+                  max = MAX_TAB_MESSAGE_OFFSET,
+                  softMin = 0,
+                  softMax = 20,
+                  step = 1,
+                  get = function ()
+                    return Core.db.profile.tabMessageSpacing
+                  end,
+                  set = function (_, input)
+                    Core.db.profile.tabMessageSpacing = input
+                    Core:Dispatch(UpdateConfig("tabMessageSpacing"))
+                  end,
+                },
                 headerBackgroundColor = {
                   name = "Header background",
                   desc = "Choose the color and opacity behind the chat tabs and Combat Log filter bar.\nDefault: black at 40% opacity.",
                   type = "color",
                   hasAlpha = true,
-                  order = 3.7,
+                  order = 3.8,
                   get = function ()
                     local color = Core.db.profile.headerBackgroundColor
                     return color.r, color.g, color.b, color.a
@@ -568,7 +648,7 @@ function C:OnEnable()
                   desc = "Controls how gradually Glassy backgrounds fade at the left edge. Shorter distances create a sharper fade; 0 disables it.\nDefault: "..
                     Core.defaults.profile.backgroundFadeLeftWidth.." px\nMin: 0\nMax: 1000",
                   type = "range",
-                  order = 3.8,
+                  order = 3.9,
                   min = 0,
                   max = 1000,
                   softMin = 0,
@@ -587,7 +667,7 @@ function C:OnEnable()
                   desc = "Controls how gradually Glassy backgrounds fade at the right edge. Shorter distances create a sharper fade; 0 disables it.\nDefault: "..
                     Core.defaults.profile.backgroundFadeRightWidth.." px\nMin: 0\nMax: 1000",
                   type = "range",
-                  order = 3.9,
+                  order = 4,
                   min = 0,
                   max = 1000,
                   softMin = 0,
@@ -762,6 +842,21 @@ function C:OnEnable()
                   set = function (_, r, g, b, a)
                     Core.db.profile.editBoxBackgroundColor = {r = r, g = g, b = b, a = a}
                     Core:Dispatch(UpdateConfig("editBoxBackgroundColor"))
+                  end,
+                },
+                editBoxMessageSeparatorColor = {
+                  name = "Separator",
+                  desc = "Choose the separator color and opacity between the chat entry field and messages. Set opacity to 0 to hide it.\nDefault: gold at 0% opacity.",
+                  type = "color",
+                  hasAlpha = true,
+                  order = 1.35,
+                  get = function ()
+                    local color = Core.db.profile.editBoxMessageSeparatorColor
+                    return color.r, color.g, color.b, color.a
+                  end,
+                  set = function (_, r, g, b, a)
+                    Core.db.profile.editBoxMessageSeparatorColor = {r = r, g = g, b = b, a = a}
+                    Core:Dispatch(UpdateConfig("editBoxMessageSeparatorColor"))
                   end,
                 },
                 editBoxBackgroundEasing = {
@@ -1004,6 +1099,36 @@ function C:OnEnable()
                   set = function (_, r, g, b, a)
                     Core.db.profile.chatBackgroundColor = {r = r, g = g, b = b, a = a}
                     Core:Dispatch(UpdateConfig("chatBackgroundColor"))
+                  end,
+                },
+                unreadMessageSeparatorColor = {
+                  name = "Unread-message separator",
+                  desc = "Choose the separator color and opacity below the unread-message control. Set opacity to 0 to hide it.\nDefault: gold at 65% opacity.",
+                  type = "color",
+                  hasAlpha = true,
+                  order = 1.25,
+                  get = function ()
+                    local color = Core.db.profile.unreadMessageSeparatorColor
+                    return color.r, color.g, color.b, color.a
+                  end,
+                  set = function (_, r, g, b, a)
+                    Core.db.profile.unreadMessageSeparatorColor = {r = r, g = g, b = b, a = a}
+                    Core:Dispatch(UpdateConfig("unreadMessageSeparatorColor"))
+                  end,
+                },
+                unreadMessageBackgroundColor = {
+                  name = "Unread-message background",
+                  desc = "Choose the background color and opacity behind the jump-to-latest row, with or without unread messages.\nDefault: black at 40% opacity.",
+                  type = "color",
+                  hasAlpha = true,
+                  order = 1.26,
+                  get = function ()
+                    local color = Core.db.profile.unreadMessageBackgroundColor
+                    return color.r, color.g, color.b, color.a
+                  end,
+                  set = function (_, r, g, b, a)
+                    Core.db.profile.unreadMessageBackgroundColor = {r = r, g = g, b = b, a = a}
+                    Core:Dispatch(UpdateConfig("unreadMessageBackgroundColor"))
                   end,
                 },
                 messageLeading = {
@@ -1799,9 +1924,11 @@ function C:OnDebugCommand()
 end
 
 function C:RefreshConfig()
+  migrateSettings()
   normalizeBackgroundColors()
   normalizeBackgroundFades()
   normalizeFrameHeight()
+  normalizeTabMessageSpacing()
   normalizeTextLeftPadding()
   normalizeActiveTabHighlight()
   normalizeTabHoverHighlight()
@@ -1822,6 +1949,8 @@ function C:RefreshConfig()
   Core:Dispatch(UpdateConfig("activeTabHighlightStrength"))
   Core:Dispatch(UpdateConfig("tabHoverHighlightStrength"))
   Core:Dispatch(UpdateConfig("chatTabTooltips"))
+  Core:Dispatch(UpdateConfig("tabMessageSeparatorColor"))
+  Core:Dispatch(UpdateConfig("tabMessageSpacing"))
   Core:Dispatch(UpdateConfig("headerBackgroundColor"))
   Core:Dispatch(UpdateConfig("backgroundFade"))
   Core:Dispatch(UpdateConfig("combatLogVisibility"))
@@ -1830,6 +1959,7 @@ function C:RefreshConfig()
   -- Edit box
   Core:Dispatch(UpdateConfig("editBoxFontSize"))
   Core:Dispatch(UpdateConfig("editBoxBackgroundColor"))
+  Core:Dispatch(UpdateConfig("editBoxMessageSeparatorColor"))
   Core:Dispatch(UpdateConfig("editBoxBackgroundEasing"))
   Core:Dispatch(UpdateConfig("editBoxEasing"))
   Core:Dispatch(UpdateConfig("editBoxAnchor"))
@@ -1843,6 +1973,8 @@ function C:RefreshConfig()
   Core:Dispatch(UpdateConfig("iconTextureYOffset"))
   Core:Dispatch(UpdateConfig("emojiDisplay"))
   Core:Dispatch(UpdateConfig("chatBackgroundColor"))
+  Core:Dispatch(UpdateConfig("unreadMessageSeparatorColor"))
+  Core:Dispatch(UpdateConfig("unreadMessageBackgroundColor"))
   Core:Dispatch(UpdateConfig("timestampDisplay"))
   Core:Dispatch(UpdateConfig("chatFadeInDuration"))
   Core:Dispatch(UpdateConfig("chatFadeOutDuration"))

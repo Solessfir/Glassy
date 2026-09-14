@@ -64,12 +64,12 @@ Glassy\constants.lua
 Glassy\utils.lua
 
 # Components
+Glassy\Components\GradientBackground.lua
 Glassy\Components\ChatDock.lua
 Glassy\Components\ChatTab.lua
 Glassy\Components\CombatLogBar.lua
 Glassy\Components\EditBox.lua
 Glassy\Components\FadingFrame.lua
-Glassy\Components\GradientBackground.lua
 Glassy\Components\MainContainerFrame.lua
 Glassy\Components\MessageLine.lua
 Glassy\Components\MoverFrame.lua

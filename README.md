@@ -111,7 +111,7 @@ Use `/gl` to configure:
 
 - Frame dimensions and position, shared or per-character profiles.
 - Fonts, sizes, outlines, message spacing, indentation, and inline-icon alignment.
-- Header, message, and input backgrounds with color and opacity controls.
+- Header, message, and input backgrounds with color and opacity controls, plus optional gradient separators.
 - Message hold time, optional reveal while typing, fade durations, slide movement, and easing.
 - Edit-box position and optional dynamic message space.
 - Tab appearance, Combat Log visibility, and filter-bar layout.

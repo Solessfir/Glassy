@@ -5,6 +5,7 @@ local AceHook = Core.Libs.AceHook
 local MOUSE_ENTER = Constants.EVENTS.MOUSE_ENTER
 local MOUSE_LEAVE = Constants.EVENTS.MOUSE_LEAVE
 local UPDATE_CONFIG = Constants.EVENTS.UPDATE_CONFIG
+local CreateSeparatorFrame = Core.Components.CreateSeparatorFrame
 
 -- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
 -- luacheck: push ignore 113
@@ -26,6 +27,10 @@ local UIParent = UIParent
 local ChatDockMixin = {}
 local TAB_DRAG_SCROLL_EDGE = 32
 local TAB_DRAG_SCROLL_SPEED = 300
+
+local function updateMessageSeparator(self)
+  self.messageSeparator:SetSeparatorColor(Core.db.profile.tabMessageSeparatorColor)
+end
 
 local function getTabColor(chatFrame)
   local brightness = 1
@@ -625,6 +630,13 @@ function ChatDockMixin:Init(parent)
   local backgroundColor = Core.db.profile.headerBackgroundColor
   self:SetGradientBackground(backgroundColor, backgroundColor.a)
 
+  if self.messageSeparator == nil then
+    self.messageSeparator = CreateSeparatorFrame(self)
+    self.messageSeparator:SetPoint("BOTTOMLEFT")
+    self.messageSeparator:SetPoint("BOTTOMRIGHT")
+  end
+  updateMessageSeparator(self)
+
   -- Keep any native fallback drag docked.
   self:RawHook("FCF_StopDragging", function (chatFrame)
     chatFrame:StopMovingOrSizing();
@@ -669,6 +681,10 @@ function ChatDockMixin:Init(parent)
 
           backgroundColor = Core.db.profile.headerBackgroundColor
           self:SetGradientBackground(backgroundColor, backgroundColor.a)
+        end
+
+        if key == "tabMessageSeparatorColor" or key == "frameWidth" or key == "backgroundFade" then
+          updateMessageSeparator(self)
         end
 
         if key == "chatFadeInDuration" or key == "chatFadeOutDuration" or key == "chatFadeEasing" then

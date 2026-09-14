@@ -3,6 +3,7 @@ local Core, Constants = unpack(select(2, ...))
 local Colors = Constants.COLORS
 local L = function(text) return Core:Localize(text) end
 local UPDATE_CONFIG = Constants.EVENTS.UPDATE_CONFIG
+local CreateSeparatorFrame = Core.Components.CreateSeparatorFrame
 
 -- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
 -- luacheck: push ignore 113
@@ -47,16 +48,11 @@ function NewMessageAlertFrameMixin:Init()
 
     -- Alert line
     if self.bottomLine == nil then
-      local GradientBackgroundMixin = Core.Components.GradientBackgroundMixin
-
-      self.bottomLine = CreateFrame("Frame", nil, self)
-      self.bottomLine = Mixin(self.bottomLine, GradientBackgroundMixin)
-      GradientBackgroundMixin.Init(self.bottomLine)
-      self.bottomLine:SetHeight(1)
+      self.bottomLine = CreateSeparatorFrame(self)
       self.bottomLine:SetPoint("BOTTOMLEFT")
       self.bottomLine:SetPoint("BOTTOMRIGHT")
     end
-    self.bottomLine:SetGradientBackground(Colors.apache, 0.65)
+    self.bottomLine:SetSeparatorColor(Core.db.profile.unreadMessageSeparatorColor)
 
     if self.subscriptions == nil then
       self.subscriptions = {
@@ -65,8 +61,8 @@ function NewMessageAlertFrameMixin:Init()
             self:UpdateLayout()
           end
 
-          if key == "backgroundFade" then
-            self.bottomLine:SetGradientBackground(Colors.apache, 0.65)
+          if key == "backgroundFade" or key == "unreadMessageSeparatorColor" then
+            self.bottomLine:SetSeparatorColor(Core.db.profile.unreadMessageSeparatorColor)
           end
         end)
       }
