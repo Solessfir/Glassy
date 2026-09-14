@@ -50,6 +50,7 @@ Use `/gl` to open Glassy. `/glassy` and `/glass` work as aliases for all command
 | `/gl` | Open settings. |
 | `/gl lock` | Toggle the chat-frame mover. |
 | `/gl debug` | Open a copyable layout report for troubleshooting. |
+| `/gl news` | Open the version history. |
 
 ## Shortcuts
 

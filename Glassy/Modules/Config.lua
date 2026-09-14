@@ -20,6 +20,18 @@ local UpdateConfig = Constants.ACTIONS.UpdateConfig
 
 local SAVE_FRAME_POSITION = Constants.EVENTS.SAVE_FRAME_POSITION
 
+-- An unnamed inline group creates a borderless, full-width AceGUI row.
+local function infoRow(order, args)
+  return {name = "", type = "group", inline = true, order = order, args = args}
+end
+
+local function commandRow(order, command, description)
+  return infoRow(order, {
+    command = {name = "|cffffd100"..command.."|r", type = "description", width = 0.7, order = 1},
+    description = {name = description, type = "description", width = 2.1, order = 2},
+  })
+end
+
 local function isMoverUnlocked()
   return _G.GlassyMoverFrame and _G.GlassyMoverFrame:IsShown()
 end
@@ -422,54 +434,6 @@ function C:OnEnable()
           type = "group",
           order = 1,
           args = {
-            section1 = {
-              name = "Info",
-              type = "group",
-              inline = true,
-              order = 2,
-              args = {
-                version = {
-                  name = " |cffffd100Version:|r  "..Core.Version,
-                  type = "description",
-                  width = "double",
-                  fontSize = "medium",
-                  order = 2.1,
-                },
-                whatsNew = {
-                  name = "What’s new",
-                  desc = "Open a summary of new features, improvements, and important fixes.",
-                  type = "execute",
-                  func = function()
-                    Core:Dispatch(OpenNews())
-                  end,
-                  order = 2.2,
-                },
-                slashCmd = {
-                  name = "|c00DFBA69/gl|r  |cff808080|r               Open config window\n"..
-                         "|c00DFBA69/gl lock|r  |cff808080|r       Toggle the Glassy frame mover\n"..
-                         "|c00DFBA69/gl debug|r  |cff808080|r  Open a copyable layout debug report",
-                  type = "description",
-                  width = "double",
-                  order = 2.3,
-                },
-                unlockFrame = {
-                  name = function ()
-                    return isMoverUnlocked() and "Lock frame" or "Unlock frame"
-                  end,
-                  desc = function ()
-                    if isMoverUnlocked() then
-                      return "Save the current position and hide the draggable Edit Mode overlay."
-                    end
-                    return "Show the draggable Edit Mode overlay used to reposition the Glassy chat frame."
-                  end,
-                  type = "execute",
-                  func = function()
-                    toggleMover()
-                  end,
-                  order = 2.4,
-                },
-              }
-            },
             section2 = {
               name = "Appearance",
               type = "group",
@@ -709,8 +673,23 @@ function C:OnEnable()
                     Core:Dispatch(UpdateConfig("framePosition"))
                   end
                 },
+                unlockFrame = {
+                  name = function()
+                    return isMoverUnlocked() and "Lock frame" or "Unlock frame"
+                  end,
+                  desc = function()
+                    if isMoverUnlocked() then
+                      return "Save the current position and hide the draggable Edit Mode overlay."
+                    end
+                    return "Show the draggable Edit Mode overlay used to reposition the Glassy chat frame."
+                  end,
+                  type = "execute",
+                  func = toggleMover,
+                  width = 1,
+                  order = 4.6,
+                },
               }
-            }
+            },
           }
         },
         editBox = {
@@ -939,6 +918,18 @@ function C:OnEnable()
                   order = 1,
                   name = "|cffffd100Shift-click a chat tab|r  Open that tab's chat history for copying. Press Ctrl+C to copy it to the clipboard.",
                 },
+              },
+            },
+            commands = {
+              name = "Commands",
+              type = "group",
+              inline = true,
+              order = 5,
+              args = {
+                commandOpen = commandRow(1, "/gl", "Open settings"),
+                commandMover = commandRow(2, "/gl lock", "Toggle the Glassy frame mover"),
+                commandDebug = commandRow(3, "/gl debug", "Open a copyable layout debug report"),
+                commandNews = commandRow(4, "/gl news", "Open version history"),
               },
             },
           },
@@ -1570,7 +1561,44 @@ function C:OnEnable()
             },
           },
         },
-        profile = getProfileOptions()
+        profile = getProfileOptions(),
+        about = {
+          name = "About",
+          type = "group",
+          order = 8,
+          args = {
+            details = {
+              name = "",
+              type = "group",
+              inline = true,
+              order = 1,
+              args = {
+                version = {
+                  name = " |cffffd100Version:|r  "..Core.Version,
+                  type = "description",
+                  width = "full",
+                  fontSize = "medium",
+                  order = 1,
+                },
+                whatsNew = infoRow(2, {button = {
+                  name = "What’s new",
+                  desc = "Open a summary of new features, improvements, and important fixes.",
+                  type = "execute",
+                  width = 1,
+                  func = function() Core:Dispatch(OpenNews()) end,
+                  order = 1,
+                }}),
+                reportIssue = infoRow(3, {button = {
+                  name = "Report an issue",
+                  type = "execute",
+                  width = 1,
+                  func = function() Core:GetModule("News"):ShowIssueLink() end,
+                  order = 1,
+                }}),
+              },
+            },
+          },
+        },
       }
   }
 
@@ -1600,6 +1628,8 @@ function C:OnSlashCommand(input)
     toggleMover()
   elseif input == "debug" then
     self:OnDebugCommand()
+  elseif input == "news" then
+    Core:Dispatch(OpenNews())
   else
     AceConfigDialog:Open("Glassy")
   end

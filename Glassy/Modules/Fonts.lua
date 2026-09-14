@@ -2,17 +2,21 @@ local Core, Constants = unpack(select(2, ...))
 local Fonts = Core:GetModule("Fonts")
 
 local LSM = Core.Libs.LSM
-local DEFAULT_FONT_PATH = "Fonts\\FRIZQT__.TTF"
 
 local UPDATE_CONFIG = Constants.EVENTS.UPDATE_CONFIG
 
 -- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
 -- luacheck: push ignore 113
 local CreateFont = CreateFont
+local GameFontNormal = GameFontNormal
 -- luacheck: pop
 
 local function setFont(fontObject, size)
-  local fontPath = LSM:Fetch(LSM.MediaType.FONT, Core.db.profile.font, true) or DEFAULT_FONT_PATH
+  local defaultFontPath = GameFontNormal and GameFontNormal:GetFont()
+  local fontPath = LSM:Fetch(LSM.MediaType.FONT, Core.db.profile.font, true) or defaultFontPath
+  if fontPath == nil then
+    return
+  end
   local ok, applied = pcall(
     fontObject.SetFont,
     fontObject,
@@ -21,8 +25,8 @@ local function setFont(fontObject, size)
     Core.db.profile.fontFlags
   )
 
-  if not ok or applied == false then
-    fontObject:SetFont(DEFAULT_FONT_PATH, size, Core.db.profile.fontFlags)
+  if (not ok or applied == false) and defaultFontPath then
+    fontObject:SetFont(defaultFontPath, size, Core.db.profile.fontFlags)
   end
 end
 

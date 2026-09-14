@@ -18,4 +18,4 @@
 
 Close WoW before migrating from Glass. Install Glassy, copy your account's `SavedVariables/Glass.lua` to `Glassy.lua`, and change its top-level `GlassDB =` assignment to `GlassyDB =`. Do not overwrite existing Glassy settings. Keep the old settings file as a backup, and remove or disable the old Glass addon.
 
-On Retail, Blizzard controls the initial tab selection. Dragging reorders a tab without selecting it; click to select.
+On Retail, chat tab selection and reordering now work without protected-action errors.
