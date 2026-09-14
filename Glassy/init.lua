@@ -1,6 +1,7 @@
 local _G = _G
 
 local AceAddon = _G.LibStub("AceAddon-3.0")
+local GetAddOnMetadata = (_G.C_AddOns and _G.C_AddOns.GetAddOnMetadata) or _G.GetAddOnMetadata
 
 local AddonName, AddonVars = ...
 local Core = AceAddon:NewAddon(AddonName)
@@ -24,10 +25,7 @@ Core.Libs = {
   lodash = _G.LibStub("lodash.wow")
 }
 Core.Components = {}
-Core.Version = "1.9.1"
---[===[@debug@--
-Core.Version = "DEBUG"
---@end-debug@]===]--
+Core.Version = GetAddOnMetadata and GetAddOnMetadata(AddonName, "Version") or "0.0.0"
 
 -- Modules
 Core:NewModule("Config", "AceConsole-3.0")

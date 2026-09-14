@@ -9,7 +9,9 @@ source = Path(__file__).resolve().parent.parent
 package = Path(sys.argv[1]).resolve()
 toc = (package / "Glassy.toc").read_text(encoding="utf-8-sig")
 version = re.search(r"^## Version: (.+)$", toc, re.M).group(1).strip()
-assert f'Core.Version = "{version}"' in (package / "Glassy/init.lua").read_text(), "Runtime version mismatch"
+init = (package / "Glassy/init.lua").read_text()
+assert 'GetAddOnMetadata(AddonName, "Version")' in init, "Runtime version must come from TOC metadata"
+assert not re.search(r'Core\.Version\s*=\s*["\']\d', init), "Runtime version must not be hardcoded"
 assert re.search(rf"^# {re.escape(version)} \(\d{{4}}-\d{{2}}-\d{{2}}\)$", (source / "LATEST.md").read_text(), re.M), "Latest release notes mismatch"
 assert f' name = "{version} (' in (source / "Glassy/Modules/News.lua").read_text(), "In-game release notes mismatch"
 assert "## X-Curse-Project-ID: 1695833" in toc, "Incorrect CurseForge project"
