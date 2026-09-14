@@ -24,13 +24,14 @@ Core.Libs = {
   lodash = _G.LibStub("lodash.wow")
 }
 Core.Components = {}
-Core.Version = "@project-version@"
---@debug@--
+Core.Version = "1.9.1"
+--[===[@debug@--
 Core.Version = "DEBUG"
---@end-debug@--
+--@end-debug@]===]--
 
 -- Modules
 Core:NewModule("Config", "AceConsole-3.0")
+Core:NewModule("ChatCopy", "AceConsole-3.0")
 Core:NewModule("Fonts")
 Core:NewModule("Hyperlinks")
 Core:NewModule("News")
@@ -45,15 +46,42 @@ Core.defaults = {
     fontFlags = "",
     frameWidth = 450,
     frameHeight = 230,
+    textLeftPadding = 15,
+    activeTabHighlightStrength = 0,
+    chatTabTooltips = true,
+    backgroundFadeLeftWidth = 0,
+    backgroundFadeRightWidth = 250,
+    headerBackgroundColor = {
+      r = 0,
+      g = 0,
+      b = 0,
+      a = 0.4,
+    },
     positionAnchor = {
       point = "BOTTOMLEFT",
       xOfs = 20,
       yOfs = 230
     },
 
+    -- Combat log
+    combatLogHidden = false,
+    combatLogBarPosition = "BELOW",
+    combatLogBarXOffset = 0,
+    combatLogBarYOffset = 0,
+    selectedTab = "",
+    tabOrder = {},
+
     -- Edit box
+    dynamicEditBox = true,
+    editBoxEasing = "OutCubic",
+    editBoxBackgroundEasing = "OutCubic",
     editBoxFontSize = 12,
-    editBoxBackgroundOpacity = 0.6,
+    editBoxBackgroundColor = {
+      r = 0,
+      g = 0,
+      b = 0,
+      a = 0.4,
+    },
     editBoxAnchor = {
       position = "BELOW",
       yOfs = -5
@@ -61,15 +89,36 @@ Core.defaults = {
 
     -- Messages
     messageFontSize = 12,
-    chatBackgroundOpacity = 0.4,
+    chatBackgroundColor = {
+      r = 0,
+      g = 0,
+      b = 0,
+      a = 0.4,
+    },
     messageLeading = 3,
     messageLinePadding = 0.25,
+    emojisEnabled = true,
+    scrollbackLines = 500,
+    timestampsEnabled = false,
+    timestampFormat = "[%H:%M:%S]",
+    timestampColorEnabled = true,
+    timestampColor = {
+      r = 0.6,
+      g = 0.6,
+      b = 0.6,
+      a = 1,
+    },
+    timestampFrames = {
+      ["*"] = true,
+    },
 
     chatHoldTime = 10,
     chatShowOnMouseOver = true,
     chatFadeInDuration = 0.6,
     chatFadeOutDuration = 0.6,
+    chatFadeEasing = "OutCubic",
     chatSlideInDuration = 0.3,
+    chatSlideInEasing = "OutCubic",
 
     indentWordWrap = true,
     mouseOverTooltips = true,
@@ -80,7 +129,7 @@ Core.defaults = {
 function Core:OnInitialize()
   self.listeners = {}
 
-  self.db = self.Libs.AceDB:New("GlassDB", self.defaults, true)
+  self.db = self.Libs.AceDB:New("GlassyDB", self.defaults, true)
   self.printBuffer = {}
 end
 
@@ -107,9 +156,9 @@ function Core:Subscribe(messageType, listener)
 end
 
 function Core:Dispatch(messageType, payload)
-  --@debug@--
+  --[===[@debug@--
   Utils.print('E: '..messageType, payload)
-  --@end-debug@--
+  --@end-debug@]===]--
 
   local listeners = self.listeners[messageType] or {}
   for _, listener in ipairs(listeners) do

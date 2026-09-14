@@ -1,95 +1,160 @@
-# Abandoned
+# Glassy
 
-Please use [LS: Glass](https://www.curseforge.com/wow/addons/ls-glass "LS: Glass")
+An immersive, minimal chat UI for all World of Warcraft versions.<br>
+It continues the original [Glass](https://www.curseforge.com/wow/addons/glass) design with Classic compatibility fixes, more customization, and new chat tools.
 
-This project is the original Glass addon by me. I no longer play the game so this project has been abandoned.
+![Glassy Preview](https://i.imgur.com/GuqRFsa.gif)
 
-i_lightspark has been kind enough to keep the spirit of Glass alive by releasing their own version. Please use that instead.
+## Required addons for the full experience
 
-* [LS: Glass on CurseForge](https://www.curseforge.com/wow/addons/ls-glass)
-* [LS: Glass on Wago](https://addons.wago.io/addons/ls-glass)
+- **[Prat 3.0](https://www.curseforge.com/wow/addons/prat-3-0) is mandatory for player class icons, item-link icons, and restoring chat history after a reload or login.** Enable Prat's **LinkInfoIcons** module for icons and **History** for saved chat. Prat also supplies advanced name/channel formatting, substitutions, URL links, filters, and highlights.
 
-**Original description follows**
+  **Required setup:** Open `/prat` → **Module Control** → set **Editbox** to **Don't load**, then `/reload`. Leaving it enabled breaks Glassy's input layout: the typing box can appear far below chat, look missing, and stretch the mover outline. Keep Prat itself enabled for icons and history.
 
----
+- **[ElvUI](https://tukui.org/elvui) is mandatory for emojis.** Glassy uses ElvUI's existing emoji textures. Keep ElvUI enabled, but disable its **Chat** module so Glassy can manage chat. Enable **Emoji shortcodes** in Glassy's Messages settings. Without ElvUI, shortcodes such as `:smile:` remain text.
 
-![Glass](https://user-images.githubusercontent.com/3102758/90884068-9549a600-e3e1-11ea-944f-481bd894560e.png)
+These are feature requirements, not addon-loading requirements: Glassy can run on its own, but it does not generate those icons, save chat history between sessions, or bundle emoji textures. Its own scrolling, retained session history, timestamps, and copy window work without Prat.
 
-#### An immersive and minimalistic chat UI for World of Warcraft
-
-[![Demo](https://thumbs.gfycat.com/SkinnyPopularIsabellineshrike-size_restricted.gif)](https://gfycat.com/skinnypopularisabellineshrike)
-
-(Click for slightly higher resolution)
-
-## Why?
-
-I wanted to have a chat UI that didn't look like it was designed in 2004.
-
-I tried several addons that customize the chat interface but was left
-unsatisfied. So I decided to make one myself.
-
-The goal of Glass is to be unobtrusive. Messages only appear when they come in
-and fades out after a few seconds. Chat tabs are hidden until the player hovers
-over the chat UI. There is no always-visible background. Glass is invisible
-until the player needs it.
+Custom fonts require an addon that registers them with LibSharedMedia, such as SharedMedia or your own media pack. Fonts and personal settings shown in previews are not bundled with Glassy.
 
 ## Install
 
-Glass is available on [CurseForge](https://www.curseforge.com/wow/addons/glass)
+**Downloads:** [GitHub Releases](https://github.com/Solessfir/Glassy/releases) · [CurseForge](https://www.curseforge.com/wow/addons/glassy) · [Wago Addons](https://addons.wago.io/addons/glassy).
 
-You may also download the latest release on [GitHub](https://github.com/mixxorz/Glass/releases)
+1. Download the packaged addon ZIP from [GitHub Releases](https://github.com/Solessfir/Glassy/releases), not GitHub's **Source code** archives.
+2. Extract the `Glassy` folder into your client's `Interface/AddOns` folder, with `Glassy.toc` directly inside `Interface/AddOns/Glassy`. Use `_classic_era_` for Era/Hardcore, `_anniversary_` for Burning Crusade Anniversary, `_classic_` for Mists of Pandaria Classic, or `_retail_` for Retail.
+3. Install Prat and ElvUI if you want the features listed above.
+4. Restart WoW or reload after replacing an existing installation, then enter `/gl`.
+5. Open **Compatibility** to check detected addons and conflicting Prat modules.
+
+The current TOC accepts Classic Era `11509`, Burning Crusade Anniversary `20506`, Mists of Pandaria Classic `50504`, and Retail `120100`. All four clients have been tested in game, including Retail Combat Log tab switching and filter buttons. Future clients will need validation when available.
+
+On Retail, protected message text is passed directly to Blizzard's text renderer without applying Glassy timestamps or emojis. Protected contents are represented as `<protected>` in copied chat. Blizzard's chat messaging restrictions still apply.
+
+Retail keeps Blizzard's selected tab at login. Dragging a tab changes its position without selecting it; click the tab to select it. This keeps Combat Log filter updates in Blizzard's secure click handler.
+
+When using a Git checkout, note that `libs/` is ignored by Git. Release packaging fetches the libraries listed in `.pkgmeta`; a source ZIP alone is not a complete, ready-to-install addon.
+
+### Upgrading from Glass
+
+Close WoW before migrating. Install Glassy, then copy `WTF/Account/<account>/SavedVariables/Glass.lua` to `Glassy.lua` in the same folder and change the top-level `GlassDB =` assignment to `GlassyDB =`. Only do this if you have no existing Glassy settings to preserve. Keep the original file as a backup and remove or disable the old Glass addon so both do not load together.
 
 ## Commands
 
-* `/glass` - open the settings window
-* `/glass lock` - unlock the chat frame
+Use `/gl` to open Glassy. `/glassy` and `/glass` work as aliases for all commands.
+
+| Command | Action |
+| --- | --- |
+| `/gl` | Open settings. |
+| `/gl lock` | Toggle the chat-frame mover. |
+| `/gl debug` | Open a copyable layout report for troubleshooting. |
+
+## Shortcuts
+
+The same reference is available in **/gl → Shortcuts**.
+
+### While typing
+
+| Shortcut | Action |
+| --- | --- |
+| Left / Right | Move the cursor. |
+| Home / End | Jump to the beginning / end. |
+| Ctrl+Left / Right | Move by word. |
+| Ctrl+E | Jump to the end. |
+| Ctrl+W | Delete the previous word. |
+| Ctrl+U | Delete from the cursor to the beginning. |
+| Ctrl+K | Delete from the cursor to the end. |
+| Ctrl+Y | Insert the text last removed by Ctrl+U or Ctrl+K. |
+| Ctrl+A / C / X / V | Select all / copy / cut / paste. |
+| Alt+Up / Down | Browse older / newer sent messages and commands. |
+| Alt + key | Use your WoW keybinding. Release Alt to resume typing. |
+| Shift-click a quest or item | Insert its link while chat is active. |
+
+Ctrl+U, Ctrl+K, and Ctrl+Y are unavailable during Blizzard's chat messaging lockdown.
+
+### Chat tabs and history
+
+| Action | Result |
+| --- | --- |
+| Hover over chat | Reveal faded chat and tabs. |
+| Click a tab | Switch chat windows. |
+| Drag a tab | Reorder it, including General and Combat Log. |
+| Right-click a tab | Open its menu, including Channels, Settings, and the frame mover. |
+| Shift-click a tab | Open that tab's contents for copying; press Ctrl+C to copy to the clipboard. |
+| Mouse wheel over chat | Scroll through retained messages. |
+| Click the return-to-bottom arrow | Return to the newest messages. |
+| Hover over an item link | Show its tooltip. |
+
+## What's new in this fork
+
+- **Chat copying:** a per-tab copy window and configurable retained history.
+- **Combat Log:** Glassy-styled entries, adjustable filter-bar position and appearance, and an option to hide the log while retaining recent events.
+- **Timestamps:** Glassy-owned formatting, optional custom color, and per-tab controls.
+- **Backgrounds:** independent colors and opacity, plus adjustable left/right fades.
+- **Animations:** separate fade and slide easing, an animation preview, and improved interrupted transitions.
+- **Dynamic input space:** optionally let messages use the closed edit box's space, with separate movement and background-fade controls.
+- **Tabs:** drag to reorder, optional active-tab highlighting, and improved overflow and unread-message feedback.
+- **Chat editing:** terminal-style shortcuts and Alt keybindings while typing.
+- **Channels:** open Blizzard's Channels window from a tab's right-click menu.
+- **Emojis:** optional shortcode rendering using ElvUI textures, even with ElvUI Chat disabled.
+- **Compatibility:** detected Prat/ElvUI versions and guidance for conflicting Prat modules.
+- **Reliability:** Classic Era fixes for temporary windows, Combat Log controls, fonts, layout updates, and chat editing; bounded rendering and reduced idle work.
+
+See [latest release notes](LATEST.md) and the [changelog](CHANGELOG.md) for details. In-game notes are available through **What's new** in settings.
 
 ## Customization
 
-Not everyone likes the same look. Glass tries to accommodate your own
-preferences by giving you options to change the:
+Use `/gl` to configure:
 
-* Chat frame width, height, and location
-* Font and font size
-* Message fade out delay
-* Background opacity
+- Frame dimensions and position, shared or per-character profiles.
+- Fonts, sizes, outlines, message spacing, indentation, and inline-icon alignment.
+- Header, message, and input backgrounds with color and opacity controls.
+- Message hold time, fade durations, slide movement, and easing.
+- Edit-box position and optional dynamic message space.
+- Tab appearance, Combat Log visibility, and filter-bar layout.
+- Timestamp formats, colors, and enabled chat windows.
+- Scrollback limits and emoji rendering.
 
-Moreover, unlike the default chat UI, these settings may be shared between
-characters.
+Glassy keeps its visible renderer bounded to 128 messages; the separate **Scrollback lines** setting controls retained history available for copying.
 
-## Addon compatibility
-
-### ElvUI
-
-Glass works with ElvUI, but make sure to disable the Chat module.
+## Compatibility setup
 
 ### Prat 3.0
 
-Glass works with Prat, but make sure to disable the EditBox module.
+Use Prat for message content and persistent history. Let Glassy handle the chat interface.
 
-Prat Timestamps work with Glass but with a caveat. Prat allows you to select
-which tabs to enable timestamps on. This is currently not supported and
-Timestamps will be enabled on all tabs if the Prat Timestamps module is loaded.
-If you want to disable Prat Timestamps, you'll need to set the module to "Don't
-load" (just "Disabled" won't work).
+Disable these Prat UI modules to avoid overlapping controls: **Buttons, ChatTabs, CopyChat, Editbox, Fading, Font, Frames, HoverTips, OriginalButtons, Paragraph, Scroll, Search, and SideTabs**.
 
-Note: WoW's built-in timestamps work with Glass. (Interface -> Social ->
-Timestamps)
+Disable Prat **Timestamps** and configure timestamps in Glassy instead. Leave Prat **History** enabled if you want restored messages after reload/login. Glassy's **Scrollback lines** setting controls its retained line limit; Prat's **Set Chat Lines** value is not used.
 
-### Leatrix Plus
+### ElvUI
 
-Glass works with Leatrix Plus. You might encounter issues when enabling features
-that modify chat behaviour such as "Recent chat window" or "Use easy resizing".
-Switching these features off will resolve issues with Glass.
+Disable **ElvUI → Chat → Enable**, then reload. Keep ElvUI itself enabled for emoji textures. Enable emoji rendering in Glassy if wanted.
 
-## Issues and suggestions
+### Leatrix Plus and other chat addons
 
-Check the [Issue tracker](https://github.com/mixxorz/Glass/issues) on GitHub
-to see if someone else has already reported your issue. If not, leave a comment
-on [CurseForge](https://www.curseforge.com/wow/addons/glass).
+Disable features that move, resize, fade, or replace the same chat frames. In Leatrix Plus, features such as **Recent chat window** and **Use easy resizing** can conflict with Glassy.
 
-## License
+## Reporting problems
 
-MIT License
+Include your WoW version, the error message, and steps to reproduce. For layout issues, include a screenshot and the output of `/gl debug`. Check **Compatibility** for conflicting modules first. Review any copied report before sharing it publicly.
 
-Copyright (c) 2020 Mitchel Cabuloy
+## Development and releases
+
+`Tests/` contains Lua 5.1 regression tests. With the libraries available in `libs/`, run each test in a separate Lua process. `.luacheckrc` configures optional source linting with `luacheck Glassy`.
+
+GitHub Actions checks branch pushes and pull requests by building a package without uploading, validating its contents, compiling the Lua files, and running the regression tests. Tests and development files are excluded from the addon ZIP.
+
+To release:
+
+1. Update the version in `Glassy.toc` and `Glassy/init.lua`, plus `CHANGELOG.md`, `LATEST.md`, and the in-game history in `Glassy/Modules/News.lua`.
+2. Commit and push; wait for the checks to pass.
+3. Create an annotated version tag, such as `git tag -a v1.9.1 -m "Glassy 1.9.1"`, then push that tag with `git push origin v1.9.1`.
+
+The tag workflow publishes one multi-client ZIP to [CurseForge](https://www.curseforge.com/wow/addons/glassy) and [Wago Addons](https://addons.wago.io/addons/glassy), then attaches it to GitHub Releases. It uses the repository's `CF_API_KEY` and `WAGO_API_TOKEN` secrets plus GitHub's automatic token. No separate packaging webhook is needed; enabling one could upload duplicate releases. Branch pushes and manual check runs do not publish.
+
+## Credits and license
+
+Original Glass by mixxorz (Mitchel Cabuloy). Fork maintained by Solessfir.
+
+[MIT License](LICENSE). Original copyright notice retained. Prat and ElvUI are separate projects and are not bundled with this fork.

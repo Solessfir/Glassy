@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest an idea for Glass
+about: Suggest an idea for Glassy
 title: ''
 labels: feature request
 assignees: ''

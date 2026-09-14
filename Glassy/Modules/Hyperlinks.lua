@@ -7,6 +7,7 @@ local HYPERLINK_CLICK = Constants.EVENTS.HYPERLINK_CLICK
 local HYPERLINK_ENTER = Constants.EVENTS.HYPERLINK_ENTER
 local HYPERLINK_LEAVE = Constants.EVENTS.HYPERLINK_LEAVE
 
+-- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
 -- luacheck: push ignore 113
 local BattlePetToolTip_ShowLink = BattlePetToolTip_ShowLink
 local BattlePetTooltip = BattlePetTooltip
@@ -36,7 +37,7 @@ function Hyperlinks:OnEnable()
   -- Custom hyperlink for [See what's new]
   _G.hooksecurefunc("SetItemRef", function(link)
     local linkType, addon, param1 = strsplit(":", link)
-    if linkType == "garrmission" and addon == "Glass" then
+    if linkType == "garrmission" and addon == "Glassy" then
       if param1 == "opennews" then
         Core:Dispatch(OpenNews())
       end

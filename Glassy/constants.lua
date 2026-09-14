@@ -1,19 +1,18 @@
 local _, Constants = unpack(select(2, ...))
 
+-- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
 -- luacheck: push ignore 113
-local WOW_PROJECT_CLASSIC = WOW_PROJECT_CLASSIC
+local WOW_PROJECT_MAINLINE = WOW_PROJECT_MAINLINE
 local WOW_PROJECT_ID = WOW_PROJECT_ID
 -- luacheck: pop
 
 -- Constants
 Constants.DOCK_HEIGHT = 20
-Constants.TEXT_XPADDING = 15
+Constants.COMBAT_LOG_BAR_HEIGHT = 20
+Constants.EDIT_BOX_TRANSITION_DURATION = 0.2
+Constants.TEXT_RIGHT_PADDING = 15
 
-Constants.ENV = "retail"
-
-if WOW_PROJECT_ID == WOW_PROJECT_CLASSIC then
-  Constants.ENV = "classic"
-end
+Constants.ENV = WOW_PROJECT_MAINLINE and WOW_PROJECT_ID == WOW_PROJECT_MAINLINE and "retail" or "classic"
 
 -- Colors
 local function createColor(r, g, b)
@@ -21,27 +20,29 @@ local function createColor(r, g, b)
 end
 
 Constants.COLORS = {
-  black = createColor(0, 0, 0),
-  codGray = createColor(17, 17, 17),
   apache = createColor(223, 186, 105)
 }
 
 -- Events
 Constants.EVENTS = {
-  HYPERLINK_CLICK = "Glass/HYPERLINK_CLICK",
-  HYPERLINK_ENTER = "Glass/HYPERLINK_ENTER",
-  HYPERLINK_LEAVE = "Glass/HYPERLINK_LEAVE",
-  LOCK_MOVER = "Glass/LOCK_MOVER",
-  MOUSE_ENTER = "Glass/MOUSE_ENTER",
-  MOUSE_LEAVE = "Glass/MOUSE_LEAVE",
-  OPEN_NEWS = "Glass/OPEN_NEWS",
-  REFRESH_CONFIG = "Glass/REFRESH_CONFIG",
-  SAVE_FRAME_POSITION = "Glass/SAVE_FRAME_POSITION",
-  UNLOCK_MOVER = "Glass/UNLOCK_MOVER",
-  UPDATE_CONFIG = "Glass/UPDATE_CONFIG",
+  EDIT_BOX_LAYOUT_CHANGED = "Glassy/EDIT_BOX_LAYOUT_CHANGED",
+  HYPERLINK_CLICK = "Glassy/HYPERLINK_CLICK",
+  HYPERLINK_ENTER = "Glassy/HYPERLINK_ENTER",
+  HYPERLINK_LEAVE = "Glassy/HYPERLINK_LEAVE",
+  LOCK_MOVER = "Glassy/LOCK_MOVER",
+  MOUSE_ENTER = "Glassy/MOUSE_ENTER",
+  MOUSE_LEAVE = "Glassy/MOUSE_LEAVE",
+  OPEN_NEWS = "Glassy/OPEN_NEWS",
+  REFRESH_CONFIG = "Glassy/REFRESH_CONFIG",
+  SAVE_FRAME_POSITION = "Glassy/SAVE_FRAME_POSITION",
+  UNLOCK_MOVER = "Glassy/UNLOCK_MOVER",
+  UPDATE_CONFIG = "Glassy/UPDATE_CONFIG",
 }
 
 Constants.ACTIONS = {
+  EditBoxLayoutChanged = function ()
+    return Constants.EVENTS.EDIT_BOX_LAYOUT_CHANGED
+  end,
   HyperlinkClick = function (payload)
     return Constants.EVENTS.HYPERLINK_CLICK, payload
   end,
