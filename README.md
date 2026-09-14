@@ -112,7 +112,7 @@ Use `/gl` to configure:
 - Frame dimensions and position, shared or per-character profiles.
 - Fonts, sizes, outlines, message spacing, indentation, and inline-icon alignment.
 - Header, message, and input backgrounds with color and opacity controls.
-- Message hold time, fade durations, slide movement, and easing.
+- Message hold time, optional reveal while typing, fade durations, slide movement, and easing.
 - Edit-box position and optional dynamic message space.
 - Tab appearance, Combat Log visibility, and filter-bar layout.
 - Timestamp formats, colors, and enabled chat windows.
@@ -125,6 +125,8 @@ Glassy keeps its visible renderer bounded to 128 messages; the separate **Scroll
 ### Prat 3.0
 
 Use Prat for message content and persistent history. Let Glassy handle the chat interface.
+
+Recommended Prat modules: **ChannelNames, Highlight, History, Invites, LinkInfoIcons, PlayerNames, and UrlCopy**.
 
 Disable these Prat UI modules to avoid overlapping controls: **Buttons, ChatTabs, CopyChat, Editbox, Fading, Font, Frames, HoverTips, OriginalButtons, Paragraph, Scroll, Search, and SideTabs**.
 
@@ -150,7 +152,7 @@ GitHub Actions checks branch pushes and pull requests by building a package with
 
 To release:
 
-1. Update the version in `Glassy.toc` and `Glassy/init.lua`, plus `CHANGELOG.md`, `LATEST.md`, and the in-game history in `Glassy/Modules/News.lua`.
+1. Update the version in `Glassy.toc`, then update `CHANGELOG.md`, `LATEST.md`, and the in-game history in `Glassy/Modules/News.lua` for that version.
 2. Commit and push; wait for the checks to pass.
 3. Create an annotated version tag, such as `git tag -a v1.9.1 -m "Glassy 1.9.1"`, then push that tag with `git push origin v1.9.1`.
 
