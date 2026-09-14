@@ -1,6 +1,7 @@
 local Core, Constants = unpack(select(2, ...))
 
 local Colors = Constants.COLORS
+local L = function(text) return Core:Localize(text) end
 local UPDATE_CONFIG = Constants.EVENTS.UPDATE_CONFIG
 
 -- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
@@ -40,7 +41,7 @@ function NewMessageAlertFrameMixin:Init()
     end
     self.text:ClearAllPoints()
     self.text:SetPoint("LEFT", self:GetParent().icon, "RIGHT", 5, 0)
-    self.text:SetText("Unread messages")
+    self.text:SetText(L("Unread messages"))
     self:SetHighlighted(false)
     self:UpdateLayout()
 

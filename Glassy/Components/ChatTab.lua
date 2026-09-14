@@ -3,6 +3,7 @@ local Core, Constants, Utils = unpack(select(2, ...))
 local AceHook = Core.Libs.AceHook
 
 local UnlockMover = Constants.ACTIONS.UnlockMover
+local L = function(text) return Core:Localize(text) end
 
 local Colors = Constants.COLORS
 
@@ -179,10 +180,10 @@ function ChatTabMixin:Init(slidingMessageFrame, dock)
       if Core.db.profile.chatTabTooltips then
         GameTooltip:SetOwner(self, "ANCHOR_TOPLEFT")
         GameTooltip:SetText(self.Text:GetText() or self.chatFrame:GetName(), 1, 1, 1)
-        GameTooltip:AddLine("Click to select", 0.8, 0.8, 0.8)
-        GameTooltip:AddLine("Drag to reorder", 0.8, 0.8, 0.8)
-        GameTooltip:AddLine("Shift-click to copy", 0.8, 0.8, 0.8)
-        GameTooltip:AddLine("Right-click for chat options", 0.8, 0.8, 0.8)
+        GameTooltip:AddLine(L("Click to select"), 0.8, 0.8, 0.8)
+        GameTooltip:AddLine(L("Drag to reorder"), 0.8, 0.8, 0.8)
+        GameTooltip:AddLine(L("Shift-click to copy"), 0.8, 0.8, 0.8)
+        GameTooltip:AddLine(L("Right-click for chat options"), 0.8, 0.8, 0.8)
         GameTooltip:Show()
       end
     end)

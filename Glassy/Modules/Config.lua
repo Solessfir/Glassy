@@ -6,6 +6,7 @@ local AceConfigDialog = Core.Libs.AceConfigDialog
 local AceDBOptions = Core.Libs.AceDBOptions
 local AceGUI = Core.Libs.AceGUI
 local LSM = Core.Libs.LSM
+local L = function(text) return Core:Localize(text) end
 local MAX_ACTIVE_TAB_HIGHLIGHT = 1
 local MAX_COMBAT_LOG_BAR_OFFSET = 500
 local MIN_FRAME_HEIGHT = 100
@@ -54,16 +55,16 @@ local function previewAnimations()
 end
 
 local ANCHORS = {
-  ["TOPLEFT"] = "Top left",
-  ["TOPRIGHT"] = "Top right",
-  ["BOTTOMLEFT"] = "Bottom left",
-  ["BOTTOMRIGHT"] = "Bottom right"
+  ["TOPLEFT"] = L("Top left"),
+  ["TOPRIGHT"] = L("Top right"),
+  ["BOTTOMLEFT"] = L("Bottom left"),
+  ["BOTTOMRIGHT"] = L("Bottom right")
 }
-local FLAGS = { [""] = "None", ["OUTLINE"] = "Outline", ["OUTLINE, MONOCHROME"] = "Outline Monochrome" }
+local FLAGS = { [""] = L("None"), ["OUTLINE"] = L("Outline"), ["OUTLINE, MONOCHROME"] = L("Outline Monochrome") }
 local COMBAT_LOG_BAR_POSITIONS = {
-  ABOVE = "Above tabs",
-  BELOW = "Below tabs",
-  HIDDEN = "Hidden",
+  ABOVE = L("Above tabs"),
+  BELOW = L("Below tabs"),
+  HIDDEN = L("Hidden"),
 }
 local TIMESTAMP_FORMATS = {
   ["[%H:%M]"] = "[23:59]",
@@ -72,13 +73,13 @@ local TIMESTAMP_FORMATS = {
   ["[%I:%M:%S %p]"] = "[11:59:59 PM]",
 }
 local EASING_VALUES = {
-  Linear = "Linear",
-  InCubic = "Ease in",
-  OutCubic = "Ease out",
-  InOutCubic = "Ease in/out",
-  OutBack = "Overshoot",
-  OutBounce = "Bounce",
-  OutElastic = "Elastic",
+  Linear = L("Linear"),
+  InCubic = L("Ease in"),
+  OutCubic = L("Ease out"),
+  InOutCubic = L("Ease in/out"),
+  OutBack = L("Overshoot"),
+  OutBounce = L("Bounce"),
+  OutElastic = L("Elastic"),
 }
 local EASING_SORTING = {
   "Linear",
@@ -787,8 +788,8 @@ function C:OnEnable()
                   type = "select",
                   order = 2.1,
                   values = {
-                    ABOVE = "Above chat",
-                    BELOW = "Below chat",
+                    ABOVE = L("Above chat"),
+                    BELOW = L("Below chat"),
                   },
                   get = function ()
                     return Core.db.profile.editBoxAnchor.position
@@ -1574,6 +1575,7 @@ function C:OnEnable()
   }
 
   options.args.profile.order = 7
+  Core:LocalizeOptions(options)
 
   AceConfig:RegisterOptionsTable("Glassy", options)
   AceConfigDialog:SetDefaultSize("Glassy", 900, 650)
@@ -1648,17 +1650,17 @@ local debugTextBox
 local function showDebugReport(report)
   if debugFrame == nil then
     debugFrame = AceGUI:Create("Frame")
-    debugFrame:SetTitle("Glassy: Debug report")
+    debugFrame:SetTitle(L("Glassy: Debug report"))
     debugFrame:SetWidth(760)
     debugFrame:SetHeight(420)
-    debugFrame:SetStatusText("Press Ctrl+C to copy, then close this window.")
+    debugFrame:SetStatusText(L("Press Ctrl+C to copy, then close this window."))
     debugFrame:SetCallback("OnClose", function(widget)
       widget:Hide()
     end)
     debugFrame:SetLayout("Fill")
 
     debugTextBox = AceGUI:Create("MultiLineEditBox")
-    debugTextBox:SetLabel("All text is selected")
+    debugTextBox:SetLabel(L("All text is selected"))
     debugTextBox:DisableButton(true)
     debugFrame:AddChild(debugTextBox)
   end

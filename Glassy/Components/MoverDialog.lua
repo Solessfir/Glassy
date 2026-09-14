@@ -1,6 +1,7 @@
 local Core, Constants = unpack(select(2, ...))
 
 local LockMover = Constants.ACTIONS.LockMover
+local L = function(text) return Core:Localize(text) end
 
 local LOCK_MOVER = Constants.EVENTS.LOCK_MOVER
 local UNLOCK_MOVER = Constants.EVENTS.UNLOCK_MOVER
@@ -54,10 +55,10 @@ function MoverDialogMixin:Init()
   self.desc:SetJustifyH("LEFT")
   self.desc:SetPoint("TOPLEFT", 18, -32)
   self.desc:SetPoint("BOTTOMRIGHT", -18, 48)
-  self.desc:SetText("Chat frame unlocked. You can now drag the chat frame to reposition it.")
+  self.desc:SetText(L("Chat frame unlocked. You can now drag the chat frame to reposition it."))
 
   self.lockButton = CreateFrame("Button", nil, self, "OptionsButtonTemplate")
-  self.lockButton:SetText("Lock")
+  self.lockButton:SetText(L("Lock"))
   self.lockButton:SetScript("OnClick", function()
     Core:Dispatch(LockMover())
   end)

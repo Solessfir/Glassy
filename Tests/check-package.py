@@ -14,6 +14,8 @@ assert re.search(rf"^# {re.escape(version)} \(\d{{4}}-\d{{2}}-\d{{2}}\)$", (sour
 assert f' name = "{version} (' in (source / "Glassy/Modules/News.lua").read_text(), "In-game release notes mismatch"
 assert "## X-Curse-Project-ID: 1695833" in toc, "Incorrect CurseForge project"
 assert "## X-Wago-ID: qGYZPRNg" in toc, "Incorrect Wago project"
+for locale in ("deDE", "esES", "frFR", "itIT", "koKR", "ptBR", "ruRU", "zhCN", "zhTW"):
+    assert (package / f"Glassy/Locales/{locale}.lua").is_file(), f"Missing {locale} locale"
 tag = os.environ.get("RELEASE_TAG", "")
 if tag:
     assert tag == f"v{version}", f"Tag {tag!r} does not match version {version!r}"

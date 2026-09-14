@@ -1,6 +1,7 @@
 local Core, Constants, Utils = unpack(select(2, ...))
 
 local CreateNewMessageAlertFrame = Core.Components.CreateNewMessageAlertFrame
+local L = function(text) return Core:Localize(text) end
 
 local super = Utils.super
 local UPDATE_CONFIG = Constants.EVENTS.UPDATE_CONFIG
@@ -101,7 +102,7 @@ function ScrollOverlayFrame:Init()
       self.icon:SetAlpha(1)
       self.newMessageAlertFrame:SetHighlighted(true)
       GameTooltip:SetOwner(self.snapToBottomFrame, "ANCHOR_TOPLEFT")
-      GameTooltip:SetText("Jump to latest message", 1, 1, 1)
+      GameTooltip:SetText(L("Jump to latest message"), 1, 1, 1)
       GameTooltip:Show()
     end)
     self.snapToBottomFrame:SetScript("OnLeave", function ()

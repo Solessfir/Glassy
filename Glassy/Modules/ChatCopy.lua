@@ -2,6 +2,7 @@ local Core = unpack(select(2, ...))
 local ChatCopy = Core:GetModule("ChatCopy")
 
 local AceGUI = Core.Libs.AceGUI
+local L = function(text) return Core:Localize(text) end
 local MAX_COPY_BYTES = 60000
 
 -- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
@@ -40,7 +41,7 @@ local function getFrameLabel(chatFrame)
   local label = tab and tab.Text and tab.Text:GetText()
 
   if label == nil or label == "" then
-    label = chatFrame and chatFrame:GetName() or "Chat"
+    label = chatFrame and chatFrame:GetName() or L("Chat")
   end
 
   return label
@@ -71,10 +72,10 @@ local function readChatFrame(chatFrame)
 
   if #reverseLines == 0 then
     if count > 0 then
-      return "The newest chat message exceeds Glassy's 60,000-character copy limit."
+      return L("The newest chat message exceeds Glassy's 60,000-character copy limit.")
     end
 
-    return "This chat tab has no messages to copy."
+    return L("This chat tab has no messages to copy.")
   end
 
   local lines = {}
@@ -93,14 +94,14 @@ local function ensureCopyWindow()
   copyFrame = AceGUI:Create("Frame")
   copyFrame:SetWidth(760)
   copyFrame:SetHeight(500)
-  copyFrame:SetStatusText("Press Ctrl+C to copy, then close this window.")
+  copyFrame:SetStatusText(L("Press Ctrl+C to copy, then close this window."))
   copyFrame:SetCallback("OnClose", function(widget)
     widget:Hide()
   end)
   copyFrame:SetLayout("Fill")
 
   copyTextBox = AceGUI:Create("MultiLineEditBox")
-  copyTextBox:SetLabel("All text is selected")
+  copyTextBox:SetLabel(L("All text is selected"))
   copyTextBox:DisableButton(true)
   copyFrame:AddChild(copyTextBox)
 end
@@ -112,7 +113,7 @@ function ChatCopy:Show(chatFrame)
   end
 
   ensureCopyWindow()
-  copyFrame:SetTitle("Glassy: Copy chat — "..getFrameLabel(chatFrame))
+  copyFrame:SetTitle(L("Glassy: Copy chat — ")..getFrameLabel(chatFrame))
   copyTextBox:SetText(readChatFrame(chatFrame))
   copyFrame:Show()
   copyTextBox:SetFocus()

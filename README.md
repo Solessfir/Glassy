@@ -29,6 +29,8 @@ Custom fonts require an addon that registers them with LibSharedMedia, such as S
 
 The current TOC accepts Classic Era `11509`, Burning Crusade Anniversary `20506`, Mists of Pandaria Classic `50504`, and Retail `120100`. All four clients have been tested in game, including Retail Combat Log tab switching and filter buttons. Future clients will need validation when available.
 
+The interface is localized for English, German, Spanish (EU and Latin America), French, Italian, Korean, Brazilian Portuguese, Russian, Simplified Chinese, and Traditional Chinese. WoW selects the language automatically from the game client locale. The archived release-note prose in **What's new** remains in its original English rather than being partially translated.
+
 On Retail, protected message text is passed directly to Blizzard's text renderer without applying Glassy timestamps or emojis. Protected contents are represented as `<protected>` in copied chat. Blizzard's chat messaging restrictions still apply.
 
 Retail keeps Blizzard's selected tab at login. Dragging a tab changes its position without selecting it; click the tab to select it. This keeps Combat Log filter updates in Blizzard's secure click handler.

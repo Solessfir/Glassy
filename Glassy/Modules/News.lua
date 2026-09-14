@@ -2,6 +2,7 @@ local Core, Constants = unpack(select(2, ...))
 local News = Core:GetModule("News")
 
 local AceGUI = Core.Libs.AceGUI
+local L = function(text) return Core:Localize(text) end
 
 local OPEN_NEWS = Constants.EVENTS.OPEN_NEWS
 

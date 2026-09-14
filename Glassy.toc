@@ -5,6 +5,16 @@
 
 ## Title: |c00DFBA69Glassy|r
 ## Notes: Immersive and minimalistic chat UI.
+## Notes-deDE: Immersive und minimalistische Chat-Oberfläche.
+## Notes-esES: Interfaz de chat inmersiva y minimalista.
+## Notes-esMX: Interfaz de chat inmersiva y minimalista.
+## Notes-frFR: Interface de discussion immersive et minimaliste.
+## Notes-itIT: Interfaccia chat immersiva e minimalista.
+## Notes-koKR: 몰입감 있고 간결한 채팅 UI입니다.
+## Notes-ptBR: Interface de bate-papo imersiva e minimalista.
+## Notes-ruRU: Иммерсивный минималистичный интерфейс чата.
+## Notes-zhCN: 沉浸式极简聊天界面。
+## Notes-zhTW: 沉浸式極簡聊天介面。
 ## IconTexture: Interface\AddOns\Glassy\Media\Icon
 ## Category-enUS: Chat
 ## Category-deDE: Chat
@@ -40,6 +50,16 @@ libs\LibEasing\LibEasing.lua
 
 # Glassy
 Glassy\init.lua
+Glassy\Localization.lua
+Glassy\Locales\deDE.lua
+Glassy\Locales\esES.lua
+Glassy\Locales\frFR.lua
+Glassy\Locales\itIT.lua
+Glassy\Locales\koKR.lua
+Glassy\Locales\ptBR.lua
+Glassy\Locales\ruRU.lua
+Glassy\Locales\zhCN.lua
+Glassy\Locales\zhTW.lua
 Glassy\constants.lua
 Glassy\utils.lua
 
