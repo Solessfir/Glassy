@@ -1087,6 +1087,19 @@ function C:OnEnable()
                     Core.db.profile.chatShowOnMouseOver = input
                   end,
                 },
+                chatShowWhileTyping = {
+                  name = "Show while typing",
+                  desc = "Reveal faded chat messages while the chat input is open.\nDefault: off",
+                  type = "toggle",
+                  order = 2.3,
+                  get = function ()
+                    return Core.db.profile.chatShowWhileTyping
+                  end,
+                  set = function (_, input)
+                    Core.db.profile.chatShowWhileTyping = input
+                    Core:Dispatch(UpdateConfig("chatShowWhileTyping"))
+                  end,
+                },
               },
             },
             section3 = {

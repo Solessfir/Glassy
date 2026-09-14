@@ -5,6 +5,7 @@ local LibEasing = Core.Libs.LibEasing
 local super = Utils.super
 
 local EditBoxLayoutChanged = Constants.ACTIONS.EditBoxLayoutChanged
+local EditBoxVisibilityChanged = Constants.ACTIONS.EditBoxVisibilityChanged
 local UPDATE_CONFIG = Constants.EVENTS.UPDATE_CONFIG
 
 -- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
@@ -131,6 +132,7 @@ function EditBoxMixin:ShowEntry(continueTransition)
   end
 
   self.glassyEntryVisible = true
+  Core:Dispatch(EditBoxVisibilityChanged(true))
   if self.glassyInitialized then
     if not continueTransition then
       self:StopBackgroundAlphaTransition()
@@ -325,6 +327,7 @@ function EditBoxMixin:Init(parent)
     self:SetBackgroundAlpha(1)
     if self.glassyEntryVisible then
       self.glassyEntryVisible = false
+      Core:Dispatch(EditBoxVisibilityChanged(false))
       self:UpdateDynamicMessageArea()
     end
   end)
@@ -351,6 +354,7 @@ function EditBoxMixin:Init(parent)
     local messageAreaChanged = self.glassyEntryVisible
     if messageAreaChanged then
       self.glassyEntryVisible = false
+      Core:Dispatch(EditBoxVisibilityChanged(false))
     end
     self.header:Hide()
     if self.headerSuffix then
@@ -415,6 +419,7 @@ function EditBoxMixin:Init(parent)
   end)
 
   self.glassyEntryVisible = self:IsShown()
+  Core:Dispatch(EditBoxVisibilityChanged(self.glassyEntryVisible))
   self:UpdateDynamicMessageArea()
   C_Timer.After(0, function ()
     self.glassyInitialized = true

@@ -26,6 +26,7 @@ Constants.COLORS = {
 -- Events
 Constants.EVENTS = {
   EDIT_BOX_LAYOUT_CHANGED = "Glassy/EDIT_BOX_LAYOUT_CHANGED",
+  EDIT_BOX_VISIBILITY_CHANGED = "Glassy/EDIT_BOX_VISIBILITY_CHANGED",
   HYPERLINK_CLICK = "Glassy/HYPERLINK_CLICK",
   HYPERLINK_ENTER = "Glassy/HYPERLINK_ENTER",
   HYPERLINK_LEAVE = "Glassy/HYPERLINK_LEAVE",
@@ -42,6 +43,9 @@ Constants.EVENTS = {
 Constants.ACTIONS = {
   EditBoxLayoutChanged = function ()
     return Constants.EVENTS.EDIT_BOX_LAYOUT_CHANGED
+  end,
+  EditBoxVisibilityChanged = function (visible)
+    return Constants.EVENTS.EDIT_BOX_VISIBILITY_CHANGED, visible
   end,
   HyperlinkClick = function (payload)
     return Constants.EVENTS.HYPERLINK_CLICK, payload

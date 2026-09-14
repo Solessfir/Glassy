@@ -112,6 +112,7 @@ Core.defaults = {
 
     chatHoldTime = 10,
     chatShowOnMouseOver = true,
+    chatShowWhileTyping = false,
     chatFadeInDuration = 0.6,
     chatFadeOutDuration = 0.6,
     chatFadeEasing = "OutCubic",

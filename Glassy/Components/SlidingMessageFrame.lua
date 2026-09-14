@@ -9,6 +9,7 @@ local CreateMessageLinePool = Core.Components.CreateMessageLinePool
 local CreateScrollOverlayFrame = Core.Components.CreateScrollOverlayFrame
 
 local EDIT_BOX_LAYOUT_CHANGED = Constants.EVENTS.EDIT_BOX_LAYOUT_CHANGED
+local EDIT_BOX_VISIBILITY_CHANGED = Constants.EVENTS.EDIT_BOX_VISIBILITY_CHANGED
 local MOUSE_ENTER = Constants.EVENTS.MOUSE_ENTER
 local MOUSE_LEAVE = Constants.EVENTS.MOUSE_LEAVE
 local UPDATE_CONFIG = Constants.EVENTS.UPDATE_CONFIG
@@ -271,6 +272,23 @@ function SlidingMessageFrameMixin:ScheduleVisibleMessageHides()
   self:ScheduleMessageHides(self.state.messages)
 end
 
+function SlidingMessageFrameMixin:SetTyping(visible)
+  local typing = not not (visible and Core.db.profile.chatShowWhileTyping)
+  if self.state.typing == typing then
+    return
+  end
+
+  self.state.typing = typing
+  if typing then
+    self:CancelMessageHideTimer(true)
+    for _, message in ipairs(self.state.messages) do
+      message:Show()
+    end
+  elseif not self.state.mouseOver then
+    self:ScheduleVisibleMessageHides()
+  end
+end
+
 function SlidingMessageFrameMixin:SyncNativeChatVisibility()
   local shown = self.chatFrame:IsShown() and not (self.state.isCombatLog and isCombatLogHidden())
   if shown then
@@ -337,6 +355,7 @@ function SlidingMessageFrameMixin:Init(chatFrame)
   }
   self.state = {
     mouseOver = false,
+    typing = false,
     showingTooltip = false,
     prevEasingHandle = nil,
     editBoxEasingHandle = nil,
@@ -637,7 +656,12 @@ function SlidingMessageFrameMixin:Init(chatFrame)
         self.state.mouseOver = false
 
         self.overlay:HideDelay(Core.db.profile.chatHoldTime)
-        self:ScheduleVisibleMessageHides()
+        if not self.state.typing then
+          self:ScheduleVisibleMessageHides()
+        end
+      end),
+      Core:Subscribe(EDIT_BOX_VISIBILITY_CHANGED, function (visible)
+        self:SetTyping(visible)
       end),
       Core:Subscribe(UPDATE_CONFIG, function (key)
         if key == "combatLogVisibility" and self.state.isCombatLog then
@@ -648,6 +672,11 @@ function SlidingMessageFrameMixin:Init(chatFrame)
           for _, message in ipairs(self.state.messages) do
             message:UpdateFadeSettings()
           end
+        end
+
+        if key == "chatShowWhileTyping" then
+          local editBox = _G.ChatFrame1EditBox
+          self:SetTyping(editBox and editBox.glassyEntryVisible)
         end
 
         if key == "editBoxEasing" and self.state.editBoxEasingHandle then
@@ -1106,7 +1135,7 @@ function SlidingMessageFrameMixin:Update(incoming, reverse)
   for _, message in ipairs(newMessages) do
     message:Show()
   end
-  if not self.state.mouseOver then
+  if not self.state.mouseOver and not self.state.typing then
     self:ScheduleMessageHides(newMessages)
   else
     local previews = {}
