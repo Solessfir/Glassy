@@ -34,6 +34,13 @@ local function getLeftTextPadding()
   return math.max(0, tonumber(Core.db.profile.textLeftPadding) or Core.defaults.profile.textLeftPadding)
 end
 
+local function getVerticalPadding()
+  return math.max(
+    0,
+    tonumber(Core.db.profile.editBoxVerticalPadding) or Core.defaults.profile.editBoxVerticalPadding
+  )
+end
+
 local function getBackgroundEasing()
   local easing = LibEasing[Core.db.profile.editBoxBackgroundEasing]
   return type(easing) == "function" and easing or LibEasing.OutCubic
@@ -184,7 +191,8 @@ function EditBoxMixin:GetReusableMessageHeight()
   end
 
   local yOffset = tonumber(Core.db.profile.editBoxAnchor.yOfs) or 0
-  return math.max(0, self:GetHeight() - yOffset)
+  local bottomPadding = self.header:GetLineHeight() * getVerticalPadding()
+  return math.max(0, self:GetHeight() - yOffset - bottomPadding)
 end
 
 function EditBoxMixin:UpdateDynamicMessageArea()
@@ -254,11 +262,11 @@ function EditBoxMixin:Init(parent)
   end
   self:UpdateMessageSeparator()
 
-  local Ypadding = self.header:GetLineHeight() * 0.66
+  local Ypadding = self.header:GetLineHeight() * getVerticalPadding()
   self:SetHeight(self.header:GetLineHeight() + Ypadding * 2)
 
   self.glassyHooks:RawHook(self, "SetTextInsets", function ()
-    Ypadding = self.header:GetLineHeight() * 0.66
+    Ypadding = self.header:GetLineHeight() * getVerticalPadding()
     self.glassyHooks.hooks[self].SetTextInsets(
       self,
       self.header:GetStringWidth() + getLeftTextPadding(),
@@ -408,8 +416,8 @@ function EditBoxMixin:Init(parent)
   end, true)
 
   Core:Subscribe(UPDATE_CONFIG, function (key)
-    if key == "font" or key == "editBoxFontSize" then
-      Ypadding = self.header:GetLineHeight() * 0.66
+    if key == "font" or key == "editBoxFontSize" or key == "editBoxVerticalPadding" then
+      Ypadding = self.header:GetLineHeight() * getVerticalPadding()
       self:SetHeight(self.header:GetLineHeight() + Ypadding * 2)
       self:SetTextInsets()
     end
@@ -452,6 +460,7 @@ function EditBoxMixin:Init(parent)
       key == "font" or
       key == "frameWidth" or
       key == "editBoxFontSize" or
+      key == "editBoxVerticalPadding" or
       key == "editBoxAnchor" or
       key == "dynamicEditBox"
     ) then

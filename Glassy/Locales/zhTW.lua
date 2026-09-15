@@ -10,7 +10,7 @@ Core:RegisterCompactTranslations("zhTW", {
   BOTTOM_LEFT="左下", BOTTOM_RIGHT="右下", NONE="無", OUTLINE="外框", OUTLINE_MONOCHROME="單色外框",
   ABOVE_TABS="分頁上方", BELOW_TABS="分頁下方", HIDDEN="隱藏", LINEAR="線性", EASE_IN="漸入", EASE_OUT="漸出",
   EASE_IN_OUT="漸入/漸出", OVERSHOOT="回擺", BOUNCE="彈跳", ELASTIC="彈性", EDIT_BOX="輸入框",
-  FONT_SIZE="字型大小", BACKGROUND="背景", BACKGROUND_EASING="背景動畫", PLACEMENT="位置", ATTACH="附加",
+  FONT_SIZE="字型大小", EDIT_VERTICAL_PADDING="垂直內距", EDIT_VERTICAL_PADDING_DESC="依行高比例在輸入文字上下加入間距。\n預設值：", BACKGROUND="背景", BACKGROUND_EASING="背景動畫", PLACEMENT="位置", ATTACH="附加",
   ABOVE_CHAT="聊天框上方", BELOW_CHAT="聊天框下方", DYNAMIC_MESSAGE_AREA="動態訊息區域", EDIT_BOX_MESSAGE_SEPARATOR="分隔線", MOVEMENT_EASING="移動動畫",
   SHORTCUTS="快速鍵", WHILE_TYPING="輸入時", SENT_MESSAGE_HISTORY="已傳送訊息記錄", WOW_KEYBINDINGS="輸入時使用 WoW 按鍵",
   COPYING_CHAT="複製聊天", MOVE_CURSOR="移動游標。", JUMP_BEGIN_END="跳到開頭 / 結尾。", MOVE_BY_WORD="依單字移動。",

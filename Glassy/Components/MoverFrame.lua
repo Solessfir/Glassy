@@ -46,6 +46,49 @@ function MoverFrameMixin:ScheduleBoundsUpdate()
   end)
 end
 
+function MoverFrameMixin:UpdateLayoutBounds()
+  if self.layoutContainer == nil or self.layoutEditBox == nil then
+    return
+  end
+
+  local editBoxHeight = self.layoutEditBox:GetHeight() or 0
+  local editBoxOffset = tonumber(Core.db.profile.editBoxAnchor.yOfs) or 0
+  local editBoxPosition = Core.db.profile.editBoxAnchor.position
+  local attachedExtent
+  if editBoxPosition == "ABOVE" then
+    attachedExtent = math.max(0, editBoxHeight + editBoxOffset)
+  else
+    attachedExtent = math.max(0, editBoxHeight - editBoxOffset)
+  end
+
+  self:SetHeight(Core.db.profile.frameHeight + attachedExtent)
+  self.layoutContainer:ClearAllPoints()
+  if editBoxPosition == "ABOVE" then
+    self.layoutContainer:SetPoint("TOPLEFT", self, "TOPLEFT", 0, -attachedExtent)
+  else
+    self.layoutContainer:SetPoint("TOPLEFT", self, "TOPLEFT")
+  end
+  self:ScheduleBoundsUpdate()
+end
+
+function MoverFrameMixin:ScheduleLayoutBoundsUpdate()
+  if self.layoutUpdateScheduled then
+    return
+  end
+
+  self.layoutUpdateScheduled = true
+  C_Timer.After(0, function ()
+    self.layoutUpdateScheduled = false
+    self:UpdateLayoutBounds()
+  end)
+end
+
+function MoverFrameMixin:SetLayoutRegions(container, editBox)
+  self.layoutContainer = container
+  self.layoutEditBox = editBox
+  self:UpdateLayoutBounds()
+end
+
 function MoverFrameMixin:UpdateBounds()
   local moverLeft = self:GetLeft()
   local moverTop = self:GetTop()
@@ -91,7 +134,7 @@ function MoverFrameMixin:Init()
     Core.db.profile.positionAnchor.yOfs
   )
   self:SetWidth(Core.db.profile.frameWidth)
-  -- Preserve the established mover anchor geometry so existing saved positions do not shift.
+  -- Use the former fixed reserve until the edit box is available and its actual extent can be measured.
   self:SetHeight(Core.db.profile.frameHeight + LEGACY_EDIT_BOX_MARGIN)
 
   self.boundsFrame = CreateFrame("Frame", nil, self)
@@ -175,7 +218,7 @@ function MoverFrameMixin:Init()
           self:SetWidth(Core.db.profile.frameWidth)
         end
 
-        if (key == "frameHeight") then
+        if key == "frameHeight" and self.layoutEditBox == nil then
           self:SetHeight(Core.db.profile.frameHeight + LEGACY_EDIT_BOX_MARGIN)
         end
 
@@ -194,11 +237,12 @@ function MoverFrameMixin:Init()
           key == "framePosition" or
           key == "font" or
           key == "editBoxFontSize" or
+          key == "editBoxVerticalPadding" or
           key == "editBoxAnchor" or
           key == "combatLogVisibility" or
           key == "combatLogBarLayout"
         ) then
-          self:ScheduleBoundsUpdate()
+          self:ScheduleLayoutBoundsUpdate()
         end
       end),
     }

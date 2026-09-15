@@ -13,7 +13,8 @@ local MAX_TAB_MESSAGE_OFFSET = 50
 local MAX_COMBAT_LOG_BAR_OFFSET = 500
 local MIN_FRAME_HEIGHT = 100
 local MAX_TEXT_LEFT_PADDING = 100
-local CURRENT_SETTINGS_VERSION = 2
+local MAX_EDIT_BOX_VERTICAL_PADDING = 2
+local CURRENT_SETTINGS_VERSION = 3
 
 local OpenNews = Constants.ACTIONS.OpenNews
 local LockMover = Constants.ACTIONS.LockMover
@@ -349,6 +350,9 @@ local function migrateSettings()
   if version < 2 and rawget(profile, "tabMessageSpacing") == 5 then
     profile.tabMessageSpacing = nil
   end
+  if version < 3 and rawget(profile, "editBoxVerticalPadding") == 0.35 then
+    profile.editBoxVerticalPadding = nil
+  end
   profile.settingsVersion = CURRENT_SETTINGS_VERSION
 end
 
@@ -384,6 +388,12 @@ end
 
 local function normalizeEditBox()
   Core.db.profile.dynamicEditBox = Core.db.profile.dynamicEditBox ~= false
+  local padding = tonumber(Core.db.profile.editBoxVerticalPadding) or
+    Core.defaults.profile.editBoxVerticalPadding
+  Core.db.profile.editBoxVerticalPadding = math.max(
+    0,
+    math.min(MAX_EDIT_BOX_VERTICAL_PADDING, padding)
+  )
 end
 
 local function normalizeCombatLogBar()
@@ -828,6 +838,24 @@ function C:OnEnable()
                     Core:Dispatch(UpdateConfig("editBoxFontSize"))
                   end,
                   order = 1.1,
+                },
+                editBoxVerticalPadding = {
+                  name = "Vertical padding",
+                  desc = "Adds space above and below typed text as a fraction of the line height.\nDefault: "..
+                    Core.defaults.profile.editBoxVerticalPadding.."\nMin: 0\nMax: "..MAX_EDIT_BOX_VERTICAL_PADDING,
+                  type = "range",
+                  min = 0,
+                  max = MAX_EDIT_BOX_VERTICAL_PADDING,
+                  softMax = 1,
+                  step = 0.05,
+                  get = function ()
+                    return Core.db.profile.editBoxVerticalPadding
+                  end,
+                  set = function (_, input)
+                    Core.db.profile.editBoxVerticalPadding = input
+                    Core:Dispatch(UpdateConfig("editBoxVerticalPadding"))
+                  end,
+                  order = 1.2,
                 },
                 editBoxBackgroundColor = {
                   name = "Background",
@@ -1958,6 +1986,7 @@ function C:RefreshConfig()
 
   -- Edit box
   Core:Dispatch(UpdateConfig("editBoxFontSize"))
+  Core:Dispatch(UpdateConfig("editBoxVerticalPadding"))
   Core:Dispatch(UpdateConfig("editBoxBackgroundColor"))
   Core:Dispatch(UpdateConfig("editBoxMessageSeparatorColor"))
   Core:Dispatch(UpdateConfig("editBoxBackgroundEasing"))

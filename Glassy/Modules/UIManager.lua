@@ -139,6 +139,7 @@ function UIManager:OnEnable()
   self.container:AddHoverRegion(self.editBox)
   self.container:AddHoverRegion(self.editBox.dynamicMessageArea)
   self.moverFrame:AddBoundsRegion(self.editBox)
+  self.moverFrame:SetLayoutRegions(self.container, self.editBox)
 
   -- Fix Battle.net Toast frame position
   if ChatAlertFrame then

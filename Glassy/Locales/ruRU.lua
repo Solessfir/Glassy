@@ -73,6 +73,8 @@ Core:RegisterTranslations("ruRU", {
   ELASTIC = "Упруго",
   EDIT_BOX = "Поле ввода",
   FONT_SIZE = "Размер шрифта",
+  EDIT_VERTICAL_PADDING = "Вертикальный отступ",
+  EDIT_VERTICAL_PADDING_DESC = "Добавляет отступ над и под вводимым текстом как долю высоты строки.\nПо умолчанию: ",
   EDIT_FONT_SIZE_DESC = "Размер набираемого текста и метки типа чата.\nПо умолчанию: ",
   MESSAGE_FONT_SIZE_DESC = "Размер шрифта сообщений чата.\nПо умолчанию: ",
   BACKGROUND = "Фон",
