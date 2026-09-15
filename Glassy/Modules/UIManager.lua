@@ -103,6 +103,9 @@ function UIManager:OnEnable()
   end
 
   self.dock:RestoreSelectedTab(initiallyShownChatFrame)
+  -- Restoring Blizzard's selected chat window can show the dock again.
+  -- Start with only chat messages visible; hovering chat will reveal the tabs.
+  self.dock:QuickHide()
 
   local function initializeCombatLogBar()
     if self.combatLogBar then
