@@ -3,8 +3,10 @@
 ## 1.9.3 (Unreleased)
 
 * Consolidate normal, temporary, and detached chat-window state into one lifecycle-managed record per Blizzard chat frame.
-* Split chat rendering initialization, UI startup, and settings-page construction into focused functions without changing behavior.
-* Add regression coverage for chat-window registration, detaching, resizing, tab replacement, redocking, cleanup, and reopening.
+* Split settings into profile, appearance, message, and support page modules while keeping migration, registration, commands, and diagnostics in the configuration core.
+* Separate message rendering, layout, and Blizzard chat integration into focused SlidingMessageFrame modules.
+* Separate chat-dock lifecycle, tab overflow and dragging, and detached-window behavior into focused components.
+* Add regression coverage for configuration load order and chat-window registration, detaching, resizing, tab replacement, redocking, cleanup, and reopening.
 
 ## 1.9.2 (2026-09-19)
 

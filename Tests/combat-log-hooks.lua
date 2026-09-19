@@ -81,6 +81,8 @@ local function loadComponent(name)
 end
 
 loadComponent("SlidingMessageFrame")
+loadComponent("SlidingMessageFrameLayout")
+loadComponent("SlidingMessageFrameNative")
 local detachedContainer = frame("DetachedContainer")
 local primaryContainer = frame("PrimaryContainer")
 uiManager.container = primaryContainer

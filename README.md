@@ -92,8 +92,10 @@ Ctrl+U, Ctrl+K, and Ctrl+Y are unavailable during Blizzard's chat messaging lock
 ## What's new in 1.9.3 (unreleased)
 
 - Consolidated normal, temporary, and detached chat-window state into one lifecycle-managed record per Blizzard chat frame.
-- Split chat rendering initialization, UI startup, and settings-page construction into focused functions without changing behavior.
-- Added regression coverage for chat-window registration, detaching, resizing, tab replacement, redocking, cleanup, and reopening.
+- Split settings into profile, appearance, message, and support page modules while keeping migration, registration, commands, and diagnostics in the configuration core.
+- Separated message rendering, layout, and Blizzard chat integration into focused SlidingMessageFrame modules.
+- Separated chat-dock lifecycle, tab overflow and dragging, and detached-window behavior into focused components.
+- Added regression coverage for configuration load order and chat-window registration, detaching, resizing, tab replacement, redocking, cleanup, and reopening.
 
 ## What's new in this fork
 

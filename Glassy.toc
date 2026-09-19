@@ -66,6 +66,8 @@ Glassy\utils.lua
 # Components
 Glassy\Components\GradientBackground.lua
 Glassy\Components\ChatDock.lua
+Glassy\Components\ChatDockTabs.lua
+Glassy\Components\DetachedChatDock.lua
 Glassy\Components\ChatTab.lua
 Glassy\Components\CombatLogBar.lua
 Glassy\Components\EditBox.lua
@@ -76,11 +78,17 @@ Glassy\Components\MoverFrame.lua
 Glassy\Components\NewMessageAlertFrame.lua
 Glassy\Components\ScrollOverlayFrame.lua
 Glassy\Components\SlidingMessageFrame.lua
+Glassy\Components\SlidingMessageFrameLayout.lua
+Glassy\Components\SlidingMessageFrameNative.lua
 
 # Modules
 Glassy\Modules\ChatCopy.lua
 Glassy\Modules\ProfileTransfer.lua
 Glassy\Modules\Config.lua
+Glassy\Modules\ConfigProfiles.lua
+Glassy\Modules\ConfigChatPages.lua
+Glassy\Modules\ConfigMessagePages.lua
+Glassy\Modules\ConfigSupportPages.lua
 Glassy\Modules\Fonts.lua
 Glassy\Modules\Hyperlinks.lua
 Glassy\Modules\News.lua
