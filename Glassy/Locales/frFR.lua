@@ -62,6 +62,12 @@ Core:RegisterCompactTranslations("frFR", {
   VERSION_HISTORY_TITLE="Glassy : Historique des versions", CHAT="Discussion",
   COPY_LIMIT="Le dernier message dépasse la limite de copie de 60 000 caractères.",
   NOTHING_TO_COPY="Cet onglet ne contient aucun message à copier.",
+  IMPORT_EXPORT="Importer et exporter", EXPORT_CURRENT_PROFILE="Exporter le profil actuel", PROFILE_STRING="Chaîne du profil",
+  NEW_PROFILE_NAME="Nom du nouveau profil", IMPORT_AS_NEW="Importer comme nouveau", REPLACE_CURRENT="Remplacer l’actuel",
+  EXPORT_FAILED="Impossible d’exporter le profil actuel.", INVALID_PROFILE_STRING="Chaîne de profil Glassy non valide.",
+  ENTER_PROFILE_NAME="Saisissez un nom de profil.", PROFILE_ALREADY_EXISTS="Un profil portant ce nom existe déjà.",
+  PROFILE_IMPORTED="Profil importé : %s", REPLACE_PROFILE_CONFIRM="Remplacer le profil « %s » ? Ses paramètres actuels seront perdus.",
+  EXPORT_PROFILE_TITLE="Glassy : Exporter le profil",
 }, function(label)
   return label and ("Configurer : " .. label .. ".") or "Configurer ce paramètre."
 end)

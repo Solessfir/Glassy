@@ -79,6 +79,7 @@ Glassy\Components\SlidingMessageFrame.lua
 
 # Modules
 Glassy\Modules\ChatCopy.lua
+Glassy\Modules\ProfileTransfer.lua
 Glassy\Modules\Config.lua
 Glassy\Modules\Fonts.lua
 Glassy\Modules\Hyperlinks.lua

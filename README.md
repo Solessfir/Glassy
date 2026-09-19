@@ -110,7 +110,7 @@ See [latest release notes](LATEST.md) and the [changelog](CHANGELOG.md) for deta
 
 Use `/gl` to configure:
 
-- Frame dimensions and position, shared or per-character profiles.
+- Frame dimensions and position, shared or per-character profiles, and portable profile import and export.
 - Fonts, sizes, outlines, message spacing, indentation, and inline-icon alignment.
 - Header, message, and input backgrounds with color and opacity controls, plus optional gradient separators.
 - Message hold time, optional reveal while typing, fade durations, slide movement, and easing.

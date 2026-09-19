@@ -64,6 +64,12 @@ local values = {
   VERSION_HISTORY_TITLE="Glassy: Historial de versiones", CHAT="Chat",
   COPY_LIMIT="El mensaje más reciente supera el límite de copia de 60 000 caracteres.",
   NOTHING_TO_COPY="Esta pestaña no tiene mensajes que copiar.",
+  IMPORT_EXPORT="Importar y exportar", EXPORT_CURRENT_PROFILE="Exportar perfil actual", PROFILE_STRING="Cadena del perfil",
+  NEW_PROFILE_NAME="Nombre del perfil nuevo", IMPORT_AS_NEW="Importar como nuevo", REPLACE_CURRENT="Reemplazar actual",
+  EXPORT_FAILED="No se pudo exportar el perfil actual.", INVALID_PROFILE_STRING="Cadena de perfil de Glassy no válida.",
+  ENTER_PROFILE_NAME="Introduce un nombre de perfil.", PROFILE_ALREADY_EXISTS="Ya existe un perfil con ese nombre.",
+  PROFILE_IMPORTED="Perfil importado: %s", REPLACE_PROFILE_CONFIRM="¿Reemplazar el perfil '%s'? Se perderá su configuración actual.",
+  EXPORT_PROFILE_TITLE="Glassy: Exportar perfil",
 }
 
 local function describe(label)

@@ -59,6 +59,12 @@ Core:RegisterCompactTranslations("koKR", {
   COPY_CHAT_TITLE="Glassy: 채팅 복사 — ", DEBUG_TITLE="Glassy: 디버그 보고서",
   VERSION_HISTORY_TITLE="Glassy: 버전 기록", CHAT="채팅",
   COPY_LIMIT="최신 메시지가 Glassy의 60,000자 복사 한도를 넘었습니다.", NOTHING_TO_COPY="이 탭에는 복사할 메시지가 없습니다.",
+  IMPORT_EXPORT="가져오기 및 내보내기", EXPORT_CURRENT_PROFILE="현재 프로필 내보내기", PROFILE_STRING="프로필 문자열",
+  NEW_PROFILE_NAME="새 프로필 이름", IMPORT_AS_NEW="새 프로필로 가져오기", REPLACE_CURRENT="현재 프로필 교체",
+  EXPORT_FAILED="현재 프로필을 내보낼 수 없습니다.", INVALID_PROFILE_STRING="올바르지 않은 Glassy 프로필 문자열입니다.",
+  ENTER_PROFILE_NAME="프로필 이름을 입력하세요.", PROFILE_ALREADY_EXISTS="같은 이름의 프로필이 이미 있습니다.",
+  PROFILE_IMPORTED="프로필을 가져왔습니다: %s", REPLACE_PROFILE_CONFIRM="프로필 '%s'을(를) 교체할까요? 현재 설정이 사라집니다.",
+  EXPORT_PROFILE_TITLE="Glassy: 프로필 내보내기",
 }, function(label)
   return label and (label .. " 설정입니다.") or "이 설정을 구성합니다."
 end)

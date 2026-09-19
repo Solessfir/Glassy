@@ -46,6 +46,12 @@ Core:RegisterCompactTranslations("zhTW", {
   PRESS_COPY="按 Ctrl+C 複製，然後關閉此視窗。", ALL_TEXT_SELECTED="已選取全部文字",
   COPY_CHAT_TITLE="Glassy：複製聊天 — ", DEBUG_TITLE="Glassy：除錯報告", VERSION_HISTORY_TITLE="Glassy：版本歷史",
   CHAT="聊天", COPY_LIMIT="最新訊息超過 Glassy 的 60,000 字元複製上限。", NOTHING_TO_COPY="此聊天分頁沒有可複製的訊息。",
+  IMPORT_EXPORT="匯入與匯出", EXPORT_CURRENT_PROFILE="匯出目前設定檔", PROFILE_STRING="設定檔字串",
+  NEW_PROFILE_NAME="新設定檔名稱", IMPORT_AS_NEW="匯入為新設定檔", REPLACE_CURRENT="取代目前設定檔",
+  EXPORT_FAILED="無法匯出目前設定檔。", INVALID_PROFILE_STRING="Glassy 設定檔字串無效。",
+  ENTER_PROFILE_NAME="請輸入設定檔名稱。", PROFILE_ALREADY_EXISTS="已存在同名設定檔。",
+  PROFILE_IMPORTED="已匯入設定檔：%s", REPLACE_PROFILE_CONFIRM="取代設定檔「%s」？目前設定將會遺失。",
+  EXPORT_PROFILE_TITLE="Glassy：匯出設定檔",
 }, function(label)
   return label and ("設定「" .. label .. "」。") or "設定此選項。"
 end)
