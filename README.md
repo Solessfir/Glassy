@@ -89,15 +89,11 @@ Ctrl+U, Ctrl+K, and Ctrl+Y are unavailable during Blizzard's chat messaging lock
 | Click the return-to-bottom arrow | Return to the newest messages. |
 | Hover over an item link | Show its tooltip. |
 
-## What's new in 1.9.2
+## What's new in 1.9.3 (unreleased)
 
-- Detached chat windows now use Glassy styling and behavior while keeping their Blizzard-managed position and size.
-- Profiles can be exported and imported, either into a new profile or over the current one after confirmation.
-- An optional message blacklist hides messages containing configured phrases, including restored Prat history.
-- The complete interface is localized into ten languages.
-- New controls cover reveal while typing, tab hover highlighting, gradient separators, message spacing, edit-box padding, and unread-message appearance.
-- Settings now have dedicated Shortcuts and About pages, with `/gl news` available for reopening the in-game release notes.
-- Compatibility and performance fixes improve startup visibility, history restoration, frame bounds, Combat Log tabs, and Classic Forever support.
+- Consolidated normal, temporary, and detached chat-window state into one lifecycle-managed record per Blizzard chat frame.
+- Split chat rendering initialization, UI startup, and settings-page construction into focused functions without changing behavior.
+- Added regression coverage for chat-window registration, detaching, resizing, tab replacement, redocking, cleanup, and reopening.
 
 ## What's new in this fork
 

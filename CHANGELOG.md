@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.9.3 (Unreleased)
+
+* Consolidate normal, temporary, and detached chat-window state into one lifecycle-managed record per Blizzard chat frame.
+* Split chat rendering initialization, UI startup, and settings-page construction into focused functions without changing behavior.
+* Add regression coverage for chat-window registration, detaching, resizing, tab replacement, redocking, cleanup, and reopening.
+
 ## 1.9.2 (2026-09-19)
 
 * Add built-in localization for English, German, Spanish, French, Italian, Korean, Brazilian Portuguese, Russian, Simplified Chinese, and Traditional Chinese across settings, tooltips, dialogs, status text, and copy-window messages.

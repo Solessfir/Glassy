@@ -486,9 +486,8 @@ function SlidingMessageFrameMixin:SetLayout(parent, width, height, editBox, deta
   end
 end
 
-function SlidingMessageFrameMixin:Init(chatFrame)
+function SlidingMessageFrameMixin:ResetForChatFrame(chatFrame)
   local isCombatLog = chatFrame == _G.ChatFrame2
-  local chatFrameWasShown = chatFrame:IsShown()
   self.config = {
     height = getMessageFrameHeight(isCombatLog),
     width = tonumber(Core.db.profile.frameWidth) or Core.defaults.profile.frameWidth,
@@ -517,7 +516,9 @@ function SlidingMessageFrameMixin:Init(chatFrame)
   self.layoutHeight = nil
   self.layoutEditBox = nil
   self.detachedContainer = nil
+end
 
+function SlidingMessageFrameMixin:ConfigureScrollback(chatFrame)
   Utils.hookPresentation(self, chatFrame, "SetMaxLines", function (frame)
     self.hooks[chatFrame].SetMaxLines(frame, getScrollbackLimit())
   end, true)
@@ -547,8 +548,9 @@ function SlidingMessageFrameMixin:Init(chatFrame)
       end
     end)
   end
+end
 
-  -- Override Blizzard UI
+function SlidingMessageFrameMixin:ConfigureNativeLayout(chatFrame)
   _G[chatFrame:GetName().."ButtonFrame"]:Hide()
 
   chatFrame:SetClampRectInsets(0,0,0,0)
@@ -612,10 +614,10 @@ function SlidingMessageFrameMixin:Init(chatFrame)
         end
       end)
     end
-
   end
+end
 
-  -- Chat scroll frame
+function SlidingMessageFrameMixin:InitializeScrollFrame()
   self:SetHeight(self.config.height + self.config.overflowHeight)
   self:SetWidth(self.config.width)
   self:ClearAllPoints()
@@ -722,7 +724,9 @@ function SlidingMessageFrameMixin:Init(chatFrame)
   if self.messageFramePool == nil then
     self.messageFramePool = CreateMessageLinePool(self.slider)
   end
+end
 
+function SlidingMessageFrameMixin:HookNativeMessages(chatFrame, chatFrameWasShown)
   local hookMessage = Constants.ENV == "retail" and self.SecureHook or self.Hook
   hookMessage(self, chatFrame, "AddMessage", function (...)
     local newestEntry = self.historyBuffer and self.historyBuffer:GetEntryAtIndex(1)
@@ -769,8 +773,9 @@ function SlidingMessageFrameMixin:Init(chatFrame)
     chatFrame:Hide()
     self:SetGlassyShown(chatFrameWasShown)
   end
+end
 
-  -- Load any messages already in the chat frame to Glassy
+function SlidingMessageFrameMixin:LoadInitialMessages(chatFrame)
   if chatFrame == DEFAULT_CHAT_FRAME or not chatFrame.isDocked or (self.state.isCombatLog and not isCombatLogHidden()) then
     local messageCount = chatFrame:GetNumMessages()
     local firstMessage = math.max(1, messageCount - getRenderedMessageLimit() + 1)
@@ -779,8 +784,9 @@ function SlidingMessageFrameMixin:Init(chatFrame)
       self:AddMessageAt(getReceivedAt(getHistoryEntry(chatFrame, i)), chatFrame, text, r, g, b)
     end
   end
+end
 
-  -- Listeners
+function SlidingMessageFrameMixin:SubscribeToEvents()
   if self.subscriptions == nil then
     self.subscriptions = {
       Core:Subscribe(EDIT_BOX_LAYOUT_CHANGED, function ()
@@ -867,6 +873,17 @@ function SlidingMessageFrameMixin:Init(chatFrame)
       end)
     }
   end
+end
+
+function SlidingMessageFrameMixin:Init(chatFrame)
+  local chatFrameWasShown = chatFrame:IsShown()
+  self:ResetForChatFrame(chatFrame)
+  self:ConfigureScrollback(chatFrame)
+  self:ConfigureNativeLayout(chatFrame)
+  self:InitializeScrollFrame()
+  self:HookNativeMessages(chatFrame, chatFrameWasShown)
+  self:LoadInitialMessages(chatFrame)
+  self:SubscribeToEvents()
 end
 
 function SlidingMessageFrameMixin:CreateMessageFrame(messageArgs)
