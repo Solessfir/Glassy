@@ -1,7 +1,7 @@
 ## Interface: 11509, 16001, 20506, 50504, 120100
 ## Plain Title: Glassy
 ## Author: Solessfir (original by mixxorz)
-## Version: 1.9.2
+## Version: 1.9.3
 
 ## Title: |c00DFBA69Glassy|r
 ## Notes: Immersive and minimalistic chat UI.
@@ -71,6 +71,7 @@ Glassy\Components\DetachedChatDock.lua
 Glassy\Components\ChatTab.lua
 Glassy\Components\CombatLogBar.lua
 Glassy\Components\EditBox.lua
+Glassy\Components\EditBoxNative.lua
 Glassy\Components\FadingFrame.lua
 Glassy\Components\MainContainerFrame.lua
 Glassy\Components\MessageLine.lua
@@ -91,6 +92,7 @@ Glassy\Modules\ConfigMessagePages.lua
 Glassy\Modules\ConfigSupportPages.lua
 Glassy\Modules\Fonts.lua
 Glassy\Modules\Hyperlinks.lua
+Glassy\Modules\NewsData.lua
 Glassy\Modules\News.lua
 Glassy\Modules\TextProcessing.lua
 Glassy\Modules\UIManager.lua

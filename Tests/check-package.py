@@ -13,7 +13,7 @@ init = (package / "Glassy/init.lua").read_text()
 assert 'GetAddOnMetadata(AddonName, "Version")' in init, "Runtime version must come from TOC metadata"
 assert not re.search(r'Core\.Version\s*=\s*["\']\d', init), "Runtime version must not be hardcoded"
 assert re.search(rf"^# {re.escape(version)} \(\d{{4}}-\d{{2}}-\d{{2}}\)$", (source / "LATEST.md").read_text(), re.M), "Latest release notes mismatch"
-assert f' name = "{version} (' in (source / "Glassy/Modules/News.lua").read_text(), "In-game release notes mismatch"
+assert f' name = "{version} (' in (package / "Glassy/Modules/NewsData.lua").read_text(), "In-game release notes mismatch"
 assert "## X-Curse-Project-ID: 1695833" in toc, "Incorrect CurseForge project"
 assert "## X-Wago-ID: qGYZPRNg" in toc, "Incorrect Wago project"
 for locale in ("deDE", "esES", "frFR", "itIT", "koKR", "ptBR", "ruRU", "zhCN", "zhTW"):

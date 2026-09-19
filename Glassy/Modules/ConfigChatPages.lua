@@ -1,46 +1,26 @@
 local Core, Constants = unpack(select(2, ...))
 local C = Core:GetModule("Config")
-
-local LSM = Core.Libs.LSM
 local L = function(text) return Core:Localize(text) end
 
-local MAX_ACTIVE_TAB_HIGHLIGHT = 1
-local MAX_TAB_HOVER_HIGHLIGHT = 1
-local MAX_TAB_MESSAGE_OFFSET = 50
-local MIN_FRAME_HEIGHT = 100
-local MAX_TEXT_LEFT_PADDING = 100
-local MAX_EDIT_BOX_VERTICAL_PADDING = 2
+local LSM = Core.Libs.LSM
+local SettingsValues = C.SettingsValues
+
+local MAX_ACTIVE_TAB_HIGHLIGHT = SettingsValues.maxActiveTabHighlight
+local MAX_TAB_HOVER_HIGHLIGHT = SettingsValues.maxTabHoverHighlight
+local MAX_TAB_MESSAGE_OFFSET = SettingsValues.maxTabMessageOffset
+local MIN_FRAME_HEIGHT = SettingsValues.minFrameHeight
+local MAX_TEXT_LEFT_PADDING = SettingsValues.maxTextLeftPadding
+local MAX_EDIT_BOX_VERTICAL_PADDING = SettingsValues.maxEditBoxVerticalPadding
 
 local UpdateConfig = Constants.ACTIONS.UpdateConfig
 
 local isMoverUnlocked = C.IsMoverUnlocked
 local toggleMover = C.ToggleMover
 
-local ANCHORS = {
-  ["TOPLEFT"] = L("Top left"),
-  ["TOPRIGHT"] = L("Top right"),
-  ["BOTTOMLEFT"] = L("Bottom left"),
-  ["BOTTOMRIGHT"] = L("Bottom right")
-}
-local FLAGS = { [""] = L("None"), ["OUTLINE"] = L("Outline"), ["OUTLINE, MONOCHROME"] = L("Outline Monochrome") }
-local EASING_VALUES = {
-  Linear = L("Linear"),
-  InCubic = L("Ease in"),
-  OutCubic = L("Ease out"),
-  InOutCubic = L("Ease in/out"),
-  OutBack = L("Overshoot"),
-  OutBounce = L("Bounce"),
-  OutElastic = L("Elastic"),
-}
-local EASING_SORTING = {
-  "Linear",
-  "InCubic",
-  "OutCubic",
-  "InOutCubic",
-  "OutBack",
-  "OutBounce",
-  "OutElastic",
-}
+local ANCHORS = SettingsValues.anchors
+local FLAGS = SettingsValues.fontFlags
+local EASING_VALUES = SettingsValues.easingValues
+local EASING_SORTING = SettingsValues.easingSorting
 
 local function getGeneralOptions()
   return {

@@ -89,13 +89,26 @@ Ctrl+U, Ctrl+K, and Ctrl+Y are unavailable during Blizzard's chat messaging lock
 | Click the return-to-bottom arrow | Return to the newest messages. |
 | Hover over an item link | Show its tooltip. |
 
-## What's new in 1.9.3 (unreleased)
+## What's new in 1.9.3
 
 - Consolidated normal, temporary, and detached chat-window state into one lifecycle-managed record per Blizzard chat frame.
 - Split settings into profile, appearance, message, and support page modules while keeping migration, registration, commands, and diagnostics in the configuration core.
 - Separated message rendering, layout, and Blizzard chat integration into focused SlidingMessageFrame modules.
 - Separated chat-dock lifecycle, tab overflow and dragging, and detached-window behavior into focused components.
 - Added regression coverage for configuration load order and chat-window registration, detaching, resizing, tab replacement, redocking, cleanup, and reopening.
+- Centralized settings limits and choices shared by profile normalization and the settings pages.
+- Separated edit-box appearance from Blizzard chat-input hooks.
+- Separated release-note data from the news window behavior.
+
+## What's new in 1.9.2
+
+- Detached chat windows now use Glassy styling and behavior while keeping their Blizzard-managed position and size.
+- Profiles can be exported and imported, either into a new profile or over the current one after confirmation.
+- An optional message blacklist hides messages containing configured phrases, including restored Prat history.
+- The complete interface is localized into ten languages.
+- New controls cover reveal while typing, tab hover highlighting, gradient separators, message spacing, edit-box padding, and unread-message appearance.
+- Settings now have dedicated Shortcuts and About pages, with `/gl news` available for reopening the in-game release notes.
+- Compatibility and performance fixes improve startup visibility, history restoration, frame bounds, Combat Log tabs, and Classic Forever support.
 
 ## What's new in this fork
 

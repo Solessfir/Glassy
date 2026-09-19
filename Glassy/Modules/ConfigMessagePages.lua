@@ -1,8 +1,8 @@
 local Core, Constants = unpack(select(2, ...))
 local C = Core:GetModule("Config")
 
-local L = function(text) return Core:Localize(text) end
-local MAX_COMBAT_LOG_BAR_OFFSET = 500
+local SettingsValues = C.SettingsValues
+local MAX_COMBAT_LOG_BAR_OFFSET = SettingsValues.maxCombatLogBarOffset
 local UpdateConfig = Constants.ACTIONS.UpdateConfig
 
 local getTimestampFrameOptions = C.GetTimestampFrameOptions
@@ -18,35 +18,10 @@ local function previewAnimations()
   end
 end
 
-local COMBAT_LOG_BAR_POSITIONS = {
-  ABOVE = L("Above tabs"),
-  BELOW = L("Below tabs"),
-  HIDDEN = L("Hidden"),
-}
-local TIMESTAMP_FORMATS = {
-  ["[%H:%M]"] = "[23:59]",
-  ["[%H:%M:%S]"] = "[23:59:59]",
-  ["[%I:%M %p]"] = "[11:59 PM]",
-  ["[%I:%M:%S %p]"] = "[11:59:59 PM]",
-}
-local EASING_VALUES = {
-  Linear = L("Linear"),
-  InCubic = L("Ease in"),
-  OutCubic = L("Ease out"),
-  InOutCubic = L("Ease in/out"),
-  OutBack = L("Overshoot"),
-  OutBounce = L("Bounce"),
-  OutElastic = L("Elastic"),
-}
-local EASING_SORTING = {
-  "Linear",
-  "InCubic",
-  "OutCubic",
-  "InOutCubic",
-  "OutBack",
-  "OutBounce",
-  "OutElastic",
-}
+local COMBAT_LOG_BAR_POSITIONS = SettingsValues.combatLogBarPositions
+local TIMESTAMP_FORMATS = SettingsValues.timestampFormats
+local EASING_VALUES = SettingsValues.easingValues
+local EASING_SORTING = SettingsValues.easingSorting
 
 local function getMessageOptions()
   return {

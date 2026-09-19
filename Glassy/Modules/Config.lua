@@ -6,13 +6,6 @@ local AceConfigDialog = Core.Libs.AceConfigDialog
 local AceGUI = Core.Libs.AceGUI
 local L = function(text) return Core:Localize(text) end
 
-local MAX_ACTIVE_TAB_HIGHLIGHT = 1
-local MAX_TAB_HOVER_HIGHLIGHT = 1
-local MAX_TAB_MESSAGE_OFFSET = 50
-local MAX_COMBAT_LOG_BAR_OFFSET = 500
-local MIN_FRAME_HEIGHT = 100
-local MAX_TEXT_LEFT_PADDING = 100
-local MAX_EDIT_BOX_VERTICAL_PADDING = 2
 local CURRENT_SETTINGS_VERSION = 3
 
 local OpenNews = Constants.ACTIONS.OpenNews
@@ -23,28 +16,69 @@ local UpdateConfig = Constants.ACTIONS.UpdateConfig
 
 local SAVE_FRAME_POSITION = Constants.EVENTS.SAVE_FRAME_POSITION
 
-local COMBAT_LOG_BAR_POSITIONS = {
-  ABOVE = L("Above tabs"),
-  BELOW = L("Below tabs"),
-  HIDDEN = L("Hidden"),
-}
-local TIMESTAMP_FORMATS = {
-  ["[%H:%M]"] = "[23:59]",
-  ["[%H:%M:%S]"] = "[23:59:59]",
-  ["[%I:%M %p]"] = "[11:59 PM]",
-  ["[%I:%M:%S %p]"] = "[11:59:59 PM]",
-}
-local EASING_VALUES = {
-  Linear = L("Linear"),
-  InCubic = L("Ease in"),
-  OutCubic = L("Ease out"),
-  InOutCubic = L("Ease in/out"),
-  OutBack = L("Overshoot"),
-  OutBounce = L("Bounce"),
-  OutElastic = L("Elastic"),
+local SettingsValues = {
+  maxActiveTabHighlight = 1,
+  maxTabHoverHighlight = 1,
+  maxTabMessageOffset = 50,
+  maxCombatLogBarOffset = 500,
+  minFrameHeight = 100,
+  maxTextLeftPadding = 100,
+  maxEditBoxVerticalPadding = 2,
+  anchors = {
+    TOPLEFT = L("Top left"),
+    TOPRIGHT = L("Top right"),
+    BOTTOMLEFT = L("Bottom left"),
+    BOTTOMRIGHT = L("Bottom right"),
+  },
+  fontFlags = {
+    [""] = L("None"),
+    OUTLINE = L("Outline"),
+    ["OUTLINE, MONOCHROME"] = L("Outline Monochrome"),
+  },
+  combatLogBarPositions = {
+    ABOVE = L("Above tabs"),
+    BELOW = L("Below tabs"),
+    HIDDEN = L("Hidden"),
+  },
+  timestampFormats = {
+    ["[%H:%M]"] = "[23:59]",
+    ["[%H:%M:%S]"] = "[23:59:59]",
+    ["[%I:%M %p]"] = "[11:59 PM]",
+    ["[%I:%M:%S %p]"] = "[11:59:59 PM]",
+  },
+  easingValues = {
+    Linear = L("Linear"),
+    InCubic = L("Ease in"),
+    OutCubic = L("Ease out"),
+    InOutCubic = L("Ease in/out"),
+    OutBack = L("Overshoot"),
+    OutBounce = L("Bounce"),
+    OutElastic = L("Elastic"),
+  },
+  easingSorting = {
+    "Linear",
+    "InCubic",
+    "OutCubic",
+    "InOutCubic",
+    "OutBack",
+    "OutBounce",
+    "OutElastic",
+  },
 }
 
+C.SettingsValues = SettingsValues
 C.Pages = {}
+
+local MAX_ACTIVE_TAB_HIGHLIGHT = SettingsValues.maxActiveTabHighlight
+local MAX_TAB_HOVER_HIGHLIGHT = SettingsValues.maxTabHoverHighlight
+local MAX_TAB_MESSAGE_OFFSET = SettingsValues.maxTabMessageOffset
+local MAX_COMBAT_LOG_BAR_OFFSET = SettingsValues.maxCombatLogBarOffset
+local MIN_FRAME_HEIGHT = SettingsValues.minFrameHeight
+local MAX_TEXT_LEFT_PADDING = SettingsValues.maxTextLeftPadding
+local MAX_EDIT_BOX_VERTICAL_PADDING = SettingsValues.maxEditBoxVerticalPadding
+local COMBAT_LOG_BAR_POSITIONS = SettingsValues.combatLogBarPositions
+local TIMESTAMP_FORMATS = SettingsValues.timestampFormats
+local EASING_VALUES = SettingsValues.easingValues
 
 local function isMoverUnlocked()
   return _G.GlassyMoverFrame and _G.GlassyMoverFrame:IsShown()

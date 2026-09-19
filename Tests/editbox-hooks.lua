@@ -43,6 +43,8 @@ Core.Components.GradientBackgroundMixin = {
   Init = function (object) object.Init = function () end end,
 }
 assert(loadfile(editBoxFile or "Glassy/Components/EditBox.lua"))("Glassy", {Core, Constants, {}})
+assert(loadfile("Glassy/Components/EditBoxNative.lua"))("Glassy", {Core, Constants, {super = function () end}})
+assert(type(Core.Components.EditBoxMixin.Init) == "function", "EditBox native integration did not load")
 
 for _, pratFirst in ipairs({false, true}) do
   ChatFrame1EditBox = newEditBox()
