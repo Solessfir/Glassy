@@ -100,9 +100,13 @@ local function keepCombatLogTracking()
   end
 end
 
-local function getMessageFrameHeight(isCombatLog)
-  local frameHeight = tonumber(Core.db.profile.frameHeight) or Core.defaults.profile.frameHeight
-  local editBox = _G.ChatFrame1EditBox
+local function getMessageFrameHeight(isCombatLog, frameHeight, editBox)
+  frameHeight = tonumber(frameHeight) or tonumber(Core.db.profile.frameHeight) or Core.defaults.profile.frameHeight
+  if editBox == nil then
+    editBox = _G.ChatFrame1EditBox
+  elseif editBox == false then
+    editBox = nil
+  end
   local reusableHeight = 0
   if Core.db.profile.dynamicEditBox and Core.db.profile.editBoxAnchor.position == "BELOW" and editBox then
     if type(editBox.GetReusableMessageHeight) == "function" then
@@ -116,6 +120,56 @@ local function getMessageFrameHeight(isCombatLog)
     end
   end
   return math.max(1, frameHeight - getBaseMessageTopInset(isCombatLog) + reusableHeight)
+end
+
+function SlidingMessageFrameMixin:GetLayoutWidth()
+  return math.max(
+    1,
+    tonumber(self.layoutWidth) or tonumber(Core.db.profile.frameWidth) or Core.defaults.profile.frameWidth
+  )
+end
+
+function SlidingMessageFrameMixin:GetNativeLayoutParent()
+  if self.chatFrame and self.chatFrame.isDocked and UIManager.container then
+    return UIManager.container
+  end
+  return self:GetParent()
+end
+
+function SlidingMessageFrameMixin:GetNativeLayoutWidth()
+  if self.chatFrame and self.chatFrame.isDocked then
+    return tonumber(Core.db.profile.frameWidth) or Core.defaults.profile.frameWidth
+  end
+  return self:GetLayoutWidth()
+end
+
+function SlidingMessageFrameMixin:KeepDetachedNativeLayout(method, ...)
+  local chatFrame = self.chatFrame
+  if chatFrame == nil or chatFrame.isDocked then
+    return false
+  end
+  if Constants.ENV ~= "retail" then
+    self.hooks[chatFrame][method](chatFrame, ...)
+  end
+  return true
+end
+
+function SlidingMessageFrameMixin:GetLayoutHeight()
+  return math.max(
+    1,
+    tonumber(self.layoutHeight) or tonumber(Core.db.profile.frameHeight) or Core.defaults.profile.frameHeight
+  )
+end
+
+function SlidingMessageFrameMixin:GetMessageFrameHeight()
+  return getMessageFrameHeight(self.state.isCombatLog, self:GetLayoutHeight(), self.layoutEditBox)
+end
+
+function SlidingMessageFrameMixin:SetGlassyShown(shown)
+  self:SetShown(shown)
+  if self.detachedContainer then
+    self.detachedContainer:SetShown(shown)
+  end
 end
 
 function SlidingMessageFrameMixin:UpdateViewportHeight(unreadRowHeight)
@@ -188,7 +242,7 @@ function SlidingMessageFrameMixin:CancelDynamicEditBoxLayout(applyTarget)
 end
 
 function SlidingMessageFrameMixin:UpdateDynamicEditBoxLayout()
-  local nextHeight = getMessageFrameHeight(self.state.isCombatLog)
+  local nextHeight = self:GetMessageFrameHeight()
   self:CancelDynamicEditBoxLayout(false)
 
   -- Only the selected chat frame needs to resize immediately. Updating every
@@ -314,7 +368,7 @@ function SlidingMessageFrameMixin:SyncNativeChatVisibility()
   if shown then
     self:ApplyPendingDynamicEditBoxLayout()
   end
-  self:SetShown(shown)
+  self:SetGlassyShown(shown)
 end
 
 function SlidingMessageFrameMixin:HookChatFrameVisibility(chatFrame)
@@ -332,13 +386,15 @@ function SlidingMessageFrameMixin:HookChatFrameVisibility(chatFrame)
       if isCombatLogHidden() then
         self.hooks[chatFrame].Hide(frame)
         keepCombatLogTracking()
-        self:Hide()
+        self:SetGlassyShown(false)
         return
       end
       self.hooks[chatFrame].Show(frame)
+    elseif not frame.isDocked then
+      self.hooks[chatFrame].Show(frame)
     end
     self:ApplyPendingDynamicEditBoxLayout()
-    self:Show()
+    self:SetGlassyShown(true)
   end, true)
 
   -- FCF_CheckShowChatFrame uses SetShown when switching or creating tabs.
@@ -346,14 +402,17 @@ function SlidingMessageFrameMixin:HookChatFrameVisibility(chatFrame)
     if self.state.isCombatLog and isCombatLogHidden() then
       self.hooks[chatFrame].SetShown(chatFrame, false)
       keepCombatLogTracking()
-      self:Hide()
+      self:SetGlassyShown(false)
       return
     end
-    self.hooks[chatFrame].SetShown(chatFrame, self.state.isCombatLog and shown or false)
+    self.hooks[chatFrame].SetShown(
+      chatFrame,
+      (self.state.isCombatLog or not chatFrame.isDocked) and shown or false
+    )
     if shown then
       self:ApplyPendingDynamicEditBoxLayout()
     end
-    self:SetShown(shown)
+    self:SetGlassyShown(shown)
   end, true)
 
   self:RawHook(chatFrame, "Hide", function (frame)
@@ -361,8 +420,70 @@ function SlidingMessageFrameMixin:HookChatFrameVisibility(chatFrame)
     if self.state.isCombatLog and isCombatLogHidden() then
       keepCombatLogTracking()
     end
-    self:Hide()
+    self:SetGlassyShown(false)
   end, true)
+end
+
+function SlidingMessageFrameMixin:RefreshLayout(reprocessText)
+  if self.state == nil or self.slider == nil then
+    return
+  end
+
+  self:CancelDynamicEditBoxLayout(false)
+  self.config.height = self:GetMessageFrameHeight()
+  self.config.width = self:GetLayoutWidth()
+
+  self:ClearAllPoints()
+  self:SetPoint("TOPLEFT", 0, -getMessageTopInset(self.state.isCombatLog))
+  self:SetHeight(self.config.height + self.config.overflowHeight)
+  self:SetWidth(self.config.width)
+
+  local contentHeight = 0
+  for _, message in ipairs(self.state.messages) do
+    if reprocessText and message.sourceText then
+      local processedText = TP:ProcessText(message.sourceText, message.sourceFrame, message.receivedAt)
+      message.text:SetText(processedText)
+    end
+    message:UpdateFrame()
+    contentHeight = contentHeight + message:GetHeight()
+  end
+
+  self.slider:SetHeight(self.config.height + self.config.overflowHeight + contentHeight)
+  self.slider:SetWidth(self.config.width)
+
+  self.state.scrollAtBottom = true
+  self.state.unreadMessages = false
+  self:UpdateScrollChildRect()
+  self:SetVerticalScroll(self:GetVerticalScrollRange() + self.config.overflowHeight)
+  self.overlay:UpdateFrame()
+  self.overlay:Hide()
+  self.overlay:HideNewMessageAlert()
+end
+
+function SlidingMessageFrameMixin:SetLayout(parent, width, height, editBox, detachedContainer)
+  local previousDetachedContainer = self.detachedContainer
+  self.layoutWidth = width
+  self.layoutHeight = height
+  self.layoutEditBox = editBox
+  self.detachedContainer = detachedContainer
+
+  self:SetParent(parent)
+  self:RefreshLayout(false)
+
+  if Constants.ENV ~= "retail" and not self.state.isCombatLog then
+    if detachedContainer and self:IsShown() then
+      self.hooks[self.chatFrame].Show(self.chatFrame)
+    else
+      self.hooks[self.chatFrame].Hide(self.chatFrame)
+    end
+  end
+
+  if previousDetachedContainer and previousDetachedContainer ~= detachedContainer then
+    previousDetachedContainer:Hide()
+  end
+  if detachedContainer then
+    detachedContainer:SetShown(self:IsShown())
+  end
 end
 
 function SlidingMessageFrameMixin:Init(chatFrame)
@@ -370,7 +491,7 @@ function SlidingMessageFrameMixin:Init(chatFrame)
   local chatFrameWasShown = chatFrame:IsShown()
   self.config = {
     height = getMessageFrameHeight(isCombatLog),
-    width = Core.db.profile.frameWidth,
+    width = tonumber(Core.db.profile.frameWidth) or Core.defaults.profile.frameWidth,
     overflowHeight = 60,
   }
   self.state = {
@@ -392,6 +513,10 @@ function SlidingMessageFrameMixin:Init(chatFrame)
   }
   self.chatFrame = chatFrame
   self.historyBuffer = chatFrame.historyBuffer
+  self.layoutWidth = nil
+  self.layoutHeight = nil
+  self.layoutEditBox = nil
+  self.detachedContainer = nil
 
   Utils.hookPresentation(self, chatFrame, "SetMaxLines", function (frame)
     self.hooks[chatFrame].SetMaxLines(frame, getScrollbackLimit())
@@ -428,19 +553,22 @@ function SlidingMessageFrameMixin:Init(chatFrame)
 
   chatFrame:SetClampRectInsets(0,0,0,0)
   chatFrame:SetClampedToScreen(false)
-  chatFrame:SetResizable(false)
-  if Constants.ENV ~= "retail" then
-    chatFrame:SetParent(self:GetParent())
-  end
-  chatFrame:ClearAllPoints()
 
   if self.state.isCombatLog then
+    if chatFrame.isDocked then
+      chatFrame:ClearAllPoints()
+    end
+
     local function applyCombatLogLayout()
+      if not chatFrame.isDocked then
+        return
+      end
+      local layoutParent = self:GetNativeLayoutParent()
       if Constants.ENV == "retail" then chatFrame:ClearAllPoints() end
       self.hooks[chatFrame].SetPoint(
         chatFrame,
         "TOPLEFT",
-        self:GetParent(),
+        layoutParent,
         "TOPLEFT",
         0,
         -getMessageTopInset(true)
@@ -448,21 +576,30 @@ function SlidingMessageFrameMixin:Init(chatFrame)
       self.hooks[chatFrame].SetPoint(
         chatFrame,
         "BOTTOMLEFT",
-        self:GetParent(),
+        layoutParent,
         "BOTTOMLEFT",
         0,
         0
       )
-      self.hooks[chatFrame].SetWidth(chatFrame, Core.db.profile.frameWidth)
+      self.hooks[chatFrame].SetWidth(chatFrame, self:GetNativeLayoutWidth())
     end
 
-    Utils.hookPresentation(self, chatFrame, "SetWidth", function ()
-      self.hooks[chatFrame].SetWidth(chatFrame, Core.db.profile.frameWidth)
+    Utils.hookPresentation(self, chatFrame, "SetWidth", function (_, width)
+      if self:KeepDetachedNativeLayout("SetWidth", width) then
+        return
+      end
+      self.hooks[chatFrame].SetWidth(chatFrame, self:GetNativeLayoutWidth())
     end, true)
-    Utils.hookPresentation(self, chatFrame, "SetSize", function (_, _, height)
-      self.hooks[chatFrame].SetSize(chatFrame, Core.db.profile.frameWidth, height)
+    Utils.hookPresentation(self, chatFrame, "SetSize", function (_, width, height)
+      if self:KeepDetachedNativeLayout("SetSize", width, height) then
+        return
+      end
+      self.hooks[chatFrame].SetSize(chatFrame, self:GetNativeLayoutWidth(), height)
     end, true)
-    Utils.hookPresentation(self, chatFrame, "SetPoint", function ()
+    Utils.hookPresentation(self, chatFrame, "SetPoint", function (_, ...)
+      if self:KeepDetachedNativeLayout("SetPoint", ...) then
+        return
+      end
       applyCombatLogLayout()
     end, true)
 
@@ -476,14 +613,6 @@ function SlidingMessageFrameMixin:Init(chatFrame)
       end)
     end
 
-  else
-    Utils.hookPresentation(self, chatFrame, "SetPoint", function (frame, ...)
-      if not frame.isDocked then
-        self.hooks[chatFrame].SetPoint(frame, ...)
-      else
-        self.hooks[chatFrame].SetPoint(frame, "TOPLEFT", self:GetParent(), "TOPLEFT", 0, -45)
-      end
-    end, true)
   end
 
   -- Chat scroll frame
@@ -626,22 +755,23 @@ function SlidingMessageFrameMixin:Init(chatFrame)
 
   self:HookChatFrameVisibility(chatFrame)
 
-  if self.state.isCombatLog or Constants.ENV == "retail" then
-    chatFrame:EnableMouse(false)
-    chatFrame:EnableMouseWheel(false)
-    Utils.hookPresentation(self, chatFrame, "SetAlpha", function (frame)
-      self.hooks[chatFrame].SetAlpha(frame, 0)
-    end, true)
-    chatFrame:SetAlpha(0)
+  chatFrame:EnableMouse(false)
+  chatFrame:EnableMouseWheel(false)
+  Utils.hookPresentation(self, chatFrame, "SetAlpha", function (frame)
+    self.hooks[chatFrame].SetAlpha(frame, 0)
+  end, true)
+  chatFrame:SetAlpha(0)
+  if self.state.isCombatLog or Constants.ENV == "retail" or not chatFrame.isDocked then
     if Constants.ENV ~= "retail" then
       chatFrame:SetShown(chatFrameWasShown)
     end
   else
     chatFrame:Hide()
+    self:SetGlassyShown(chatFrameWasShown)
   end
 
   -- Load any messages already in the chat frame to Glassy
-  if chatFrame == DEFAULT_CHAT_FRAME or (self.state.isCombatLog and not isCombatLogHidden()) then
+  if chatFrame == DEFAULT_CHAT_FRAME or not chatFrame.isDocked or (self.state.isCombatLog and not isCombatLogHidden()) then
     local messageCount = chatFrame:GetNumMessages()
     local firstMessage = math.max(1, messageCount - getRenderedMessageLimit() + 1)
     for i = firstMessage, messageCount do
@@ -695,7 +825,7 @@ function SlidingMessageFrameMixin:Init(chatFrame)
         end
 
         if key == "chatShowWhileTyping" then
-          local editBox = _G.ChatFrame1EditBox
+          local editBox = self.layoutEditBox == false and nil or self.layoutEditBox or _G.ChatFrame1EditBox
           self:SetTyping(editBox and editBox.glassyEntryVisible)
         end
 
@@ -722,45 +852,11 @@ function SlidingMessageFrameMixin:Init(chatFrame)
           key == "timestampDisplay" or
           (key == "combatLogBarLayout" and self.state.isCombatLog)
         ) then
-          self:CancelDynamicEditBoxLayout(false)
-          -- Adjust frame dimensions first
-          self.config.height = getMessageFrameHeight(self.state.isCombatLog)
-          self.config.width = Core.db.profile.frameWidth
-
-          self:ClearAllPoints()
-          self:SetPoint("TOPLEFT", 0, -getMessageTopInset(self.state.isCombatLog))
-          self:SetHeight(self.config.height + self.config.overflowHeight)
-          self:SetWidth(self.config.width)
-
-          -- Then adjust message line dimensions
-          for _, message in ipairs(self.state.messages) do
-            if (
-              key == "iconTextureYOffset" or
-              key == "emojiDisplay" or
-              key == "timestampDisplay"
-            ) and message.sourceText then
-              local processedText = TP:ProcessText(message.sourceText, message.sourceFrame, message.receivedAt)
-              message.text:SetText(processedText)
-            end
-
-            message:UpdateFrame()
-          end
-
-          -- Then update scroll values
-          local contentHeight = 0
-          for _, message in ipairs(self.state.messages) do
-            contentHeight = contentHeight + message:GetHeight()
-          end
-          self.slider:SetHeight(self.config.height + self.config.overflowHeight + contentHeight)
-          self.slider:SetWidth(self.config.width)
-
-          self.state.scrollAtBottom = true
-          self.state.unreadMessages = false
-          self:UpdateScrollChildRect()
-          self:SetVerticalScroll(self:GetVerticalScrollRange() + self.config.overflowHeight)
-          self.overlay:UpdateFrame()
-          self.overlay:Hide()
-          self.overlay:HideNewMessageAlert()
+          self:RefreshLayout(
+            key == "iconTextureYOffset" or
+            key == "emojiDisplay" or
+            key == "timestampDisplay"
+          )
         end
 
         if key == "chatBackgroundColor" or key == "backgroundFade" then
@@ -954,7 +1050,7 @@ function SlidingMessageFrameMixin:ApplyCombatLogVisibility()
     self.hooks[self.chatFrame].Hide(self.chatFrame)
     keepCombatLogTracking()
     self:ClearMessages()
-    self:Hide()
+    self:SetGlassyShown(false)
     return
   end
 
@@ -964,10 +1060,10 @@ function SlidingMessageFrameMixin:ApplyCombatLogVisibility()
   if isSelected or (not self.chatFrame.isDocked and _G.SELECTED_CHAT_FRAME == self.chatFrame) then
     self.hooks[self.chatFrame].Show(self.chatFrame)
     self:ApplyPendingDynamicEditBoxLayout()
-    self:Show()
+    self:SetGlassyShown(true)
   else
     self.hooks[self.chatFrame].Hide(self.chatFrame)
-    self:Hide()
+    self:SetGlassyShown(false)
   end
 end
 
@@ -1195,8 +1291,9 @@ local function CreateSlidingMessageFrame(name, parent, chatFrame)
 
   if chatFrame then
     object:Init(chatFrame)
+  else
+    object:Hide()
   end
-  object:Hide()
   return object
 end
 
@@ -1205,6 +1302,9 @@ local function CreateSlidingMessageFramePool(parent)
     function () return CreateSlidingMessageFrame(nil, parent) end,
     function (_, smf)
       smf:Hide()
+      if smf.detachedContainer then
+        smf.detachedContainer:Hide()
+      end
 
       if smf.state and smf.state.prevEasingHandle then
         LibEasing:StopEasing(smf.state.prevEasingHandle)
@@ -1252,6 +1352,10 @@ local function CreateSlidingMessageFramePool(parent)
 
       smf.chatFrame = nil
       smf.historyBuffer = nil
+      smf.layoutWidth = nil
+      smf.layoutHeight = nil
+      smf.layoutEditBox = nil
+      smf.detachedContainer = nil
 
       if smf.state ~= nil then
         smf.state.head = nil

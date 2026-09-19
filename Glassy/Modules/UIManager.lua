@@ -4,6 +4,7 @@ local UIManager = Core:GetModule("UIManager")
 local CreateChatDock = Core.Components.CreateChatDock
 local CreateChatTab = Core.Components.CreateChatTab
 local CreateCombatLogBar = Core.Components.CreateCombatLogBar
+local CreateDetachedChatDock = Core.Components.CreateDetachedChatDock
 local CreateEditBox = Core.Components.CreateEditBox
 local CreateMainContainerFrame = Core.Components.CreateMainContainerFrame
 local CreateMoverFrame = Core.Components.CreateMoverFrame
@@ -29,12 +30,128 @@ local UIParent = UIParent
 function UIManager:OnInitialize()
   self.state = {
     frames = {},
+    framesByName = {},
     tabs = {},
+    editBoxes = {},
+    detachedLayouts = {},
     temporaryFrames = {},
     temporaryTabs = {}
   }
   self.pendingFrames = {}
   self.renderScheduled = false
+end
+
+function UIManager:GetSlidingMessageFrame(chatFrame)
+  return chatFrame and self.state.framesByName[chatFrame:GetName()] or nil
+end
+
+function UIManager:CreateDetachedLayout(chatFrame, slidingMessageFrame, tab)
+  local frameName = chatFrame:GetName()
+  local container = CreateFrame("Frame", nil, UIParent)
+  container:SetPoint("TOPLEFT", chatFrame, "TOPLEFT", 0, Constants.DOCK_HEIGHT)
+  container:SetPoint("BOTTOMRIGHT", chatFrame, "BOTTOMRIGHT")
+  container:SetFrameStrata(chatFrame:GetFrameStrata())
+  container:SetFrameLevel(chatFrame:GetFrameLevel() + 1)
+
+  local layout = {
+    chatFrame = chatFrame,
+    container = container,
+    dock = CreateDetachedChatDock(container, tab),
+    slidingMessageFrame = slidingMessageFrame,
+  }
+  self.state.detachedLayouts[frameName] = layout
+  self.container:AddHoverRegion(container)
+
+  container:SetScript("OnSizeChanged", function ()
+    if chatFrame.isDocked or layout.resizeScheduled then
+      return
+    end
+
+    layout.resizeScheduled = true
+    C_Timer.After(0, function ()
+      layout.resizeScheduled = nil
+      if not chatFrame.isDocked and layout.slidingMessageFrame.chatFrame == chatFrame then
+        local editBox = self.state.editBoxes[chatFrame:GetName()]
+        if editBox then
+          editBox:SetGlassyParent(container, true)
+        end
+        layout.slidingMessageFrame:SetLayout(
+          container,
+          container:GetWidth(),
+          container:GetHeight(),
+          editBox or false,
+          container
+        )
+        if self.combatLogBar and self.combatLogBar.slidingMessageFrame == layout.slidingMessageFrame then
+          self.combatLogBar:UpdateLayout()
+        end
+      end
+    end)
+  end)
+  return layout
+end
+
+function UIManager:RefreshChatFrameLayout(chatFrame)
+  local slidingMessageFrame = self:GetSlidingMessageFrame(chatFrame)
+  if slidingMessageFrame == nil then
+    return
+  end
+
+  local frameName = chatFrame:GetName()
+  local tab = self.state.tabs[chatFrame:GetID()] or self.state.temporaryTabs[frameName]
+  local editBox = self.state.editBoxes[frameName]
+  local layout = self.state.detachedLayouts[frameName]
+  if chatFrame.isDocked then
+    editBox = self.state.editBoxes.ChatFrame1 or editBox
+    if editBox then
+      editBox:SetGlassyParent(self.container, false)
+    end
+    slidingMessageFrame:SetLayout(self.container, nil, nil, editBox, nil)
+    if self.combatLogBar and self.combatLogBar.slidingMessageFrame == slidingMessageFrame then
+      self.combatLogBar:SetGlassyParent(self.container, false, self.dock)
+    end
+    self.dock:UpdateTabOrder()
+    return
+  end
+
+  if layout == nil then
+    layout = self:CreateDetachedLayout(chatFrame, slidingMessageFrame, tab)
+  else
+    layout.slidingMessageFrame = slidingMessageFrame
+    layout.dock:SetTab(tab)
+  end
+
+  if chatFrame.buttonFrame and chatFrame.buttonFrame.minimizeButton then
+    chatFrame.buttonFrame.minimizeButton:Hide()
+  end
+
+  if editBox then
+    editBox:SetGlassyParent(layout.container, true)
+  end
+
+  slidingMessageFrame:SetLayout(
+    layout.container,
+    layout.container:GetWidth(),
+    layout.container:GetHeight(),
+    editBox or false,
+    layout.container
+  )
+  if self.combatLogBar and self.combatLogBar.slidingMessageFrame == slidingMessageFrame then
+    self.combatLogBar:SetGlassyParent(layout.container, true, layout.dock)
+  end
+  self.dock:UpdateTabOrder()
+end
+
+function UIManager:ScheduleChatFrameLayout(chatFrame)
+  if chatFrame == nil or self.layoutUpdates[chatFrame] then
+    return
+  end
+
+  self.layoutUpdates[chatFrame] = true
+  C_Timer.After(0, function ()
+    self.layoutUpdates[chatFrame] = nil
+    self:RefreshChatFrameLayout(chatFrame)
+  end)
 end
 
 function UIManager:QueueFrameForUpdate(slidingMessageFrame)
@@ -68,6 +185,7 @@ function UIManager:ProcessPendingFrames()
 end
 
 function UIManager:OnEnable()
+  self.layoutUpdates = {}
   self.renderFrame = CreateFrame("Frame", "GlassyUpdaterFrame", UIParent)
   self.renderOnUpdate = function ()
     self:ProcessPendingFrames()
@@ -91,7 +209,7 @@ function UIManager:OnEnable()
 
   for i=1, NUM_CHAT_WINDOWS do
     local chatFrame = _G["ChatFrame"..i]
-    if chatFrame:IsShown() then
+    if chatFrame:IsShown() and chatFrame.isDocked then
       initiallyShownChatFrame = chatFrame
     end
 
@@ -99,7 +217,22 @@ function UIManager:OnEnable()
     smf:Init(chatFrame)
 
     self.state.frames[i] = smf
+    self.state.framesByName[chatFrame:GetName()] = smf
     self.state.tabs[i] = CreateChatTab(smf, self.dock)
+  end
+
+  for i=1, NUM_CHAT_WINDOWS do
+    local chatFrame = _G["ChatFrame"..i]
+    if chatFrame.editBox then
+      local editBox = CreateEditBox(self.container, chatFrame.editBox, false)
+      self.state.editBoxes[chatFrame:GetName()] = editBox
+      self.container:AddHoverRegion(editBox)
+      self.container:AddHoverRegion(editBox.dynamicMessageArea)
+    end
+  end
+
+  for i=1, NUM_CHAT_WINDOWS do
+    self:RefreshChatFrameLayout(_G["ChatFrame"..i])
   end
 
   self.dock:RestoreSelectedTab(initiallyShownChatFrame)
@@ -114,9 +247,11 @@ function UIManager:OnEnable()
 
     self.combatLogBar = CreateCombatLogBar(self.container, self.state.frames[2])
     if self.combatLogBar then
+      self:RefreshChatFrameLayout(_G.ChatFrame2)
       self.container:AddHoverRegion(self.combatLogBar)
       self.moverFrame:AddBoundsRegion(self.combatLogBar, function ()
         return
+          _G.ChatFrame2.isDocked and
           not Core.db.profile.combatLogHidden and
           Core.db.profile.combatLogBarPosition ~= "HIDDEN"
       end)
@@ -138,9 +273,7 @@ function UIManager:OnEnable()
   end
 
   -- Edit box
-  self.editBox = CreateEditBox(self.container)
-  self.container:AddHoverRegion(self.editBox)
-  self.container:AddHoverRegion(self.editBox.dynamicMessageArea)
+  self.editBox = self.state.editBoxes.ChatFrame1 or CreateEditBox(self.container)
   self.moverFrame:AddBoundsRegion(self.editBox)
   self.moverFrame:SetLayoutRegions(self.container, self.editBox)
 
@@ -194,6 +327,14 @@ function UIManager:OnEnable()
 
       self.state.temporaryFrames[frameName] = smf
       self.state.temporaryTabs[frameName] = CreateChatTab(smf, self.dock)
+      self.state.framesByName[frameName] = smf
+      if chatFrame.editBox then
+        local editBox = CreateEditBox(self.container, chatFrame.editBox, false)
+        self.state.editBoxes[frameName] = editBox
+        self.container:AddHoverRegion(editBox)
+        self.container:AddHoverRegion(editBox.dynamicMessageArea)
+      end
+      self:RefreshChatFrameLayout(chatFrame)
     end
 
     return chatFrame
@@ -208,10 +349,26 @@ function UIManager:OnEnable()
     if smf ~= nil then
       self.pendingFrames[smf] = nil
       self.slidingMessageFramePool:Release(smf)
+      local layout = self.state.detachedLayouts[frameName]
+      if layout then
+        layout.container:Hide()
+      end
+      self.state.framesByName[frameName] = nil
       self.state.temporaryFrames[frameName] = nil
       self.state.temporaryTabs[frameName] = nil
     end
   end, true)
+
+  local function hookLayoutChange(functionName)
+    if type(_G[functionName]) == "function" and not self:IsHooked(functionName) then
+      self:SecureHook(functionName, function (chatFrame)
+        self:ScheduleChatFrameLayout(chatFrame)
+      end)
+    end
+  end
+  hookLayoutChange("FCF_DockFrame")
+  hookLayoutChange("FCF_UnDockFrame")
+  hookLayoutChange("FCF_StopDragging")
 
   -- Poll hover state at a low rate. Message queues use the work-driven render frame above.
   self.mouseoverTicker = C_Timer.NewTicker(0.05, function ()

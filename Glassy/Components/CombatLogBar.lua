@@ -46,8 +46,12 @@ function CombatLogBarMixin:UpdateLayout()
   local position = getPosition()
   local xOffset = Core.db.profile.combatLogBarXOffset
   local yOffset = Core.db.profile.combatLogBarYOffset
+  local width = Core.db.profile.frameWidth
+  if self.useParentWidth then
+    width = self.glassyParent:GetWidth()
+  end
 
-  self:SetWidth(Core.db.profile.frameWidth)
+  self:SetWidth(width)
   self:SetHeight(Constants.COMBAT_LOG_BAR_HEIGHT)
   self:ClearAllPoints()
 
@@ -59,6 +63,13 @@ function CombatLogBarMixin:UpdateLayout()
 
   self:UpdateBackground()
   self:UpdateVisibility()
+end
+
+function CombatLogBarMixin:SetGlassyParent(parent, useParentWidth, fadeParent)
+  self.glassyParent = parent
+  self.useParentWidth = useParentWidth
+  self:SetParent(fadeParent or parent)
+  self:UpdateLayout()
 end
 
 function CombatLogBarMixin:UpdateBackground()
@@ -154,6 +165,7 @@ end
 
 function CombatLogBarMixin:Init(parent, slidingMessageFrame)
   self.glassyParent = parent
+  self.useParentWidth = false
   self.slidingMessageFrame = slidingMessageFrame
   self:SetParent(_G.GENERAL_CHAT_DOCK or _G.GeneralDockManager or parent)
   self:SetIgnoreParentAlpha(false)

@@ -82,6 +82,7 @@ Ctrl+U, Ctrl+K, and Ctrl+Y are unavailable during Blizzard's chat messaging lock
 | Hover over chat | Reveal faded chat and tabs. |
 | Click a tab | Switch chat windows. |
 | Drag a tab | Reorder it, including General and Combat Log. |
+| Unlock a non-primary tab | Detach it into its own Glassy chat window; Blizzard retains that window's position and dimensions. |
 | Right-click a tab | Open its menu, including Channels, Settings, and the frame mover. |
 | Shift-click a tab | Open that tab's contents for copying; press Ctrl+C to copy to the clipboard. |
 | Mouse wheel over chat | Scroll through retained messages. |

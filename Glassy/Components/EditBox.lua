@@ -217,14 +217,47 @@ function EditBoxMixin:UpdateDynamicMessageArea()
     self.dynamicMessageAreaUpdatePending = nil
 
     local reusableHeight = self:GetReusableMessageHeight()
-    self.dynamicMessageArea:SetWidth(Core.db.profile.frameWidth)
+    self.dynamicMessageArea:SetWidth(self:GetLayoutWidth())
     self.dynamicMessageArea:SetHeight(math.max(1, reusableHeight))
     self.dynamicMessageArea:SetShown(reusableHeight > 0)
     Core:Dispatch(EditBoxLayoutChanged())
   end)
 end
 
-function EditBoxMixin:Init(parent)
+function EditBoxMixin:GetLayoutWidth()
+  if self.glassyUseParentWidth and self.glassyParent then
+    return math.max(1, tonumber(self.glassyParent:GetWidth()) or 1)
+  end
+  return math.max(1, tonumber(Core.db.profile.frameWidth) or Core.defaults.profile.frameWidth)
+end
+
+function EditBoxMixin:UpdateAnchor()
+  self:ClearAllPoints()
+  if Core.db.profile.editBoxAnchor.position == "ABOVE" then
+    self:SetPoint("BOTTOMLEFT", self.glassyParent, "TOPLEFT", 0, Core.db.profile.editBoxAnchor.yOfs)
+  else
+    self:SetPoint("TOPLEFT", self.glassyParent, "BOTTOMLEFT", 0, Core.db.profile.editBoxAnchor.yOfs)
+  end
+end
+
+function EditBoxMixin:SetGlassyParent(parent, useParentWidth)
+  self.glassyParent = parent
+  self.glassyUseParentWidth = useParentWidth == true
+  self:SetParent(parent)
+  self:UpdateAnchor()
+  self:SetWidth(self:GetLayoutWidth())
+
+  if self.dynamicMessageArea then
+    self.dynamicMessageArea:SetParent(parent)
+    self.dynamicMessageArea:ClearAllPoints()
+    self.dynamicMessageArea:SetPoint("TOPLEFT", parent, "BOTTOMLEFT")
+    self:UpdateDynamicMessageArea()
+  end
+  self:UpdateGlassyBackground()
+  self:UpdateMessageSeparator()
+end
+
+function EditBoxMixin:Init(parent, useParentWidth)
   -- Hide default styling
   hideExternalBackgrounds(self)
 
@@ -243,18 +276,12 @@ function EditBoxMixin:Init(parent)
   end
 
   -- New styling
-  local function updateAnchor()
-    self:ClearAllPoints()
-    if Core.db.profile.editBoxAnchor.position == "ABOVE" then
-      self:SetPoint("BOTTOMLEFT", parent, "TOPLEFT", 0, Core.db.profile.editBoxAnchor.yOfs)
-    else
-      self:SetPoint("TOPLEFT", parent, "BOTTOMLEFT", 0, Core.db.profile.editBoxAnchor.yOfs)
-    end
-  end
-  updateAnchor()
+  self.glassyParent = parent
+  self.glassyUseParentWidth = useParentWidth == true
+  self:UpdateAnchor()
 
   self:SetFontObject("GlassyEditBoxFont")
-  self:SetWidth(Core.db.profile.frameWidth)
+  self:SetWidth(self:GetLayoutWidth())
   self.header:SetFontObject("GlassyEditBoxFont")
 
   local function updateHeaderAnchor()
@@ -286,8 +313,8 @@ function EditBoxMixin:Init(parent)
   self:SetTextInsets()
 
   if self.dynamicMessageArea == nil then
-    self.dynamicMessageArea = CreateFrame("Frame", nil, parent)
-    self.dynamicMessageArea:SetPoint("TOPLEFT", parent, "BOTTOMLEFT")
+    self.dynamicMessageArea = CreateFrame("Frame", nil, self.glassyParent)
+    self.dynamicMessageArea:SetPoint("TOPLEFT", self.glassyParent, "BOTTOMLEFT")
   end
 
   -- Workaround for editbox being open on login
@@ -431,7 +458,7 @@ function EditBoxMixin:Init(parent)
     end
 
     if key == "frameWidth" then
-      self:SetWidth(Core.db.profile.frameWidth)
+      self:SetWidth(self:GetLayoutWidth())
       self:UpdateGlassyBackground()
       self:UpdateMessageSeparator()
     end
@@ -456,7 +483,7 @@ function EditBoxMixin:Init(parent)
     end
 
     if key == "editBoxAnchor" then
-      updateAnchor()
+      self:UpdateAnchor()
       self:UpdateMessageSeparator()
     end
 
@@ -484,14 +511,20 @@ function EditBoxMixin:Init(parent)
   end)
 end
 
-Core.Components.CreateEditBox = function (parent)
+Core.Components.CreateEditBox = function (parent, editBox, useParentWidth)
   local GradientBackgroundMixin = Core.Components.GradientBackgroundMixin
-  local object = Mixin(_G.ChatFrame1EditBox, GradientBackgroundMixin, EditBoxMixin)
+  local object = Mixin(editBox or _G.ChatFrame1EditBox, GradientBackgroundMixin, EditBoxMixin)
+  if object.glassyMixinInitialized then
+    object:SetGlassyParent(parent, useParentWidth)
+    return object
+  end
+
+  object.glassyMixinInitialized = true
   -- Keep AceHook methods off Blizzard's edit box so other addons can use its native HookScript.
   object.glassyHooks = AceHook:Embed({})
   -- Glassy hides the native chat frame; its input must inherit visibility from Glassy instead.
   object:SetParent(parent)
   GradientBackgroundMixin.Init(object)
-  object:Init(parent)
+  object:Init(parent, useParentWidth)
   return object
 end

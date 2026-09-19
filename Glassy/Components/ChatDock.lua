@@ -11,12 +11,11 @@ local CreateSeparatorFrame = Core.Components.CreateSeparatorFrame
 -- luacheck: push ignore 113
 local Mixin = Mixin
 local FCFDock_GetSelectedWindow = FCFDock_GetSelectedWindow
-local FCFDock_GetInsertIndex = FCFDock_GetInsertIndex
 local FCFDock_HideInsertHighlight = FCFDock_HideInsertHighlight
 local FCFDockOverflowListButton_SetValue = FCFDockOverflowListButton_SetValue
-local FCF_DockFrame = FCF_DockFrame
 local FCF_SelectDockFrame = FCF_SelectDockFrame
 local CHAT_WINDOWS_COUNT = CHAT_WINDOWS_COUNT
+local CreateFrame = CreateFrame
 local GENERAL_CHAT_DOCK = GENERAL_CHAT_DOCK
 local GeneralDockManager = GeneralDockManager
 local GetCursorPosition = GetCursorPosition
@@ -27,6 +26,14 @@ local UIParent = UIParent
 local ChatDockMixin = {}
 local TAB_DRAG_SCROLL_EDGE = 32
 local TAB_DRAG_SCROLL_SPEED = 300
+
+local function getSafeDockInsertIndex(original, dock, chatFrame, mouseX, mouseY)
+  if not chatFrame.isDocked then
+    return #dock.DOCKED_CHAT_FRAMES + 1
+  end
+
+  return original(dock, chatFrame, mouseX, mouseY)
+end
 
 local function updateMessageSeparator(self)
   self.messageSeparator:SetSeparatorColor(Core.db.profile.tabMessageSeparatorColor)
@@ -44,6 +51,7 @@ end
 function ChatDockMixin:SaveSelectedTab(chatFrame)
   if (
     chatFrame and
+    chatFrame.isDocked and
     not chatFrame.isTemporary and
     (chatFrame ~= _G.ChatFrame2 or not Core.db.profile.combatLogHidden)
   ) then
@@ -596,6 +604,12 @@ function ChatDockMixin:Init(parent)
     end)
   end
 
+  if Constants.ENV ~= "retail" and type(_G.FCFDock_GetInsertIndex) == "function" and not self:IsHooked("FCFDock_GetInsertIndex") then
+    self:RawHook("FCFDock_GetInsertIndex", function (dock, chatFrame, mouseX, mouseY)
+      return getSafeDockInsertIndex(self.hooks.FCFDock_GetInsertIndex, dock, chatFrame, mouseX, mouseY)
+    end, true)
+  end
+
   if not self:IsHooked("FCFDock_SelectWindow") then
     self:SecureHook("FCFDock_SelectWindow", function (dock, chatFrame)
       if dock == GENERAL_CHAT_DOCK then
@@ -636,18 +650,6 @@ function ChatDockMixin:Init(parent)
     self.messageSeparator:SetPoint("BOTTOMRIGHT")
   end
   updateMessageSeparator(self)
-
-  -- Keep any native fallback drag docked.
-  self:RawHook("FCF_StopDragging", function (chatFrame)
-    chatFrame:StopMovingOrSizing();
-    _G[chatFrame:GetName().."Tab"]:UnlockHighlight();
-
-    FCFDock_HideInsertHighlight(GENERAL_CHAT_DOCK);
-
-    local mouseX, mouseY = GetCursorPosition();
-    mouseX, mouseY = mouseX / UIParent:GetScale(), mouseY / UIParent:GetScale();
-    FCF_DockFrame(chatFrame, FCFDock_GetInsertIndex(GENERAL_CHAT_DOCK, chatFrame, mouseX, mouseY), true);
-  end, true)
 
   self:QuickHide()
 
@@ -715,5 +717,80 @@ Core.Components.CreateChatDock = function (parent)
   FadingFrameMixin.Init(object)
   GradientBackgroundMixin.Init(object)
   ChatDockMixin.Init(object, parent)
+  return object
+end
+
+Core.Components.GetSafeDockInsertIndex = getSafeDockInsertIndex
+
+local DetachedChatDockMixin = {}
+
+function DetachedChatDockMixin:UpdateFadeSettings()
+  self:SetFadeInDuration(Core.db.profile.chatFadeInDuration)
+  self:SetFadeOutDuration(Core.db.profile.chatFadeOutDuration)
+  self:SetFadeEasing(Core.db.profile.chatFadeEasing)
+end
+
+function DetachedChatDockMixin:UpdateStyle()
+  local backgroundColor = Core.db.profile.headerBackgroundColor
+  self:SetGradientBackground(backgroundColor, backgroundColor.a)
+  self.messageSeparator:SetSeparatorColor(Core.db.profile.tabMessageSeparatorColor)
+end
+
+function DetachedChatDockMixin:SetTab(tab)
+  if tab == nil then
+    return
+  end
+  self.tab = tab
+  tab:SetParent(self)
+  tab:SetFrameStrata("LOW")
+  tab:ClearAllPoints()
+  tab:SetPoint("LEFT", self, "LEFT", 0, 0)
+  if tab.UpdateVisualState then
+    tab:UpdateVisualState()
+  end
+end
+
+function DetachedChatDockMixin:Init(parent)
+  self:SetHeight(Constants.DOCK_HEIGHT)
+  self:SetPoint("TOPLEFT", parent, "TOPLEFT")
+  self:SetPoint("TOPRIGHT", parent, "TOPRIGHT")
+  self:UpdateFadeSettings()
+
+  self.messageSeparator = CreateSeparatorFrame(self)
+  self.messageSeparator:SetPoint("BOTTOMLEFT")
+  self.messageSeparator:SetPoint("BOTTOMRIGHT")
+  self:UpdateStyle()
+  self:SetScript("OnSizeChanged", function () self:UpdateStyle() end)
+
+  self.subscriptions = {
+    Core:Subscribe(MOUSE_ENTER, function () self:Show() end),
+    Core:Subscribe(MOUSE_LEAVE, function ()
+      if Core.db.profile.chatShowOnMouseOver then
+        self:HideDelay(Core.db.profile.chatHoldTime)
+      else
+        self:Hide()
+      end
+    end),
+    Core:Subscribe(UPDATE_CONFIG, function (key)
+      if key == "headerBackgroundColor" or key == "tabMessageSeparatorColor" or key == "backgroundFade" then
+        self:UpdateStyle()
+      elseif key == "chatFadeInDuration" or key == "chatFadeOutDuration" or key == "chatFadeEasing" then
+        self:UpdateFadeSettings()
+      end
+    end),
+  }
+
+  self:QuickHide()
+end
+
+Core.Components.CreateDetachedChatDock = function (parent, tab)
+  local FadingFrameMixin = Core.Components.FadingFrameMixin
+  local GradientBackgroundMixin = Core.Components.GradientBackgroundMixin
+  local frame = CreateFrame("Frame", nil, parent)
+  local object = Mixin(frame, FadingFrameMixin, GradientBackgroundMixin, DetachedChatDockMixin)
+  FadingFrameMixin.Init(object)
+  GradientBackgroundMixin.Init(object)
+  object:Init(parent)
+  object:SetTab(tab)
   return object
 end

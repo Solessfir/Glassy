@@ -16,7 +16,9 @@ local CHAT_CONFIGURATION = CHAT_CONFIGURATION
 local CLOSE_CHAT_WINDOW = CLOSE_CHAT_WINDOW
 local ChatConfigFrame = ChatConfigFrame
 local DEFAULT_CHAT_FRAME = DEFAULT_CHAT_FRAME
+local DISPLAY = DISPLAY
 local FCF_GetNumActiveChatFrames = FCF_GetNumActiveChatFrames
+local FCF_MinimizeFrame = FCF_MinimizeFrame
 local FCF_NewChatWindow = FCF_NewChatWindow
 local FCF_PopInWindow = FCF_PopInWindow
 local FCF_RenameChatWindow_Popup = FCF_RenameChatWindow_Popup
@@ -27,6 +29,7 @@ local IsCombatLog = IsCombatLog
 local IsShiftKeyDown = IsShiftKeyDown
 local Menu = Menu
 local MenuUtil = MenuUtil
+local MINIMIZE = MINIMIZE or "Minimize Window"
 local Mixin = Mixin
 local NEW_CHAT_WINDOW = NEW_CHAT_WINDOW
 local NUM_CHAT_WINDOWS = NUM_CHAT_WINDOWS
@@ -52,18 +55,28 @@ local ChatTabMixin = {}
 if Menu and Menu.ModifyMenu and MenuUtil and ToggleChannelFrame then
   Menu.ModifyMenu("MENU_FCF_TAB", function (owner, rootDescription)
     if owner and owner.slidingMessageFrame then
-      local button = MenuUtil.CreateButton(CHAT_CHANNELS, function ()
-        ToggleChannelFrame()
-      end)
-
-      local settingsIndex
-      for index, description in rootDescription:EnumerateElementDescriptions() do
-        if MenuUtil.GetElementText(description) == CHAT_CONFIGURATION then
-          settingsIndex = index
-          break
+      local function insertBefore(text, button)
+        local insertionIndex
+        for index, description in rootDescription:EnumerateElementDescriptions() do
+          if MenuUtil.GetElementText(description) == text then
+            insertionIndex = index
+            break
+          end
         end
+        rootDescription:Insert(button, insertionIndex)
       end
-      rootDescription:Insert(button, settingsIndex)
+
+      local chatFrameName = owner:GetName():gsub("Tab$", "")
+      local chatFrame = _G[chatFrameName]
+      if chatFrame and not chatFrame.isDocked and FCF_MinimizeFrame then
+        insertBefore(DISPLAY, MenuUtil.CreateButton(MINIMIZE, function ()
+          FCF_MinimizeFrame(chatFrame, string.upper(chatFrame.buttonSide or "right"))
+        end))
+      end
+
+      insertBefore(CHAT_CONFIGURATION, MenuUtil.CreateButton(CHAT_CHANNELS, function ()
+        ToggleChannelFrame()
+      end))
     end
   end)
 end
