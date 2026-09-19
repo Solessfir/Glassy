@@ -1,21 +1,19 @@
-# 1.9.1 (2026-09-14)
+# 1.9.2 (2026-09-19)
 
 ## What's new
 
-- This fork is now **Glassy**. Use `/gl`, `/gl lock`, and `/gl debug`. `/glassy` and `/glass` remain aliases.
-- Releases are available from GitHub, CurseForge, and Wago Addons.
-- Support for Classic Era and Hardcore, Burning Crusade Anniversary, Mists of Pandaria Classic, and Retail.
-- Updated installation instructions, compatibility notes, and [GitHub links](https://github.com/Solessfir/Glassy).
+- Glassy now styles and manages detached chat windows while preserving their Blizzard-managed position and size.
+- Added profile export and import, including options to create a new profile or replace the current one.
+- Added an optional message blacklist that hides messages containing configured phrases, including restored Prat history.
+- Added full interface localization for English, German, Spanish, French, Italian, Korean, Brazilian Portuguese, Russian, Simplified Chinese, and Traditional Chinese.
+- Added an option to reveal faded messages while typing.
+- Added configurable tab hover highlighting, message and edit-box separators, message spacing, edit-box padding, and unread-message appearance.
+- Reorganized settings with dedicated Shortcuts and About pages. Use `/gl news` to reopen these notes.
 
 ## Fixes
 
-- Fixed hidden chat input and Prat TellTarget hook conflicts. Disable Prat's **Editbox** module and reload after changing it.
-- Fixed missing Retail tabs, tab artwork, and repeated mouse-hover errors.
-- Fixed Retail Combat Log protected-action errors when switching tabs and using filter buttons.
-- Preserve protected Retail message text without parsing; copied chat replaces protected contents with `<protected>`.
-
-## Upgrading
-
-Close WoW before migrating from Glass. Install Glassy, copy your account's `SavedVariables/Glass.lua` to `Glassy.lua`, and change its top-level `GlassDB =` assignment to `GlassyDB =`. Do not overwrite existing Glassy settings. Keep the old settings file as a backup, and remove or disable the old Glass addon.
-
-On Retail, chat tab selection and reordering now work without protected-action errors.
+- Chat tabs stay hidden after login or `/reload` until the chat is hovered.
+- Large Prat histories are restored over multiple frames to prevent script timeouts.
+- Protected keyboard-input calls are avoided during combat.
+- Improved frame bounds, edit-box spacing, unread-message placement, and Combat Log tab behavior.
+- Added Classic Forever interface `16001` support.

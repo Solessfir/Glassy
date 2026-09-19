@@ -27,7 +27,7 @@ Custom fonts require an addon that registers them with LibSharedMedia, such as S
 4. Restart WoW or reload after replacing an existing installation, then enter `/gl`.
 5. Open **Compatibility** to check detected addons and conflicting Prat modules.
 
-The current TOC accepts Classic Era `11509`, Burning Crusade Anniversary `20506`, Mists of Pandaria Classic `50504`, and Retail `120100`. All four clients have been tested in game, including Retail Combat Log tab switching and filter buttons. Future clients will need validation when available.
+The current TOC accepts Classic Era and Hardcore `11509`, Classic Forever `16001`, Burning Crusade Anniversary `20506`, Mists of Pandaria Classic `50504`, and Retail `120100`. These clients have been tested in game, including Retail Combat Log tab switching and filter buttons. Future clients will need validation when available.
 
 The interface is localized for English, German, Spanish (EU and Latin America), French, Italian, Korean, Brazilian Portuguese, Russian, Simplified Chinese, and Traditional Chinese. WoW selects the language automatically from the game client locale. The archived release-note prose in **What's new** remains in its original English rather than being partially translated.
 
@@ -88,6 +88,16 @@ Ctrl+U, Ctrl+K, and Ctrl+Y are unavailable during Blizzard's chat messaging lock
 | Mouse wheel over chat | Scroll through retained messages. |
 | Click the return-to-bottom arrow | Return to the newest messages. |
 | Hover over an item link | Show its tooltip. |
+
+## What's new in 1.9.2
+
+- Detached chat windows now use Glassy styling and behavior while keeping their Blizzard-managed position and size.
+- Profiles can be exported and imported, either into a new profile or over the current one after confirmation.
+- An optional message blacklist hides messages containing configured phrases, including restored Prat history.
+- The complete interface is localized into ten languages.
+- New controls cover reveal while typing, tab hover highlighting, gradient separators, message spacing, edit-box padding, and unread-message appearance.
+- Settings now have dedicated Shortcuts and About pages, with `/gl news` available for reopening the in-game release notes.
+- Compatibility and performance fixes improve startup visibility, history restoration, frame bounds, Combat Log tabs, and Classic Forever support.
 
 ## What's new in this fork
 
@@ -156,7 +166,7 @@ To release:
 
 1. Update the version in `Glassy.toc`, then update `CHANGELOG.md`, `LATEST.md`, and the in-game history in `Glassy/Modules/News.lua` for that version.
 2. Commit and push; wait for the checks to pass.
-3. Create an annotated version tag, such as `git tag -a v1.9.1 -m "Glassy 1.9.1"`, then push that tag with `git push origin v1.9.1`.
+3. Create an annotated version tag, such as `git tag -a v1.9.2 -m "Glassy 1.9.2"`, then push that tag with `git push origin v1.9.2`.
 
 The tag workflow publishes one multi-client ZIP to [CurseForge](https://www.curseforge.com/wow/addons/glassy) and [Wago Addons](https://addons.wago.io/addons/glassy), then attaches it to GitHub Releases. It uses the repository's `CF_API_KEY` and `WAGO_API_TOKEN` secrets plus GitHub's automatic token. No separate packaging webhook is needed; enabling one could upload duplicate releases. Branch pushes and manual check runs do not publish.
 

@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.9.2 (2026-09-19)
+
+* Add built-in localization for English, German, Spanish, French, Italian, Korean, Brazilian Portuguese, Russian, Simplified Chinese, and Traditional Chinese across settings, tooltips, dialogs, status text, and copy-window messages.
+* Enlarge the version-history window and use the game UI font with a 95%-opaque settings-theme background. Add an About page for the version and action buttons, move command help to Shortcuts, and add `/gl news`.
+* Read the runtime version from the addon's TOC metadata, keeping `Glassy.toc` as the single version source.
+* Add a **Show while typing** option that reveals faded chat messages while the chat input is open and resumes normal fading when it closes.
+* Add a **Tab hover highlight** strength setting, default it to 65%, and reserve a dedicated row for the unread-message control so it no longer overlaps chat text.
+* Default chat-tab interaction tooltips to off.
+* Add independently colored, pixel-snapped gradient separators between tabs and messages, the edit box and messages, and the unread-message control and messages. Setting a separator's opacity to 0 hides it. The edit-box separator follows its fade animation. Add a vertical message offset and an independent unread-message background color.
+* Add configurable vertical padding above and below edit-box text, defaulting to half a line height per side.
+* Make screen-anchor offsets use the visible chat and attached edit-box bounds instead of a fixed 35-pixel edit-box estimate.
+* Preserve the edit box's bottom text padding when its space is reused for chat messages, keeping both states equally inset from the screen edge.
+* Change the default left text padding from 15 pixels to 4 pixels.
+* Keep the chat tabs hidden after login or UI reload while still showing chat messages.
+* Add Classic Forever interface `16001` support.
+* Avoid protected keyboard-propagation calls during combat when handling Alt shortcuts in the chat input.
+* Add an optional message blacklist with case-insensitive plain-text matching, whitespace normalization, and filtering for live, copied, and restored Prat messages.
+* Spread chat-history restoration across game frames to avoid script timeouts during login and UI reload.
+* Add validated, locale-independent profile export and import, with options to create a new profile or replace the current profile after confirmation.
+* Apply Glassy styling and behavior to detached chat windows while preserving each window's Blizzard-managed position and dimensions.
+
 ## 1.9.1 (2026-09-14)
 
 * Replace legacy Travis CI with GitHub Actions package checks and tag-only publishing to CurseForge and GitHub Releases. Keep `Tests/` out of release ZIPs and include the missing CallbackHandler library.

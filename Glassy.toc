@@ -1,7 +1,7 @@
 ## Interface: 11509, 16001, 20506, 50504, 120100
 ## Plain Title: Glassy
 ## Author: Solessfir (original by mixxorz)
-## Version: 1.9.1
+## Version: 1.9.2
 
 ## Title: |c00DFBA69Glassy|r
 ## Notes: Immersive and minimalistic chat UI.
