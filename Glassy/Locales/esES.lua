@@ -35,6 +35,8 @@ local values = {
   FADE_IN_DURATION="Duración de aparición", FADE_OUT_DURATION="Duración de desaparición", FADE_EASING="Animación del fundido",
   MOVEMENT="Movimiento", MOVEMENT_DURATION="Duración del movimiento", PREVIEW_ANIMATIONS="Previsualizar animaciones",
   BEHAVIOR="Comportamiento", INDENT_LINE_WRAP="Sangrar líneas ajustadas", MOUSE_OVER_TOOLTIPS="Ayudas al pasar el ratón",
+  MESSAGE_BLACKLIST="Lista negra de mensajes", MESSAGE_BLACKLIST_DESC="Oculta mensajes de chat que contengan una frase bloqueada.\nPredeterminado: desactivado",
+  BLOCKED_PHRASES="Frases bloqueadas", BLOCKED_PHRASES_DESC="Introduce una frase de texto sin formato por línea. La coincidencia ignora mayúsculas, minúsculas y espacios repetidos.",
   HISTORY="Historial", SCROLLBACK_LINES="Líneas de historial", TIMESTAMPS="Marcas de tiempo", SETTINGS="Ajustes",
   SHOW_TIMESTAMPS="Mostrar hora", FORMAT="Formato", OVERRIDE_COLOR="Forzar color", COLOR="Color",
   CHAT_WINDOWS="Ventanas de chat", COMBAT_LOG="Registro de combate", SHOW_COMBAT_LOG="Mostrar registro de combate",

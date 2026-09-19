@@ -36,6 +36,8 @@ Core:RegisterCompactTranslations("deDE", {
   FADE_IN_DURATION="Einblenddauer", FADE_OUT_DURATION="Ausblenddauer", FADE_EASING="Überblendanimation",
   MOVEMENT="Bewegung", MOVEMENT_DURATION="Bewegungsdauer", PREVIEW_ANIMATIONS="Animationen anzeigen",
   BEHAVIOR="Verhalten", INDENT_LINE_WRAP="Umgebrochene Zeilen einrücken", MOUSE_OVER_TOOLTIPS="Tooltips bei Mausberührung",
+  MESSAGE_BLACKLIST="Nachrichten-Sperrliste", MESSAGE_BLACKLIST_DESC="Chatnachrichten ausblenden, die eine gesperrte Textstelle enthalten.\nStandard: aus",
+  BLOCKED_PHRASES="Gesperrte Textstellen", BLOCKED_PHRASES_DESC="Eine Klartext-Textstelle pro Zeile eingeben. Groß-/Kleinschreibung und mehrfacher Leerraum werden beim Abgleich ignoriert.",
   HISTORY="Verlauf", SCROLLBACK_LINES="Verlaufszeilen", TIMESTAMPS="Zeitstempel", SETTINGS="Einstellungen",
   SHOW_TIMESTAMPS="Zeitstempel anzeigen", FORMAT="Format", OVERRIDE_COLOR="Farbe überschreiben", COLOR="Farbe",
   CHAT_WINDOWS="Chatfenster", COMBAT_LOG="Kampflog", SHOW_COMBAT_LOG="Kampflog anzeigen",

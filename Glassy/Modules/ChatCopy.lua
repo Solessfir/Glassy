@@ -1,5 +1,6 @@
 local Core = unpack(select(2, ...))
 local ChatCopy = Core:GetModule("ChatCopy")
+local TP = Core:GetModule("TextProcessing")
 
 local AceGUI = Core.Libs.AceGUI
 local L = function(text) return Core:Localize(text) end
@@ -59,7 +60,7 @@ local function readChatFrame(chatFrame)
   -- Read it newest-first so the copy window remains bounded without cutting old lines.
   for index = count, first, -1 do
     local text = stripChatMarkup(chatFrame:GetMessageInfo(index))
-    if text and text ~= "" then
+    if text and text ~= "" and not TP:IsMessageBlacklisted(text) then
       local separatorBytes = #reverseLines > 0 and 1 or 0
       if bytesUsed + separatorBytes + #text > MAX_COPY_BYTES then
         break

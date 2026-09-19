@@ -25,6 +25,8 @@ Core:RegisterCompactTranslations("zhCN", {
   FADING="淡入淡出", FADE_IN_DURATION="淡入时间", FADE_OUT_DURATION="淡出时间", FADE_EASING="淡入淡出动画",
   MOVEMENT="移动", MOVEMENT_DURATION="移动时间", PREVIEW_ANIMATIONS="预览动画", BEHAVIOR="行为",
   INDENT_LINE_WRAP="换行缩进", MOUSE_OVER_TOOLTIPS="鼠标悬停提示", HISTORY="历史记录", SCROLLBACK_LINES="历史行数",
+  MESSAGE_BLACKLIST="消息黑名单", MESSAGE_BLACKLIST_DESC="隐藏包含已屏蔽短语的聊天消息。\n默认：关闭",
+  BLOCKED_PHRASES="屏蔽短语", BLOCKED_PHRASES_DESC="每行输入一个纯文本短语。匹配时忽略大小写和重复空白。",
   TIMESTAMPS="时间戳", SETTINGS="设置", SHOW_TIMESTAMPS="显示时间戳", FORMAT="格式", OVERRIDE_COLOR="覆盖颜色",
   COLOR="颜色", CHAT_WINDOWS="聊天窗口", COMBAT_LOG="战斗记录", SHOW_COMBAT_LOG="显示战斗记录", FILTER_BAR="过滤栏",
   POSITION="位置", COMPATIBILITY="兼容性",

@@ -15,6 +15,7 @@ local C_ChatInfo = C_ChatInfo
 local C_Timer = C_Timer
 local CreateFrame = CreateFrame
 local GetCurrentKeyBoardFocus = GetCurrentKeyBoardFocus
+local InCombatLockdown = InCombatLockdown
 local IsAltKeyDown = IsAltKeyDown
 local IsControlKeyDown = IsControlKeyDown
 local Mixin = Mixin
@@ -28,6 +29,14 @@ local function isChatMessagingLocked()
   return C_ChatInfo and
     C_ChatInfo.InChatMessagingLockdown and
     C_ChatInfo.InChatMessagingLockdown()
+end
+
+local function setPropagateKeyboardInput(editBox, propagate)
+  if InCombatLockdown() then
+    return false
+  end
+  editBox:SetPropagateKeyboardInput(propagate)
+  return true
 end
 
 local function getLeftTextPadding()
@@ -292,26 +301,25 @@ function EditBoxMixin:Init(parent)
   local altInputWatcher = CreateFrame("Frame")
   altInputWatcher:Hide()
   altInputWatcher:SetScript("OnUpdate", function (watcher)
-    if IsAltKeyDown() then
+    if IsAltKeyDown() or not setPropagateKeyboardInput(self, false) then
       return
     end
     watcher:Hide()
-    self:SetPropagateKeyboardInput(false)
     if self:IsVisible() and not GetCurrentKeyBoardFocus() then
       self:SetFocus()
     end
   end)
 
   super(self).HookScript(self, "OnKeyDown", function (editBox, key)
-    editBox:SetPropagateKeyboardInput(false)
+    setPropagateKeyboardInput(editBox, false)
     if IsAltKeyDown() and not IsControlKeyDown() then
       -- Leave native history navigation and modifier presses with the edit box.
       if key ~= "UP" and key ~= "DOWN" and key ~= "LEFT" and key ~= "RIGHT"
         and key ~= "LALT" and key ~= "RALT" and key ~= "LSHIFT" and key ~= "RSHIFT"
+        and setPropagateKeyboardInput(editBox, true)
       then
         -- Release text focus before the printable character arrives.
         -- WoW handles the actual binding; the draft never needs SetText.
-        editBox:SetPropagateKeyboardInput(true)
         editBox.glassyClearingFocus = true
         editBox:ClearFocus()
         editBox.glassyClearingFocus = nil

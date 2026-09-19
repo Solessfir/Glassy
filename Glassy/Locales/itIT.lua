@@ -34,6 +34,8 @@ Core:RegisterCompactTranslations("itIT", {
   FADE_IN_DURATION="Durata comparsa", FADE_OUT_DURATION="Durata scomparsa", FADE_EASING="Animazione dissolvenza",
   MOVEMENT="Movimento", MOVEMENT_DURATION="Durata movimento", PREVIEW_ANIMATIONS="Anteprima animazioni",
   BEHAVIOR="Comportamento", INDENT_LINE_WRAP="Rientra righe a capo", MOUSE_OVER_TOOLTIPS="Descrizioni al passaggio del mouse",
+  MESSAGE_BLACKLIST="Lista nera messaggi", MESSAGE_BLACKLIST_DESC="Nasconde i messaggi della chat che contengono una frase bloccata.\nPredefinito: disattivato",
+  BLOCKED_PHRASES="Frasi bloccate", BLOCKED_PHRASES_DESC="Inserisci una frase di testo semplice per riga. La corrispondenza ignora maiuscole, minuscole e spazi ripetuti.",
   HISTORY="Cronologia", SCROLLBACK_LINES="Righe cronologia", TIMESTAMPS="Orari", SETTINGS="Impostazioni",
   SHOW_TIMESTAMPS="Mostra orari", FORMAT="Formato", OVERRIDE_COLOR="Sostituisci colore", COLOR="Colore",
   CHAT_WINDOWS="Finestre chat", COMBAT_LOG="Registro combattimento", SHOW_COMBAT_LOG="Mostra registro combattimento",

@@ -21,6 +21,8 @@ dofile("libs/LibStub/LibStub.lua")
 dofile("libs/AceHook-3.0/AceHook-3.0.lua")
 local AceHook = LibStub("AceHook-3.0")
 local function noop() end
+local queuedUpdates = 0
+local uiManager = {QueueFrameForUpdate = function () queuedUpdates = queuedUpdates + 1 end}
 local function frame(name)
   local object = {scripts = {}, postHooks = {}, shown = false, name = name}
   function object:GetName() return self.name end
@@ -65,7 +67,8 @@ end
 CreateFrame = function (_, name) return frame(name) end
 local constants = {ENV = "retail", ACTIONS = {}, EVENTS = {}, COLORS = {apache = {r = 1, g = 1, b = 1}}, TEXT_RIGHT_PADDING = 5}
 local core = {
-  Libs = {AceHook = AceHook, LibEasing = {}}, Components = {}, GetModule = function () return {} end,
+  Libs = {AceHook = AceHook, LibEasing = {}}, Components = {},
+  GetModule = function (_, name) return name == "UIManager" and uiManager or {} end,
   db = {profile = {textLeftPadding = 0}}, defaults = {profile = {textLeftPadding = 0}}, Subscribe = noop,
 }
 local utils = {}
@@ -75,6 +78,26 @@ local function loadComponent(name)
 end
 
 loadComponent("SlidingMessageFrame")
+local batched = core.Components.CreateSlidingMessageFrame()
+batched.state = {incomingMessages = {}, incomingScrollbackMessages = {}}
+for index = 1, 40 do batched.state.incomingMessages[index] = index end
+local processed = {}
+batched.Update = function (_, incoming, reverse)
+  assert(not reverse and #incoming <= 16, "Live messages exceeded the per-frame batch")
+  for _, message in ipairs(incoming) do processed[#processed + 1] = message end
+end
+batched:OnFrame()
+assert(#processed == 16 and #batched.state.incomingMessages == 24 and queuedUpdates == 1, "Live messages were not deferred")
+batched:OnFrame()
+batched:OnFrame()
+assert(#processed == 40 and #batched.state.incomingMessages == 0 and queuedUpdates == 2, "Deferred live messages were lost")
+for index = 1, 20 do batched.state.incomingScrollbackMessages[index] = index end
+batched.Update = function (_, incoming, reverse)
+  assert(reverse and #incoming <= 16, "Scrollback messages exceeded the per-frame batch")
+end
+batched:OnFrame()
+assert(#batched.state.incomingScrollbackMessages == 4 and queuedUpdates == 3, "Scrollback messages were not deferred")
+
 for _, environment in ipairs({"retail", "classic"}) do
   constants.ENV = environment
   for _, combatLog in ipairs({true, false}) do

@@ -91,6 +91,7 @@ Ctrl+U, Ctrl+K, and Ctrl+Y are unavailable during Blizzard's chat messaging lock
 ## What's new in this fork
 
 - **Chat copying:** a per-tab copy window and configurable retained history.
+- **Message blacklist:** optionally hide messages containing configured plain-text phrases, including restored Prat history.
 - **Combat Log:** Glassy-styled entries, adjustable filter-bar position and appearance, and an option to hide the log while retaining recent events.
 - **Timestamps:** Glassy-owned formatting, optional custom color, and per-tab controls.
 - **Backgrounds:** independent colors and opacity, plus adjustable left/right fades.

@@ -1426,6 +1426,37 @@ function C:OnEnable()
                     Core.db.profile.mouseOverTooltips = input
                   end,
                 },
+                messageBlacklistEnabled = {
+                  name = "Message blacklist",
+                  desc = "Hide chat messages containing any blocked phrase.\nDefault: off",
+                  type = "toggle",
+                  order = 5.3,
+                  get = function ()
+                    return Core.db.profile.messageBlacklistEnabled
+                  end,
+                  set = function (_, input)
+                    Core.db.profile.messageBlacklistEnabled = input
+                    Core:Dispatch(UpdateConfig("messageBlacklist"))
+                  end,
+                },
+                messageBlacklist = {
+                  name = "Blocked phrases",
+                  desc = "Enter one plain-text phrase per line. Matching ignores letter case and repeated whitespace.",
+                  type = "input",
+                  multiline = 8,
+                  width = "full",
+                  order = 5.4,
+                  disabled = function ()
+                    return not Core.db.profile.messageBlacklistEnabled
+                  end,
+                  get = function ()
+                    return Core.db.profile.messageBlacklist
+                  end,
+                  set = function (_, input)
+                    Core.db.profile.messageBlacklist = input or ""
+                    Core:Dispatch(UpdateConfig("messageBlacklist"))
+                  end,
+                },
               }
             },
             section6 = {

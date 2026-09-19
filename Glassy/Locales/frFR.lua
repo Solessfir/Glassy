@@ -33,6 +33,8 @@ Core:RegisterCompactTranslations("frFR", {
   FADE_IN_DURATION="Durée d’apparition", FADE_OUT_DURATION="Durée de disparition", FADE_EASING="Animation du fondu",
   MOVEMENT="Mouvement", MOVEMENT_DURATION="Durée du mouvement", PREVIEW_ANIMATIONS="Aperçu des animations",
   BEHAVIOR="Comportement", INDENT_LINE_WRAP="Indenter les lignes renvoyées", MOUSE_OVER_TOOLTIPS="Infobulles au survol",
+  MESSAGE_BLACKLIST="Liste noire des messages", MESSAGE_BLACKLIST_DESC="Masque les messages de discussion contenant une phrase bloquée.\nPar défaut : désactivé",
+  BLOCKED_PHRASES="Phrases bloquées", BLOCKED_PHRASES_DESC="Saisissez une phrase en texte brut par ligne. La recherche ignore la casse et les espaces répétés.",
   HISTORY="Historique", SCROLLBACK_LINES="Lignes d’historique", TIMESTAMPS="Horodatage", SETTINGS="Paramètres",
   SHOW_TIMESTAMPS="Afficher l’heure", FORMAT="Format", OVERRIDE_COLOR="Remplacer la couleur", COLOR="Couleur",
   CHAT_WINDOWS="Fenêtres de chat", COMBAT_LOG="Journal de combat", SHOW_COMBAT_LOG="Afficher le journal de combat",

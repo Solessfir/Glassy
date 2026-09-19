@@ -32,6 +32,7 @@ local Mixin = Mixin
 local SlidingMessageFrameMixin = {}
 
 local RENDERED_MESSAGE_LIMIT = 128
+local MESSAGE_UPDATE_BATCH_SIZE = 16
 local DEFAULT_UNREAD_ROW_HEIGHT = 24
 
 local function getBaseMessageTopInset(isCombatLog)
@@ -698,6 +699,10 @@ function SlidingMessageFrameMixin:Init(chatFrame)
           self:SetTyping(editBox and editBox.glassyEntryVisible)
         end
 
+        if key == "messageBlacklist" then
+          self:ReloadMessagesFromChatFrame()
+        end
+
         if key == "editBoxEasing" and self.state.editBoxEasingHandle then
           self:UpdateDynamicEditBoxLayout()
         end
@@ -881,6 +886,9 @@ function SlidingMessageFrameMixin:AddMessageAt(receivedAt, ...)
   if self.state.isCombatLog and isCombatLogHidden() then
     return
   end
+  if TP:IsMessageBlacklisted(select(2, ...)) then
+    return
+  end
 
   -- Enqueue messages to be displayed
   local args = {...}
@@ -895,6 +903,9 @@ end
 
 function SlidingMessageFrameMixin:BackFillMessageAt(receivedAt, ...)
   if self.state.isCombatLog and isCombatLogHidden() then
+    return
+  end
+  if TP:IsMessageBlacklisted(select(2, ...)) then
     return
   end
 
@@ -1023,15 +1034,22 @@ end
 
 function SlidingMessageFrameMixin:OnFrame()
   if #self.state.incomingMessages > 0 then
-    local incoming = self.state.incomingMessages
-    self.state.incomingMessages = {}
+    local incoming = {}
+    for _ = 1, math.min(MESSAGE_UPDATE_BATCH_SIZE, #self.state.incomingMessages) do
+      incoming[#incoming + 1] = table.remove(self.state.incomingMessages, 1)
+    end
     self:Update(incoming, false)
+  elseif #self.state.incomingScrollbackMessages > 0 then
+    local incoming = {}
+    for _ = 1, math.min(MESSAGE_UPDATE_BATCH_SIZE, #self.state.incomingScrollbackMessages) do
+      incoming[#incoming + 1] = table.remove(self.state.incomingScrollbackMessages, 1)
+    end
+    self:Update(incoming, true)
   end
 
-  if #self.state.incomingScrollbackMessages > 0 then
-    local incoming = self.state.incomingScrollbackMessages
-    self.state.incomingScrollbackMessages = {}
-    self:Update(incoming, true)
+  -- Spread history restoration across game frames so text layout cannot exhaust the script budget.
+  if #self.state.incomingMessages > 0 or #self.state.incomingScrollbackMessages > 0 then
+    UIManager:QueueFrameForUpdate(self)
   end
 end
 

@@ -33,6 +33,8 @@ Core:RegisterCompactTranslations("koKR", {
   FADE_IN_DURATION="나타나는 시간", FADE_OUT_DURATION="사라지는 시간", FADE_EASING="페이드 애니메이션",
   MOVEMENT="이동", MOVEMENT_DURATION="이동 시간", PREVIEW_ANIMATIONS="애니메이션 미리보기",
   BEHAVIOR="동작", INDENT_LINE_WRAP="줄바꿈 들여쓰기", MOUSE_OVER_TOOLTIPS="마우스오버 도움말",
+  MESSAGE_BLACKLIST="메시지 차단 목록", MESSAGE_BLACKLIST_DESC="차단 문구가 포함된 채팅 메시지를 숨깁니다.\n기본값: 꺼짐",
+  BLOCKED_PHRASES="차단 문구", BLOCKED_PHRASES_DESC="한 줄에 일반 텍스트 문구 하나를 입력하세요. 대소문자와 반복된 공백은 무시됩니다.",
   HISTORY="기록", SCROLLBACK_LINES="기록 줄 수", TIMESTAMPS="시간 표시", SETTINGS="설정",
   SHOW_TIMESTAMPS="시간 표시", FORMAT="형식", OVERRIDE_COLOR="색상 덮어쓰기", COLOR="색상",
   CHAT_WINDOWS="채팅창", COMBAT_LOG="전투 기록", SHOW_COMBAT_LOG="전투 기록 표시", FILTER_BAR="필터 바",

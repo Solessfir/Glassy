@@ -135,6 +135,36 @@ local cachedTimestampRed
 local cachedTimestampGreen
 local cachedTimestampBlue
 local cachedTimestampHex
+local cachedBlacklistSource
+local cachedBlacklistPhrases = {}
+
+local function normalizeBlacklistText(text)
+  text = text:gsub("|K.-|k", "")
+  text = text:gsub("|H.-|h(.-)|h", "%1")
+  text = text:gsub("|A.-|a", " ")
+  text = text:gsub("|T.-|t", " ")
+  text = text:gsub("|c%x%x%x%x%x%x%x%x", "")
+  text = text:gsub("|r", "")
+  text = text:gsub("||", "|")
+  return text:lower():gsub("%s+", " "):match("^%s*(.-)%s*$")
+end
+
+local function getBlacklistPhrases()
+  local source = Core.db.profile.messageBlacklist or ""
+  if source == cachedBlacklistSource then
+    return cachedBlacklistPhrases
+  end
+
+  cachedBlacklistSource = source
+  cachedBlacklistPhrases = {}
+  for line in source:gmatch("[^\r\n]+") do
+    local phrase = normalizeBlacklistText(line)
+    if phrase ~= "" then
+      cachedBlacklistPhrases[#cachedBlacklistPhrases + 1] = phrase
+    end
+  end
+  return cachedBlacklistPhrases
+end
 
 local function getTimestampColorHex(color)
   if (
@@ -194,6 +224,26 @@ function TP:ProcessTextures(text)
     return text
   end
   return processSafely(textureProcessor, text)
+end
+
+function TP:IsMessageBlacklisted(text)
+  if not Core.db.profile.messageBlacklistEnabled then
+    return false
+  end
+  if canaccessvalue and not canaccessvalue(text) then
+    return false
+  end
+  if type(text) ~= "string" or text == "" then
+    return false
+  end
+
+  local normalized = normalizeBlacklistText(text)
+  for _, phrase in ipairs(getBlacklistPhrases()) do
+    if normalized:find(phrase, 1, true) then
+      return true
+    end
+  end
+  return false
 end
 
 function TP:ProcessText(text, frame, receivedAt)
