@@ -153,6 +153,19 @@ end
 batched:OnFrame()
 assert(#batched.state.incomingScrollbackMessages == 4 and queuedUpdates == 3, "Scrollback messages were not deferred")
 
+local scheduledLayout = core.Components.CreateSlidingMessageFrame()
+scheduledLayout.state = {incomingMessages = {}, incomingScrollbackMessages = {}}
+local layoutRefreshes, reprocessedText = 0, false
+scheduledLayout.RefreshLayout = function (_, reprocessText)
+  layoutRefreshes = layoutRefreshes + 1
+  reprocessedText = reprocessText
+end
+scheduledLayout:ScheduleLayoutRefresh(false)
+scheduledLayout:ScheduleLayoutRefresh(true)
+assert(queuedUpdates == 4, "Repeated layout refreshes were not coalesced")
+scheduledLayout:OnFrame()
+assert(layoutRefreshes == 1 and reprocessedText, "The coalesced layout refresh lost text reprocessing")
+
 for _, environment in ipairs({"retail", "classic"}) do
   constants.ENV = environment
   for _, combatLog in ipairs({true, false}) do

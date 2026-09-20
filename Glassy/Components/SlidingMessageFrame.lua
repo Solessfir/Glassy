@@ -487,8 +487,23 @@ function SlidingMessageFrameMixin:ReleaseOverflowMessages()
   return self:ReleaseOldestMessages(#self.state.messages - getRenderedMessageLimit())
 end
 
+function SlidingMessageFrameMixin:ScheduleLayoutRefresh(reprocessText)
+  self.state.layoutRefreshReprocessText = self.state.layoutRefreshReprocessText or reprocessText
+  if self.state.layoutRefreshPending then
+    return
+  end
+
+  self.state.layoutRefreshPending = true
+  UIManager:QueueFrameForUpdate(self)
+end
+
 function SlidingMessageFrameMixin:OnFrame()
-  if #self.state.incomingMessages > 0 then
+  if self.state.layoutRefreshPending then
+    local reprocessText = self.state.layoutRefreshReprocessText
+    self.state.layoutRefreshPending = nil
+    self.state.layoutRefreshReprocessText = nil
+    self:RefreshLayout(reprocessText)
+  elseif #self.state.incomingMessages > 0 then
     local incoming = {}
     for _ = 1, math.min(MESSAGE_UPDATE_BATCH_SIZE, #self.state.incomingMessages) do
       incoming[#incoming + 1] = table.remove(self.state.incomingMessages, 1)
@@ -503,7 +518,7 @@ function SlidingMessageFrameMixin:OnFrame()
   end
 
   -- Spread history restoration across game frames so text layout cannot exhaust the script budget.
-  if #self.state.incomingMessages > 0 or #self.state.incomingScrollbackMessages > 0 then
+  if self.state.layoutRefreshPending or #self.state.incomingMessages > 0 or #self.state.incomingScrollbackMessages > 0 then
     UIManager:QueueFrameForUpdate(self)
   end
 end

@@ -461,7 +461,7 @@ function SlidingMessageFrameMixin:SubscribeToEvents()
           key == "timestampDisplay" or
           (key == "combatLogBarLayout" and self.state.isCombatLog)
         ) then
-          self:RefreshLayout(
+          self:ScheduleLayoutRefresh(
             key == "iconTextureYOffset" or
             key == "emojiDisplay" or
             key == "timestampDisplay"

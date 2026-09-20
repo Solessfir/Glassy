@@ -13,6 +13,7 @@
 * Use one General appearance setting for tab, Combat Log, overflow, and unread-message hover highlighting. Remove the unread-row seam, center its visible arrow artwork, and hide its separator by default.
 * Separate release-note data from the news window behavior.
 * Move Combat Log into a Tabs section, and Shortcuts and Compatibility into About sections.
+* Coalesce profile-change layout updates to prevent script timeouts when resetting or switching profiles.
 
 ## 1.9.2 (2026-09-19)
 
