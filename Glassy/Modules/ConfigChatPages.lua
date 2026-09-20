@@ -346,7 +346,7 @@ local function getTabOptions()
           },
           tabMessageSeparatorColor = {
             name = "Separator",
-            desc = "Choose the separator color and opacity between chat tabs and messages. Set opacity to 0 to hide it.\nDefault: yellow at 0% opacity.",
+            desc = "Choose the separator color and opacity between chat tabs and messages. Set opacity to 0 to hide it.\nDefault: gold at 0% opacity.",
             type = "color",
             hasAlpha = true,
             order = 1.5,
@@ -452,7 +452,7 @@ local function getEditBoxOptions()
           },
           editBoxMessageSeparatorColor = {
             name = "Separator",
-            desc = "Choose the separator color and opacity between the chat entry field and messages. Set opacity to 0 to hide it.\nDefault: yellow at 0% opacity.",
+            desc = "Choose the separator color and opacity between the chat entry field and messages. Set opacity to 0 to hide it.\nDefault: gold at 0% opacity.",
             type = "color",
             hasAlpha = true,
             order = 1.35,

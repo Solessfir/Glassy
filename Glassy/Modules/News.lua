@@ -62,6 +62,10 @@ local CHANGELOG = Core.NewsEntries
 function News:OnEnable()
   local labels = {}
   local frame = AceGUI:Create("Frame")
+  if _G.GlassyNewsFrame == nil then
+    table.insert(_G.UISpecialFrames, "GlassyNewsFrame")
+  end
+  _G.GlassyNewsFrame = frame.frame
   frame:SetTitle(L("Glassy: Version history"))
   frame:SetWidth(800)
   frame:SetHeight(600)
