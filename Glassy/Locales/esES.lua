@@ -1,11 +1,13 @@
 local Core = unpack(select(2, ...))
 
 local values = {
+  TAB_TEXT_COLOR = "Color del texto de pestañas",
+  TAB_HIGHLIGHT_TEXT_COLOR = "Color del texto activo / al pasar el cursor",
   GENERAL="General", ABOUT="Acerca de", INFO="Información", VERSION="Versión:", WHATS_NEW="Novedades", OPEN_CONFIG="Abrir configuración",
   TOGGLE_MOVER="Mostrar u ocultar el marco de movimiento", OPEN_DEBUG="Abrir informe de diseño copiable", OPEN_NEWS_COMMAND="Abrir historial de versiones", COMMANDS="Comandos", REPORT_ISSUE="Informar de un problema",
   LOCK_FRAME="Bloquear marco", UNLOCK_FRAME="Desbloquear marco", APPEARANCE="Apariencia", FONT="Fuente",
   FONT_OUTLINE="Contorno de fuente", LEFT_TEXT_PADDING="Margen izquierdo del texto",
-  ACTIVE_TAB_HIGHLIGHT="Resaltar pestaña activa", HOVER_HIGHLIGHT="Resaltar al pasar el ratón", CHAT_TAB_TOOLTIPS="Ayudas de pestañas", TAB_MESSAGE_SEPARATOR="Separador", TAB_MESSAGE_SPACING="Desplazamiento vertical",
+  HOVER_HIGHLIGHT="Resaltar al pasar el ratón", CHAT_TAB_TOOLTIPS="Ayudas de pestañas", TAB_MESSAGE_SEPARATOR="Separador", TAB_MESSAGE_SPACING="Desplazamiento vertical",
   HEADER_BACKGROUND="Fondo del encabezado", LEFT_FADE_DISTANCE="Distancia de fundido izquierda",
   RIGHT_FADE_DISTANCE="Distancia de fundido derecha", FRAME="Marco", WIDTH="Anchura", HEIGHT="Altura",
   HORIZONTAL_OFFSET="Desplazamiento horizontal", VERTICAL_OFFSET="Desplazamiento vertical", ANCHOR="Anclaje",

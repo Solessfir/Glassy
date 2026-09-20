@@ -1,10 +1,12 @@
 local Core = unpack(select(2, ...))
 
 Core:RegisterCompactTranslations("koKR", {
+  TAB_TEXT_COLOR = "탭 글자 색상",
+  TAB_HIGHLIGHT_TEXT_COLOR = "활성 / 마우스 오버 글자 색상",
   GENERAL="일반", ABOUT="정보", INFO="정보", VERSION="버전:", WHATS_NEW="새로운 기능", OPEN_CONFIG="설정 열기",
   TOGGLE_MOVER="Glassy 이동 프레임 표시/숨기기", OPEN_DEBUG="복사 가능한 배치 보고서 열기", OPEN_NEWS_COMMAND="버전 기록 열기", COMMANDS="명령어", REPORT_ISSUE="문제 신고",
   LOCK_FRAME="프레임 잠금", UNLOCK_FRAME="프레임 잠금 해제", APPEARANCE="외형", FONT="글꼴",
-  FONT_OUTLINE="글꼴 외곽선", LEFT_TEXT_PADDING="왼쪽 텍스트 여백", ACTIVE_TAB_HIGHLIGHT="활성 탭 강조", HOVER_HIGHLIGHT="마우스오버 강조",
+  FONT_OUTLINE="글꼴 외곽선", LEFT_TEXT_PADDING="왼쪽 텍스트 여백", HOVER_HIGHLIGHT="마우스오버 강조",
   CHAT_TAB_TOOLTIPS="채팅 탭 도움말", TAB_MESSAGE_SEPARATOR="구분선", TAB_MESSAGE_SPACING="세로 위치", HEADER_BACKGROUND="머리글 배경", LEFT_FADE_DISTANCE="왼쪽 흐림 거리",
   RIGHT_FADE_DISTANCE="오른쪽 흐림 거리", FRAME="프레임", WIDTH="너비", HEIGHT="높이",
   HORIZONTAL_OFFSET="가로 위치", VERTICAL_OFFSET="세로 위치", ANCHOR="기준점", TOP_LEFT="왼쪽 위",

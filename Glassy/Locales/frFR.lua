@@ -1,10 +1,12 @@
 local Core = unpack(select(2, ...))
 
 Core:RegisterCompactTranslations("frFR", {
+  TAB_TEXT_COLOR = "Couleur du texte des onglets",
+  TAB_HIGHLIGHT_TEXT_COLOR = "Couleur du texte actif / au survol",
   GENERAL="Général", ABOUT="À propos", INFO="Informations", VERSION="Version :", WHATS_NEW="Nouveautés", OPEN_CONFIG="Ouvrir les options",
   TOGGLE_MOVER="Afficher ou masquer le cadre de déplacement", OPEN_DEBUG="Ouvrir le rapport de disposition copiable", OPEN_NEWS_COMMAND="Ouvrir l’historique des versions", COMMANDS="Commandes", REPORT_ISSUE="Signaler un problème",
   LOCK_FRAME="Verrouiller le cadre", UNLOCK_FRAME="Déverrouiller le cadre", APPEARANCE="Apparence", FONT="Police",
-  FONT_OUTLINE="Contour de police", LEFT_TEXT_PADDING="Marge gauche du texte", ACTIVE_TAB_HIGHLIGHT="Surbrillance de l’onglet actif", HOVER_HIGHLIGHT="Surbrillance au survol",
+  FONT_OUTLINE="Contour de police", LEFT_TEXT_PADDING="Marge gauche du texte", HOVER_HIGHLIGHT="Surbrillance au survol",
   CHAT_TAB_TOOLTIPS="Infobulles des onglets", TAB_MESSAGE_SEPARATOR="Séparateur", TAB_MESSAGE_SPACING="Décalage vertical", HEADER_BACKGROUND="Arrière-plan de l’en-tête",
   LEFT_FADE_DISTANCE="Distance de fondu gauche", RIGHT_FADE_DISTANCE="Distance de fondu droite", FRAME="Cadre",
   WIDTH="Largeur", HEIGHT="Hauteur", HORIZONTAL_OFFSET="Décalage horizontal", VERTICAL_OFFSET="Décalage vertical",

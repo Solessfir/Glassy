@@ -328,6 +328,7 @@ local normalButton = frame("CombatLogQuickButtonFrameButton1")
 local activeButton = frame("CombatLogQuickButtonFrameButton2")
 local function configureFilterButton(button, id)
   local text = frame(button.name.."Text")
+  text.SetAlpha = function (self, alpha) self.alpha = alpha end
   text.GetStringWidth, text.SetJustifyH = function () return 30 end, noop
   button.shown = true
   button.GetID = function () return id end
@@ -340,7 +341,15 @@ _G.CombatLogQuickButtonFrameButton1 = normalButton
 _G.CombatLogQuickButtonFrameButton2 = activeButton
 _G.Blizzard_CombatLog_Filters = {currentFilter = 2}
 _G.Blizzard_CombatLog_CurrentSettings = {isTemp = false}
+core.db.profile.tabTextColor = {a = 0.6}
+core.db.profile.tabHighlightTextColor = {a = 1}
 bar:TestStyleButtons()
+assert(normalButton:GetFontString().alpha == 0.6)
+assert(activeButton:GetFontString().alpha == 1)
+normalButton:Fire("OnEnter")
+assert(normalButton:GetFontString().alpha == 1)
+normalButton:Fire("OnLeave")
+assert(normalButton:GetFontString().alpha == 0.6)
 assert(normalButton.highlightFont == "GlassyCombatLogHighlightFont")
 assert(activeButton.highlightFont == "GlassyCombatLogActiveFont")
 activeButton:Fire("OnEnter")

@@ -106,20 +106,24 @@ function ChatTabMixin:UpdateVisualState()
   end
 
   local brightness = 1
+  local color = Core.db.profile.tabTextColor or Colors.apache
   if self:IsSelected() then
-    brightness = 1 + math.max(0, math.min(1, tonumber(Core.db.profile.activeTabHighlightStrength) or 0))
+    color = Core.db.profile.tabHighlightTextColor or Colors.apache
   end
   if self.glassyHovered then
+    color = Core.db.profile.tabHighlightTextColor or Colors.apache
     local hoverStrength = math.max(0, math.min(1, tonumber(Core.db.profile.hoverHighlightStrength) or 0))
     brightness = math.max(brightness, 1 + hoverStrength)
   end
 
   self.glassyHooks.hooks[self.Text].SetTextColor(
     self.Text,
-    math.min(1, Colors.apache.r * brightness),
-    math.min(1, Colors.apache.g * brightness),
-    math.min(1, Colors.apache.b * brightness)
+    math.min(1, color.r * brightness),
+    math.min(1, color.g * brightness),
+    math.min(1, color.b * brightness),
+    1
   )
+  self.Text:SetAlpha(color.a or 1)
 end
 
 function ChatTabMixin:ClearBackgroundTextures()
@@ -322,7 +326,7 @@ function ChatTabMixin:Init(slidingMessageFrame, dock)
           dock:UpdateTabOrder()
         end
 
-        if key == "activeTabHighlightStrength" or key == "hoverHighlightStrength" then
+        if key == "hoverHighlightStrength" or key == "tabTextColor" or key == "tabHighlightTextColor" then
           self:UpdateVisualState()
         end
 

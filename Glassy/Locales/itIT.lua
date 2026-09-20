@@ -1,11 +1,13 @@
 local Core = unpack(select(2, ...))
 
 Core:RegisterCompactTranslations("itIT", {
+  TAB_TEXT_COLOR = "Colore del testo delle schede",
+  TAB_HIGHLIGHT_TEXT_COLOR = "Colore del testo attivo / al passaggio del mouse",
   GENERAL="Generale", ABOUT="Informazioni su", INFO="Informazioni", VERSION="Versione:", WHATS_NEW="Novità", OPEN_CONFIG="Apri configurazione",
   TOGGLE_MOVER="Mostra o nascondi il riquadro di spostamento", OPEN_DEBUG="Apri rapporto layout copiabile", OPEN_NEWS_COMMAND="Apri cronologia versioni", COMMANDS="Comandi", REPORT_ISSUE="Segnala un problema",
   LOCK_FRAME="Blocca riquadro", UNLOCK_FRAME="Sblocca riquadro", APPEARANCE="Aspetto", FONT="Carattere",
   FONT_OUTLINE="Contorno carattere", LEFT_TEXT_PADDING="Margine sinistro del testo",
-  ACTIVE_TAB_HIGHLIGHT="Evidenzia scheda attiva", HOVER_HIGHLIGHT="Evidenzia al passaggio", CHAT_TAB_TOOLTIPS="Descrizioni delle schede", TAB_MESSAGE_SEPARATOR="Separatore", TAB_MESSAGE_SPACING="Scostamento verticale",
+  HOVER_HIGHLIGHT="Evidenzia al passaggio", CHAT_TAB_TOOLTIPS="Descrizioni delle schede", TAB_MESSAGE_SEPARATOR="Separatore", TAB_MESSAGE_SPACING="Scostamento verticale",
   HEADER_BACKGROUND="Sfondo intestazione", LEFT_FADE_DISTANCE="Distanza dissolvenza sinistra",
   RIGHT_FADE_DISTANCE="Distanza dissolvenza destra", FRAME="Riquadro", WIDTH="Larghezza", HEIGHT="Altezza",
   HORIZONTAL_OFFSET="Scostamento orizzontale", VERTICAL_OFFSET="Scostamento verticale", ANCHOR="Ancoraggio",

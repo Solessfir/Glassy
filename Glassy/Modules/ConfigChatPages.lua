@@ -5,7 +5,6 @@ local L = function(text) return Core:Localize(text) end
 local LSM = Core.Libs.LSM
 local SettingsValues = C.SettingsValues
 
-local MAX_ACTIVE_TAB_HIGHLIGHT = SettingsValues.maxActiveTabHighlight
 local MAX_HOVER_HIGHLIGHT = SettingsValues.maxHoverHighlight
 local MAX_TAB_MESSAGE_OFFSET = SettingsValues.maxTabMessageOffset
 local MIN_FRAME_HEIGHT = SettingsValues.minFrameHeight
@@ -89,7 +88,7 @@ local function getGeneralOptions()
             name = "Always visible",
             desc = "Keep chat messages, tabs, and headers visible instead of fading them out.\nDefault: off",
             type = "toggle",
-            order = 3.5,
+            order = 4.1,
             get = function ()
               return Core.db.profile.chatAlwaysVisible
             end,
@@ -287,30 +286,39 @@ local function getTabOptions()
         inline = true,
         order = 1,
         args = {
-          activeTabHighlightStrength = {
-            name = "Active tab highlight",
-            desc = "Brightens the active chat tab or Combat Log filter. A value of 0 disables the highlight; 1 applies the strongest highlight.\nDefault: "..
-              Core.defaults.profile.activeTabHighlightStrength.."\nMin: 0\nMax: "..MAX_ACTIVE_TAB_HIGHLIGHT,
-            type = "range",
-            order = 1.1,
-            min = 0,
-            max = MAX_ACTIVE_TAB_HIGHLIGHT,
-            softMin = 0,
-            softMax = MAX_ACTIVE_TAB_HIGHLIGHT,
-            step = 0.05,
+          tabTextColor = {
+            name = "Tab text color",
+            type = "color",
+            hasAlpha = true,
+            order = 1.03,
             get = function ()
-              return Core.db.profile.activeTabHighlightStrength
+              local color = Core.db.profile.tabTextColor
+              return color.r, color.g, color.b, color.a
             end,
-            set = function (_, input)
-              Core.db.profile.activeTabHighlightStrength = input
-              Core:Dispatch(UpdateConfig("activeTabHighlightStrength"))
+            set = function (_, r, g, b, a)
+              Core.db.profile.tabTextColor = {r = r, g = g, b = b, a = a}
+              Core:Dispatch(UpdateConfig("tabTextColor"))
+            end,
+          },
+          tabHighlightTextColor = {
+            name = "Active/hover text color",
+            type = "color",
+            hasAlpha = true,
+            order = 1.01,
+            get = function ()
+              local color = Core.db.profile.tabHighlightTextColor
+              return color.r, color.g, color.b, color.a
+            end,
+            set = function (_, r, g, b, a)
+              Core.db.profile.tabHighlightTextColor = {r = r, g = g, b = b, a = a}
+              Core:Dispatch(UpdateConfig("tabHighlightTextColor"))
             end,
           },
           chatTabTooltips = {
             name = "Tooltips",
             desc = "Show interaction hints when hovering over chat tabs.\nDefault: off",
             type = "toggle",
-            order = 1.2,
+            order = 1.7,
             get = function ()
               return Core.db.profile.chatTabTooltips
             end,
@@ -336,7 +344,7 @@ local function getTabOptions()
           },
           tabMessageSeparatorColor = {
             name = "Separator",
-            desc = "Choose the separator color and opacity between chat tabs and messages. Set opacity to 0 to hide it.\nDefault: gold at 0% opacity.",
+            desc = "Choose the separator color and opacity between chat tabs and messages. Set opacity to 0 to hide it.\nDefault: yellow at 0% opacity.",
             type = "color",
             hasAlpha = true,
             order = 1.5,
@@ -440,7 +448,7 @@ local function getEditBoxOptions()
           },
           editBoxMessageSeparatorColor = {
             name = "Separator",
-            desc = "Choose the separator color and opacity between the chat entry field and messages. Set opacity to 0 to hide it.\nDefault: gold at 0% opacity.",
+            desc = "Choose the separator color and opacity between the chat entry field and messages. Set opacity to 0 to hide it.\nDefault: yellow at 0% opacity.",
             type = "color",
             hasAlpha = true,
             order = 1.35,
@@ -458,7 +466,7 @@ local function getEditBoxOptions()
             desc = "Controls how the edit-box background fades when chat opens or closes.\nDefault: "..
               EASING_VALUES[Core.defaults.profile.editBoxBackgroundEasing],
             type = "select",
-            order = 1.4,
+            order = 1.25,
             values = EASING_VALUES,
             sorting = EASING_SORTING,
             get = function ()

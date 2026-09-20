@@ -1,10 +1,12 @@
 local Core = unpack(select(2, ...))
 
 Core:RegisterCompactTranslations("ptBR", {
+  TAB_TEXT_COLOR = "Cor do texto das abas",
+  TAB_HIGHLIGHT_TEXT_COLOR = "Cor do texto ativo / ao passar o mouse",
   GENERAL="Geral", ABOUT="Sobre", INFO="Informações", VERSION="Versão:", WHATS_NEW="Novidades", OPEN_CONFIG="Abrir configurações",
   TOGGLE_MOVER="Mostrar ou ocultar o quadro de movimento", OPEN_DEBUG="Abrir relatório de layout copiável", OPEN_NEWS_COMMAND="Abrir histórico de versões", COMMANDS="Comandos", REPORT_ISSUE="Relatar um problema",
   LOCK_FRAME="Bloquear quadro", UNLOCK_FRAME="Desbloquear quadro", APPEARANCE="Aparência", FONT="Fonte",
-  FONT_OUTLINE="Contorno da fonte", LEFT_TEXT_PADDING="Margem esquerda do texto", ACTIVE_TAB_HIGHLIGHT="Realce da aba ativa", HOVER_HIGHLIGHT="Realce ao passar o mouse",
+  FONT_OUTLINE="Contorno da fonte", LEFT_TEXT_PADDING="Margem esquerda do texto", HOVER_HIGHLIGHT="Realce ao passar o mouse",
   CHAT_TAB_TOOLTIPS="Dicas das abas", TAB_MESSAGE_SEPARATOR="Separador", TAB_MESSAGE_SPACING="Deslocamento vertical", HEADER_BACKGROUND="Fundo do cabeçalho", LEFT_FADE_DISTANCE="Distância de fade à esquerda",
   RIGHT_FADE_DISTANCE="Distância de fade à direita", FRAME="Quadro", WIDTH="Largura", HEIGHT="Altura",
   HORIZONTAL_OFFSET="Deslocamento horizontal", VERTICAL_OFFSET="Deslocamento vertical", ANCHOR="Âncora",

@@ -333,7 +333,7 @@ function ChatDockMixin:Init(parent)
           self:SetTyping(self.state.editBoxVisible)
         end
 
-        if key == "activeTabHighlightStrength" or key == "hoverHighlightStrength" then
+        if key == "hoverHighlightStrength" then
           self:UpdateTabVisualStates()
         end
       end)

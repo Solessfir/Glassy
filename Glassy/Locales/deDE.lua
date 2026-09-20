@@ -1,11 +1,13 @@
 local Core = unpack(select(2, ...))
 
 Core:RegisterCompactTranslations("deDE", {
+  TAB_TEXT_COLOR = "Tab-Textfarbe",
+  TAB_HIGHLIGHT_TEXT_COLOR = "Textfarbe bei aktivem Tab / Mausberührung",
   GENERAL="Allgemein", ABOUT="Über", INFO="Info", VERSION="Version:", WHATS_NEW="Was ist neu?",
   OPEN_CONFIG="Einstellungen öffnen", TOGGLE_MOVER="Glassy-Verschieber ein-/ausblenden",
   OPEN_DEBUG="Kopierbaren Layoutbericht öffnen", OPEN_NEWS_COMMAND="Versionsverlauf öffnen", COMMANDS="Befehle", REPORT_ISSUE="Problem melden", LOCK_FRAME="Fenster sperren", UNLOCK_FRAME="Fenster entsperren",
   APPEARANCE="Aussehen", FONT="Schriftart", FONT_OUTLINE="Schriftkontur", LEFT_TEXT_PADDING="Linker Textabstand",
-  ACTIVE_TAB_HIGHLIGHT="Aktiven Tab hervorheben", HOVER_HIGHLIGHT="Bei Mausberührung hervorheben", CHAT_TAB_TOOLTIPS="Chat-Tab-Tooltips", TAB_MESSAGE_SEPARATOR="Trennlinie", TAB_MESSAGE_SPACING="Vertikaler Versatz",
+  HOVER_HIGHLIGHT="Bei Mausberührung hervorheben", CHAT_TAB_TOOLTIPS="Chat-Tab-Tooltips", TAB_MESSAGE_SEPARATOR="Trennlinie", TAB_MESSAGE_SPACING="Vertikaler Versatz",
   HEADER_BACKGROUND="Kopfzeilenhintergrund", LEFT_FADE_DISTANCE="Linke Ausblendstrecke",
   RIGHT_FADE_DISTANCE="Rechte Ausblendstrecke", FRAME="Fenster", WIDTH="Breite", HEIGHT="Höhe",
   HORIZONTAL_OFFSET="Horizontaler Versatz", VERTICAL_OFFSET="Vertikaler Versatz", ANCHOR="Anker",

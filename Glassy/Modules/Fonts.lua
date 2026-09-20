@@ -31,13 +31,14 @@ local function setFont(fontObject, size)
 end
 
 local function setCombatLogHighlightColor(fontObject, setting)
-  local strength = math.max(0, math.min(1, tonumber(Core.db.profile[setting]) or 0))
+  local strength = setting and math.max(0, math.min(1, tonumber(Core.db.profile[setting]) or 0)) or 0
   local brightness = 1 + strength
-  local color = Constants.COLORS.apache
+  local color = Core.db.profile.tabHighlightTextColor or Constants.COLORS.apache
   fontObject:SetTextColor(
     math.min(1, color.r * brightness),
     math.min(1, color.g * brightness),
-    math.min(1, color.b * brightness)
+    math.min(1, color.b * brightness),
+    1
   )
 end
 
@@ -67,7 +68,8 @@ function Fonts:OnEnable()
   -- Combat Log filter buttons
   self.fonts.GlassyCombatLogNormalFont = CreateFont("GlassyCombatLogNormalFont")
   setFont(self.fonts.GlassyCombatLogNormalFont, 12)
-  self.fonts.GlassyCombatLogNormalFont:SetTextColor(0.65, 0.65, 0.65)
+  local combatLogColor = Core.db.profile.tabTextColor
+  self.fonts.GlassyCombatLogNormalFont:SetTextColor(combatLogColor.r, combatLogColor.g, combatLogColor.b, 1)
   self.fonts.GlassyCombatLogNormalFont:SetShadowColor(0, 0, 0, 0)
   self.fonts.GlassyCombatLogNormalFont:SetJustifyH("LEFT")
   self.fonts.GlassyCombatLogNormalFont:SetJustifyV("MIDDLE")
@@ -81,7 +83,7 @@ function Fonts:OnEnable()
 
   self.fonts.GlassyCombatLogActiveFont = CreateFont("GlassyCombatLogActiveFont")
   setFont(self.fonts.GlassyCombatLogActiveFont, 12)
-  setCombatLogHighlightColor(self.fonts.GlassyCombatLogActiveFont, "activeTabHighlightStrength")
+  setCombatLogHighlightColor(self.fonts.GlassyCombatLogActiveFont)
   self.fonts.GlassyCombatLogActiveFont:SetShadowColor(0, 0, 0, 0)
   self.fonts.GlassyCombatLogActiveFont:SetJustifyH("LEFT")
   self.fonts.GlassyCombatLogActiveFont:SetJustifyV("MIDDLE")
@@ -111,11 +113,16 @@ function Fonts:OnEnable()
       setFont(self.fonts.GlassyCombatLogActiveFont, 12)
     end
 
-    if key == "activeTabHighlightStrength" then
-      setCombatLogHighlightColor(self.fonts.GlassyCombatLogActiveFont, "activeTabHighlightStrength")
+    if key == "tabTextColor" then
+      local color = Core.db.profile.tabTextColor
+      self.fonts.GlassyCombatLogNormalFont:SetTextColor(color.r, color.g, color.b, 1)
     end
 
-    if key == "hoverHighlightStrength" then
+    if key == "tabHighlightTextColor" then
+      setCombatLogHighlightColor(self.fonts.GlassyCombatLogActiveFont)
+    end
+
+    if key == "hoverHighlightStrength" or key == "tabHighlightTextColor" then
       setCombatLogHighlightColor(self.fonts.GlassyCombatLogHighlightFont, "hoverHighlightStrength")
     end
 

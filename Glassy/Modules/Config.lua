@@ -17,7 +17,6 @@ local UpdateConfig = Constants.ACTIONS.UpdateConfig
 local SAVE_FRAME_POSITION = Constants.EVENTS.SAVE_FRAME_POSITION
 
 local SettingsValues = {
-  maxActiveTabHighlight = 1,
   maxHoverHighlight = 1,
   maxTabMessageOffset = 50,
   maxCombatLogBarOffset = 500,
@@ -69,7 +68,6 @@ local SettingsValues = {
 C.SettingsValues = SettingsValues
 C.Pages = {}
 
-local MAX_ACTIVE_TAB_HIGHLIGHT = SettingsValues.maxActiveTabHighlight
 local MAX_HOVER_HIGHLIGHT = SettingsValues.maxHoverHighlight
 local MAX_TAB_MESSAGE_OFFSET = SettingsValues.maxTabMessageOffset
 local MAX_COMBAT_LOG_BAR_OFFSET = SettingsValues.maxCombatLogBarOffset
@@ -242,12 +240,6 @@ local function normalizeTabMessageSpacing()
   )
 end
 
-local function normalizeActiveTabHighlight()
-  local strength = tonumber(Core.db.profile.activeTabHighlightStrength) or
-    Core.defaults.profile.activeTabHighlightStrength
-  Core.db.profile.activeTabHighlightStrength = math.max(0, math.min(MAX_ACTIVE_TAB_HIGHLIGHT, strength))
-end
-
 local function normalizeHoverHighlight()
   local strength = tonumber(Core.db.profile.hoverHighlightStrength) or
     Core.defaults.profile.hoverHighlightStrength
@@ -328,7 +320,6 @@ local function normalizeSettings()
   normalizeFrameHeight()
   normalizeTabMessageSpacing()
   normalizeTextLeftPadding()
-  normalizeActiveTabHighlight()
   normalizeHoverHighlight()
   normalizeEditBox()
   normalizeCombatLogBar()
@@ -607,7 +598,6 @@ function C:RefreshConfig()
   normalizeFrameHeight()
   normalizeTabMessageSpacing()
   normalizeTextLeftPadding()
-  normalizeActiveTabHighlight()
   normalizeHoverHighlight()
   normalizeEditBox()
   normalizeCombatLogBar()
@@ -623,7 +613,8 @@ function C:RefreshConfig()
   Core:Dispatch(UpdateConfig("frameWidth"))
   Core:Dispatch(UpdateConfig("framePosition"))
   Core:Dispatch(UpdateConfig("textLeftPadding"))
-  Core:Dispatch(UpdateConfig("activeTabHighlightStrength"))
+  Core:Dispatch(UpdateConfig("tabTextColor"))
+  Core:Dispatch(UpdateConfig("tabHighlightTextColor"))
   Core:Dispatch(UpdateConfig("hoverHighlightStrength"))
   Core:Dispatch(UpdateConfig("chatTabTooltips"))
   Core:Dispatch(UpdateConfig("tabMessageSeparatorColor"))
