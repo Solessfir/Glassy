@@ -18,6 +18,9 @@ local function newFrame(parent)
   function frame:GetRight() return self.left + self.width end
   function frame:GetBottom() return self.bottom end
   function frame:GetTop() return self.bottom + self.height end
+  function frame:GetWidth() return self.width end
+  function frame:GetHeight() return self.height end
+  function frame:GetEffectiveScale() return 1 end
   function frame:GetFrameLevel() return 1 end
   function frame:ClearAllPoints() self.point = nil end
   function frame:SetPoint(...) self.point = {...} end
@@ -54,6 +57,8 @@ Mixin = function (object, mixin)
   return object
 end
 C_Timer = {After = function (_, callback) callback() end}
+local cursorX, cursorY = 0, 0
+GetCursorPosition = function () return cursorX, cursorY end
 
 local core = {
   Components = {},
@@ -71,17 +76,26 @@ local constants = {
 
 assert(loadfile("Glassy/Components/MoverFrame.lua"))("Glassy", {core, constants})
 local mover = core.Components.CreateMoverFrame("Test", parent)
+mover.left, mover.bottom, mover.height = 300, 300, 100
+cursorX, cursorY = 350, 350
+mover.boundsFrame.scripts.OnDragStart()
 
-mover.left, mover.bottom = 792, 660
-mover.boundsFrame.scripts.OnDragStop()
+cursorX, cursorY = 55, 400
+mover.boundsFrame.scripts.OnUpdate()
+assert(mover.point[1] == "BOTTOMLEFT" and mover.point[4] == 0 and mover.point[5] == 350,
+  "The left edge did not snap while dragging")
+
+cursorX, cursorY = 450, 745
+mover.boundsFrame.scripts.OnUpdate()
+assert(mover.point[1] == "TOPLEFT" and mover.point[4] == 400 and mover.point[5] == 0,
+  "The top edge did not snap while dragging")
+
+cursorX, cursorY = 845, 745
+mover.boundsFrame.scripts.OnUpdate()
 assert(mover.point[1] == "TOPRIGHT" and mover.point[4] == 0 and mover.point[5] == 0,
-  ("A window close to a corner must snap flush to it; got %s, %s, %s"):format(
-    tostring(mover.point[1]), tostring(mover.point[4]), tostring(mover.point[5])))
+  "The corner did not snap while dragging")
 
-mover.left, mover.bottom = 600, 300
 mover.boundsFrame.scripts.OnDragStop()
-assert(mover.point[1] == "BOTTOMRIGHT" and mover.point[4] == -200 and mover.point[5] == 300,
-  ("Free placement must use the nearest corner without moving the window; got %s, %s, %s"):format(
-    tostring(mover.point[1]), tostring(mover.point[4]), tostring(mover.point[5])))
+assert(mover.boundsFrame.scripts.OnUpdate == nil, "The live drag update was not removed")
 
-print("PASS: Mover selects the nearest corner and snaps within 20 UI points.")
+print("PASS: Mover snaps live to screen sides and corners.")

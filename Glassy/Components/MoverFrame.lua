@@ -16,12 +16,13 @@ local EDIT_MODE_HOVER_ALPHA = 0.5
 local EDIT_MODE_BORDER_ALPHA = 1
 local EDIT_MODE_BORDER_SIZE = 2
 local LEGACY_EDIT_BOX_MARGIN = 35
-local CORNER_SNAP_DISTANCE = 20
+local EDGE_SNAP_DISTANCE = 20
 
 -- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
 -- luacheck: push ignore 113
 local CreateFrame = CreateFrame
 local C_Timer = C_Timer
+local GetCursorPosition = GetCursorPosition
 local Mixin = Mixin
 -- luacheck: pop
 
@@ -35,34 +36,82 @@ function MoverFrameMixin:AddBoundsRegion(region, shouldInclude)
   end
 end
 
-function MoverFrameMixin:SnapToNearestCorner()
+function MoverFrameMixin:SetDragPosition(left, bottom)
   local parent = self:GetParent()
-  local centerX, centerY = self:GetCenter()
-  local parentCenterX, parentCenterY
-  if parent then
-    parentCenterX, parentCenterY = parent:GetCenter()
-  end
-  local left, right = self:GetLeft(), self:GetRight()
-  local bottom, top = self:GetBottom(), self:GetTop()
   local parentLeft, parentRight = parent and parent:GetLeft(), parent and parent:GetRight()
   local parentBottom, parentTop = parent and parent:GetBottom(), parent and parent:GetTop()
-  if not (centerX and centerY and parentCenterX and parentCenterY and left and right and bottom and top and
-      parentLeft and parentRight and parentBottom and parentTop) then
+  local width, height = self:GetWidth(), self:GetHeight()
+  if not (parentLeft and parentRight and parentBottom and parentTop and width and height) then
     return
   end
 
+  local right = left + width
+  local top = bottom + height
+  local leftDistance = math.abs(left - parentLeft)
+  local rightDistance = math.abs(right - parentRight)
+  local bottomDistance = math.abs(bottom - parentBottom)
+  local topDistance = math.abs(top - parentTop)
+
+  if leftDistance <= EDGE_SNAP_DISTANCE and leftDistance <= rightDistance then
+    left = parentLeft
+  elseif rightDistance <= EDGE_SNAP_DISTANCE then
+    left = parentRight - width
+  end
+
+  if bottomDistance <= EDGE_SNAP_DISTANCE and bottomDistance <= topDistance then
+    bottom = parentBottom
+  elseif topDistance <= EDGE_SNAP_DISTANCE then
+    bottom = parentTop - height
+  end
+
+  local centerX, centerY = left + width / 2, bottom + height / 2
+  local parentCenterX, parentCenterY = parent:GetCenter()
   local horizontal = centerX <= parentCenterX and "LEFT" or "RIGHT"
   local vertical = centerY <= parentCenterY and "BOTTOM" or "TOP"
   local point = vertical..horizontal
-  local xOfs = horizontal == "LEFT" and left - parentLeft or right - parentRight
-  local yOfs = vertical == "BOTTOM" and bottom - parentBottom or top - parentTop
-
-  if math.abs(xOfs) <= CORNER_SNAP_DISTANCE and math.abs(yOfs) <= CORNER_SNAP_DISTANCE then
-    xOfs, yOfs = 0, 0
-  end
+  local xOfs = horizontal == "LEFT" and left - parentLeft or left + width - parentRight
+  local yOfs = vertical == "BOTTOM" and bottom - parentBottom or bottom + height - parentTop
 
   self:ClearAllPoints()
   self:SetPoint(point, parent, point, xOfs, yOfs)
+end
+
+function MoverFrameMixin:UpdateDragPosition()
+  if self.dragOffsetX == nil or self.dragOffsetY == nil then
+    return
+  end
+
+  local parent = self:GetParent()
+  local scale = parent and parent:GetEffectiveScale()
+  if scale == nil or scale == 0 then
+    return
+  end
+
+  local cursorX, cursorY = GetCursorPosition()
+  self:SetDragPosition(cursorX / scale - self.dragOffsetX, cursorY / scale - self.dragOffsetY)
+end
+
+function MoverFrameMixin:StartDragging()
+  local parent = self:GetParent()
+  local scale = parent and parent:GetEffectiveScale()
+  local left, bottom = self:GetLeft(), self:GetBottom()
+  if scale == nil or scale == 0 or left == nil or bottom == nil then
+    return
+  end
+
+  local cursorX, cursorY = GetCursorPosition()
+  self.dragOffsetX = cursorX / scale - left
+  self.dragOffsetY = cursorY / scale - bottom
+  self.boundsFrame:SetScript("OnUpdate", function ()
+    self:UpdateDragPosition()
+  end)
+end
+
+function MoverFrameMixin:StopDragging()
+  self:UpdateDragPosition()
+  self.boundsFrame:SetScript("OnUpdate", nil)
+  self.dragOffsetX = nil
+  self.dragOffsetY = nil
 end
 
 function MoverFrameMixin:ScheduleBoundsUpdate()
@@ -210,11 +259,10 @@ function MoverFrameMixin:Init()
 
   self.boundsFrame:RegisterForDrag("LeftButton")
   self.boundsFrame:SetScript("OnDragStart", function ()
-    self:StartMoving()
+    self:StartDragging()
   end)
   self.boundsFrame:SetScript("OnDragStop", function ()
-    self:StopMovingOrSizing()
-    self:SnapToNearestCorner()
+    self:StopDragging()
   end)
   self.boundsFrame:SetScript("OnEnter", function ()
     self.bg:SetColorTexture(EDIT_MODE_BLUE_R, EDIT_MODE_BLUE_G, EDIT_MODE_BLUE_B, EDIT_MODE_HOVER_ALPHA)
