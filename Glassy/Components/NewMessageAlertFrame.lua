@@ -24,13 +24,14 @@ end
 
 function NewMessageAlertFrameMixin:SetHighlighted(highlighted)
     self.highlighted = highlighted
-    local strength = highlighted and math.max(0, math.min(1, tonumber(Core.db.profile.hoverHighlightStrength) or 0)) or 0
-    local brightness = 1 + strength
-    self.text:SetTextColor(
-      math.min(1, Colors.apache.r * brightness),
-      math.min(1, Colors.apache.g * brightness),
-      math.min(1, Colors.apache.b * brightness)
-    )
+    local color = Core.db.profile[highlighted and "tabHighlightTextColor" or "tabTextColor"] or Colors.apache
+    self.text:SetTextColor(color.r, color.g, color.b, 1)
+    self.text:SetAlpha(color.a or 1)
+    local icon = self:GetParent().icon
+    if icon then
+      icon:SetVertexColor(color.r, color.g, color.b)
+      icon:SetAlpha(color.a or 1)
+    end
 end
 
 function NewMessageAlertFrameMixin:Init()
@@ -68,7 +69,7 @@ function NewMessageAlertFrameMixin:Init()
             self.bottomLine:SetSeparatorColor(Core.db.profile.unreadMessageSeparatorColor)
           end
 
-          if key == "hoverHighlightStrength" then
+          if key == "tabHighlightTextColor" or key == "tabTextColor" then
             self:SetHighlighted(self.highlighted)
           end
         end)

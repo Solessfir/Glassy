@@ -35,6 +35,8 @@ local function getMessageOptions()
         inline = true,
         order = 1,
         args = {
+          messageFont = C.CreateFontOption("messageFont", 1),
+          messageFontFlags = C.CreateFontOutlineOption("messageFontFlags", 1.05),
           messageFontSize = {
             name = "Font size",
             desc = "Sets the font size of chat messages.\nDefault: "..Core.defaults.profile.messageFontSize..
@@ -74,7 +76,7 @@ local function getMessageOptions()
             desc = "Choose the separator color and opacity below the unread-message control. Set opacity to 0 to hide it.\nDefault: yellow at 0% opacity.",
             type = "color",
             hasAlpha = true,
-            order = 1.25,
+            order = 1.26,
             get = function ()
               local color = Core.db.profile.unreadMessageSeparatorColor
               return color.r, color.g, color.b, color.a
@@ -89,7 +91,7 @@ local function getMessageOptions()
             desc = "Choose the background color and opacity behind the jump-to-latest row, with or without unread messages.\nDefault: black at 50% opacity.",
             type = "color",
             hasAlpha = true,
-            order = 1.26,
+            order = 1.25,
             get = function ()
               local color = Core.db.profile.unreadMessageBackgroundColor
               return color.r, color.g, color.b, color.a

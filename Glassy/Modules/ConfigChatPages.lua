@@ -5,7 +5,6 @@ local L = function(text) return Core:Localize(text) end
 local LSM = Core.Libs.LSM
 local SettingsValues = C.SettingsValues
 
-local MAX_HOVER_HIGHLIGHT = SettingsValues.maxHoverHighlight
 local MAX_TAB_MESSAGE_OFFSET = SettingsValues.maxTabMessageOffset
 local MIN_FRAME_HEIGHT = SettingsValues.minFrameHeight
 local MAX_TEXT_LEFT_PADDING = SettingsValues.maxTextLeftPadding
@@ -21,6 +20,41 @@ local FLAGS = SettingsValues.fontFlags
 local EASING_VALUES = SettingsValues.easingValues
 local EASING_SORTING = SettingsValues.easingSorting
 
+function C.CreateFontOption(setting, order)
+  return {
+    name = "Font",
+    type = "select",
+    order = order,
+    dialogControl = "LSM30_Font",
+    values = LSM:HashTable("font"),
+    get = function ()
+      local selected = Core.db.profile[setting]
+      return selected and selected ~= "" and selected or Core.db.profile.font
+    end,
+    set = function (_, input)
+      Core.db.profile[setting] = input
+      Core:Dispatch(UpdateConfig("font"))
+    end,
+  }
+end
+
+function C.CreateFontOutlineOption(setting, order)
+  return {
+    name = "Font outline",
+    type = "select",
+    order = order,
+    values = FLAGS,
+    get = function ()
+      local flags = Core.db.profile[setting]
+      return flags and flags ~= "INHERIT" and flags or ""
+    end,
+    set = function (_, input)
+      Core.db.profile[setting] = input
+      Core:Dispatch(UpdateConfig("font"))
+    end,
+  }
+end
+
 local function getGeneralOptions()
   return {
     name = "General",
@@ -33,38 +67,6 @@ local function getGeneralOptions()
         inline = true,
         order = 3,
         args = {
-          font = {
-            name = "Font",
-            desc = function()
-              return L("Choose the font used for chat messages, tabs, Combat Log filters, and the edit box.\nDefault: "..
-                Core.defaults.profile.font)
-            end,
-            type = "select",
-            order = 3.1,
-            dialogControl = "LSM30_Font",
-            values = LSM:HashTable("font"),
-            get = function()
-              return Core.db.profile.font
-            end,
-            set = function(info, input)
-              Core.db.profile.font = input
-              Core:Dispatch(UpdateConfig("font"))
-            end,
-          },
-          fontFlags = {
-            name = "Font outline",
-            desc = "Choose whether Glassy text has an outline or a monochrome outline.\nDefault: None",
-            type = "select",
-            order = 3.2,
-            values = FLAGS,
-            get = function ()
-              return Core.db.profile.fontFlags
-            end,
-            set = function (_, input)
-              Core.db.profile.fontFlags = input
-              Core:Dispatch(UpdateConfig("font"))
-            end
-          },
           textLeftPadding = {
             name = "Left text padding",
             desc = "Sets the space, in pixels, between the left edge and Glassy text. Applies to chat messages, tabs, Combat Log filters, and the edit box.\nDefault: "..
@@ -95,25 +97,6 @@ local function getGeneralOptions()
             set = function (_, input)
               Core.db.profile.chatAlwaysVisible = input
               Core:Dispatch(UpdateConfig("chatAlwaysVisible"))
-            end,
-          },
-          hoverHighlightStrength = {
-            name = "Hover highlight",
-            desc = "Brightens tabs, Combat Log filters, and unread messages while the pointer is over them. A value of 0 disables the highlight; 1 applies the strongest highlight.\nDefault: "..
-              Core.defaults.profile.hoverHighlightStrength.."\nMin: 0\nMax: "..MAX_HOVER_HIGHLIGHT,
-            type = "range",
-            order = 3.4,
-            min = 0,
-            max = MAX_HOVER_HIGHLIGHT,
-            softMin = 0,
-            softMax = MAX_HOVER_HIGHLIGHT,
-            step = 0.05,
-            get = function ()
-              return Core.db.profile.hoverHighlightStrength
-            end,
-            set = function (_, input)
-              Core.db.profile.hoverHighlightStrength = input
-              Core:Dispatch(UpdateConfig("hoverHighlightStrength"))
             end,
           },
           backgroundFadeLeftPercent = {
@@ -286,6 +269,25 @@ local function getTabOptions()
         inline = true,
         order = 1,
         args = {
+          tabFontSize = {
+            name = "Font size",
+            type = "range",
+            order = 1.005,
+            min = 1,
+            max = 100,
+            softMin = 6,
+            softMax = 24,
+            step = 1,
+            get = function ()
+              return Core.db.profile.tabFontSize
+            end,
+            set = function (_, input)
+              Core.db.profile.tabFontSize = input
+              Core:Dispatch(UpdateConfig("tabFontSize"))
+            end,
+          },
+          tabFont = C.CreateFontOption("tabFont", 1),
+          tabFontFlags = C.CreateFontOutlineOption("tabFontFlags", 1.002),
           tabTextColor = {
             name = "Tab text color",
             type = "color",
@@ -394,6 +396,8 @@ local function getEditBoxOptions()
         inline = true,
         order = 1,
         args = {
+          editBoxFont = C.CreateFontOption("editBoxFont", 1),
+          editBoxFontFlags = C.CreateFontOutlineOption("editBoxFontFlags", 1.05),
           editBoxFontSize = {
             name = "Font size",
             desc = "Sets the size of typed chat text and the chat-type label.\nDefault: "..

@@ -1,12 +1,15 @@
 local Core = unpack(select(2, ...))
 
 Core:RegisterCompactTranslations("zhTW", {
+  SHADOW = "陰影",
+  SHADOW_OUTLINE = "陰影描邊",
+  SHADOW_THICK = "陰影粗描邊",
   TAB_TEXT_COLOR = "分頁文字顏色",
   TAB_HIGHLIGHT_TEXT_COLOR = "啟用 / 滑鼠懸停文字顏色",
   GENERAL="一般", ABOUT="關於", INFO="資訊", VERSION="版本：", WHATS_NEW="更新內容", OPEN_CONFIG="開啟設定",
   TOGGLE_MOVER="顯示或隱藏 Glassy 移動框", OPEN_DEBUG="開啟可複製的版面報告", OPEN_NEWS_COMMAND="開啟版本歷史", COMMANDS="指令", REPORT_ISSUE="回報問題", LOCK_FRAME="鎖定框架",
   UNLOCK_FRAME="解鎖框架", APPEARANCE="外觀", FONT="字型", FONT_OUTLINE="字型外框", LEFT_TEXT_PADDING="文字左側間距",
-  HOVER_HIGHLIGHT="滑鼠指向醒目提示", CHAT_TAB_TOOLTIPS="聊天分頁提示", TAB_MESSAGE_SEPARATOR="分隔線", TAB_MESSAGE_SPACING="垂直偏移", HEADER_BACKGROUND="標題背景",
+  CHAT_TAB_TOOLTIPS="聊天分頁提示", TAB_MESSAGE_SEPARATOR="分隔線", TAB_MESSAGE_SPACING="垂直偏移", HEADER_BACKGROUND="標題背景",
   LEFT_FADE_DISTANCE="左側淡出距離", RIGHT_FADE_DISTANCE="右側淡出距離", FRAME="框架", WIDTH="寬度", HEIGHT="高度",
   HORIZONTAL_OFFSET="水平偏移", VERTICAL_OFFSET="垂直偏移", ANCHOR="錨點", TOP_LEFT="左上", TOP_RIGHT="右上",
   BOTTOM_LEFT="左下", BOTTOM_RIGHT="右下", NONE="無", OUTLINE="外框", OUTLINE_MONOCHROME="單色外框",

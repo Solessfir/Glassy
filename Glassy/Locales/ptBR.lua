@@ -1,6 +1,9 @@
 local Core = unpack(select(2, ...))
 
 Core:RegisterCompactTranslations("ptBR", {
+  SHADOW = "Sombra",
+  SHADOW_OUTLINE = "Sombra com contorno",
+  SHADOW_THICK = "Sombra com contorno grosso",
   TAB_TEXT_COLOR = "Cor do texto das abas",
   TAB_HIGHLIGHT_TEXT_COLOR = "Cor do texto ativo / ao passar o mouse",
   GENERAL="Geral", ABOUT="Sobre", INFO="Informações", VERSION="Versão:", WHATS_NEW="Novidades", OPEN_CONFIG="Abrir configurações",

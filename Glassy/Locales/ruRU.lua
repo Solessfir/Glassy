@@ -1,6 +1,9 @@
 local Core = unpack(select(2, ...))
 
 Core:RegisterTranslations("ruRU", {
+  SHADOW = "Тень",
+  SHADOW_OUTLINE = "Тень и контур",
+  SHADOW_THICK = "Тень и толстый контур",
   TAB_TEXT_COLOR = "Цвет текста вкладок",
   TAB_HIGHLIGHT_TEXT_COLOR = "Цвет текста активной вкладки / при наведении",
   GENERAL = "Общие",
@@ -26,8 +29,6 @@ Core:RegisterTranslations("ruRU", {
   FONT_OUTLINE_DESC = "Выберите обычный или монохромный контур текста Glassy.\nПо умолчанию: Нет",
   LEFT_TEXT_PADDING = "Отступ текста слева",
   LEFT_TEXT_PADDING_DESC = "Расстояние в пикселях от левого края до текста Glassy. Применяется к сообщениям, вкладкам, фильтрам журнала боя и полю ввода.\nПо умолчанию: ",
-  HOVER_HIGHLIGHT = "Подсветка при наведении",
-  HOVER_HIGHLIGHT_DESC = "Яркость вкладок, фильтров журнала боя и непрочитанных сообщений при наведении. 0 отключает подсветку, 1 задаёт максимальную яркость.\nПо умолчанию: ",
   CHAT_TAB_TOOLTIPS = "Подсказки вкладок чата",
   CHAT_TAB_TOOLTIPS_DESC = "Показывать подсказки при наведении на вкладки чата.\nПо умолчанию: выключено",
   TAB_MESSAGE_SEPARATOR = "Разделитель",

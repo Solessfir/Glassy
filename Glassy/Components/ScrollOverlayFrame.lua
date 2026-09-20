@@ -95,7 +95,6 @@ function ScrollOverlayFrame:Init()
     self.icon:SetTexture("Interface\\Addons\\Glassy\\Glassy\\Assets\\snapToBottomIcon")
     self.icon:SetTexCoord(2 / 16, 10 / 16, 1 / 16, 11 / 16)
     self.icon:SetSize(8, 10)
-    self.icon:SetAlpha(0.85)
 
     -- See new messages click area
     if self.snapToBottomFrame == nil then
@@ -119,15 +118,12 @@ function ScrollOverlayFrame:Init()
     self.newMessageAlertFrame:QuickHide()
 
     self.snapToBottomFrame:SetScript("OnEnter", function ()
-      local strength = math.max(0, math.min(1, tonumber(Core.db.profile.hoverHighlightStrength) or 0))
-      self.icon:SetAlpha(0.85 + 0.15 * strength)
       self.newMessageAlertFrame:SetHighlighted(true)
       GameTooltip:SetOwner(self.snapToBottomFrame, "ANCHOR_TOPLEFT")
       GameTooltip:SetText(L("Jump to latest message"), 1, 1, 1)
       GameTooltip:Show()
     end)
     self.snapToBottomFrame:SetScript("OnLeave", function ()
-      self.icon:SetAlpha(0.85)
       self.newMessageAlertFrame:SetHighlighted(false)
       if GameTooltip:IsOwned(self.snapToBottomFrame) then
         GameTooltip:Hide()

@@ -82,7 +82,7 @@ local chatPagesFile = assert(io.open("Glassy/Modules/ConfigChatPages.lua", "r"))
 local chatPagesSource = chatPagesFile:read("*a")
 chatPagesFile:close()
 assert(not chatPagesSource:find("dynamicEditBox", 1, true), "Dynamic message area is still configurable")
-assert(chatPagesSource:find("hoverHighlightStrength", 1, true), "Shared hover highlight is missing from General")
+assert(not chatPagesSource:find("hoverHighlightStrength", 1, true), "Obsolete hover brightness is still configurable")
 assert(not messagePagesSource:find("combatLogHoverHighlightStrength", 1, true), "Combat Log still has a separate hover highlight")
 
 ---@diagnostic disable-next-line: undefined-global

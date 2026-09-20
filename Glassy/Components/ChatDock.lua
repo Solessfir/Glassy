@@ -333,8 +333,10 @@ function ChatDockMixin:Init(parent)
           self:SetTyping(self.state.editBoxVisible)
         end
 
-        if key == "hoverHighlightStrength" then
+        if key == "tabTextColor" or key == "tabHighlightTextColor" then
           self:UpdateTabVisualStates()
+          self:UpdateOverflowButtonHighlight()
+          if self.overflowButton.list:IsShown() then self:StyleOverflowList() end
         end
       end)
     }

@@ -1,6 +1,9 @@
 local Core = unpack(select(2, ...))
 
 Core:RegisterCompactTranslations("frFR", {
+  SHADOW = "Ombre",
+  SHADOW_OUTLINE = "Ombre avec contour",
+  SHADOW_THICK = "Ombre avec contour épais",
   TAB_TEXT_COLOR = "Couleur du texte des onglets",
   TAB_HIGHLIGHT_TEXT_COLOR = "Couleur du texte actif / au survol",
   GENERAL="Général", ABOUT="À propos", INFO="Informations", VERSION="Version :", WHATS_NEW="Nouveautés", OPEN_CONFIG="Ouvrir les options",

@@ -42,13 +42,18 @@ Core.defaults = {
   profile = {
     -- General
     font = "Friz Quadrata TT",
-    fontFlags = "",
+    tabFont = "",
+    messageFont = "",
+    editBoxFont = "",
+    tabFontFlags = "",
+    messageFontFlags = "",
+    editBoxFontFlags = "",
     frameWidth = 600,
     frameHeight = 250,
     textLeftPadding = 4,
+    tabFontSize = 13,
     tabTextColor = {r = 1, g = 1, b = 0, a = 0.6},
     tabHighlightTextColor = {r = 1, g = 1, b = 0, a = 1},
-    hoverHighlightStrength = 0.65,
     chatTabTooltips = false,
     tabMessageSeparatorColor = {
       r = 1,
@@ -84,7 +89,7 @@ Core.defaults = {
     editBoxBackgroundEasing = "OutCubic",
     editBoxFadeInDuration = 0.2,
     editBoxFadeOutDuration = 0.2,
-    editBoxFontSize = 12,
+    editBoxFontSize = 13,
     editBoxVerticalPadding = 0.45,
     editBoxMessageSeparatorColor = {
       r = 1,
@@ -104,7 +109,7 @@ Core.defaults = {
     },
 
     -- Messages
-    messageFontSize = 12,
+    messageFontSize = 13,
     chatBackgroundColor = {
       r = 0,
       g = 0,

@@ -5,6 +5,9 @@ local GetLocale = _G.GetLocale
 Core.Locale = type(GetLocale) == "function" and GetLocale() or "enUS"
 
 local english = {
+  SHADOW = "Shadow",
+  SHADOW_OUTLINE = "Shadow Outline",
+  SHADOW_THICK = "Shadow Thick",
   TAB_TEXT_COLOR = "Tab text color",
   TAB_HIGHLIGHT_TEXT_COLOR = "Active/hover text color",
   GENERAL = "General",
@@ -30,8 +33,6 @@ local english = {
   FONT_OUTLINE_DESC = "Choose whether Glassy text has an outline or a monochrome outline.\nDefault: None",
   LEFT_TEXT_PADDING = "Left text padding",
   LEFT_TEXT_PADDING_DESC = "Sets the space, in pixels, between the left edge and Glassy text. Applies to chat messages, tabs, Combat Log filters, and the edit box.\nDefault: ",
-  HOVER_HIGHLIGHT = "Hover highlight",
-  HOVER_HIGHLIGHT_DESC = "Brightens tabs, Combat Log filters, and unread messages while the pointer is over them. A value of 0 disables the highlight; 1 applies the strongest highlight.\nDefault: ",
   CHAT_TAB_TOOLTIPS = "Chat tab tooltips",
   CHAT_TAB_TOOLTIPS_DESC = "Show interaction hints when hovering over chat tabs.\nDefault: off",
   TAB_MESSAGE_SEPARATOR = "Separator",

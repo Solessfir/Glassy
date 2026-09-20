@@ -1,6 +1,9 @@
 local Core = unpack(select(2, ...))
 
 Core:RegisterCompactTranslations("koKR", {
+  SHADOW = "그림자",
+  SHADOW_OUTLINE = "그림자와 외곽선",
+  SHADOW_THICK = "그림자와 두꺼운 외곽선",
   TAB_TEXT_COLOR = "탭 글자 색상",
   TAB_HIGHLIGHT_TEXT_COLOR = "활성 / 마우스 오버 글자 색상",
   GENERAL="일반", ABOUT="정보", INFO="정보", VERSION="버전:", WHATS_NEW="새로운 기능", OPEN_CONFIG="설정 열기",

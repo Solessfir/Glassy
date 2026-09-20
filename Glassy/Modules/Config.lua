@@ -17,7 +17,6 @@ local UpdateConfig = Constants.ACTIONS.UpdateConfig
 local SAVE_FRAME_POSITION = Constants.EVENTS.SAVE_FRAME_POSITION
 
 local SettingsValues = {
-  maxHoverHighlight = 1,
   maxTabMessageOffset = 50,
   maxCombatLogBarOffset = 500,
   minFrameHeight = 100,
@@ -33,6 +32,9 @@ local SettingsValues = {
     [""] = L("None"),
     OUTLINE = L("Outline"),
     ["OUTLINE, MONOCHROME"] = L("Outline Monochrome"),
+    SHADOW = L("Shadow"),
+    SHADOWOUTLINE = L("Shadow Outline"),
+    SHADOWTHICKOUTLINE = L("Shadow Thick"),
   },
   combatLogBarPositions = {
     ABOVE = L("Above tabs"),
@@ -68,7 +70,6 @@ local SettingsValues = {
 C.SettingsValues = SettingsValues
 C.Pages = {}
 
-local MAX_HOVER_HIGHLIGHT = SettingsValues.maxHoverHighlight
 local MAX_TAB_MESSAGE_OFFSET = SettingsValues.maxTabMessageOffset
 local MAX_COMBAT_LOG_BAR_OFFSET = SettingsValues.maxCombatLogBarOffset
 local MIN_FRAME_HEIGHT = SettingsValues.minFrameHeight
@@ -199,8 +200,6 @@ local function migrateSettings()
     profile.dynamicEditBox = nil
   end
   if version < 5 then
-    profile.hoverHighlightStrength = rawget(profile, "tabHoverHighlightStrength") or
-      rawget(profile, "combatLogHoverHighlightStrength")
     profile.tabHoverHighlightStrength = nil
     profile.combatLogHoverHighlightStrength = nil
   end
@@ -238,12 +237,6 @@ local function normalizeTabMessageSpacing()
     0,
     math.min(MAX_TAB_MESSAGE_OFFSET, math.floor(spacing))
   )
-end
-
-local function normalizeHoverHighlight()
-  local strength = tonumber(Core.db.profile.hoverHighlightStrength) or
-    Core.defaults.profile.hoverHighlightStrength
-  Core.db.profile.hoverHighlightStrength = math.max(0, math.min(MAX_HOVER_HIGHLIGHT, strength))
 end
 
 local function normalizeEditBox()
@@ -320,7 +313,6 @@ local function normalizeSettings()
   normalizeFrameHeight()
   normalizeTabMessageSpacing()
   normalizeTextLeftPadding()
-  normalizeHoverHighlight()
   normalizeEditBox()
   normalizeCombatLogBar()
   normalizeTimestamps()
@@ -598,7 +590,6 @@ function C:RefreshConfig()
   normalizeFrameHeight()
   normalizeTabMessageSpacing()
   normalizeTextLeftPadding()
-  normalizeHoverHighlight()
   normalizeEditBox()
   normalizeCombatLogBar()
   normalizeTimestamps()
@@ -609,13 +600,13 @@ function C:RefreshConfig()
 
   -- General
   Core:Dispatch(UpdateConfig("font"))
+  Core:Dispatch(UpdateConfig("tabFontSize"))
   Core:Dispatch(UpdateConfig("frameHeight"))
   Core:Dispatch(UpdateConfig("frameWidth"))
   Core:Dispatch(UpdateConfig("framePosition"))
   Core:Dispatch(UpdateConfig("textLeftPadding"))
   Core:Dispatch(UpdateConfig("tabTextColor"))
   Core:Dispatch(UpdateConfig("tabHighlightTextColor"))
-  Core:Dispatch(UpdateConfig("hoverHighlightStrength"))
   Core:Dispatch(UpdateConfig("chatTabTooltips"))
   Core:Dispatch(UpdateConfig("tabMessageSeparatorColor"))
   Core:Dispatch(UpdateConfig("tabMessageSpacing"))

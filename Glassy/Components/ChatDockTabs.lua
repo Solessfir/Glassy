@@ -17,18 +17,14 @@ local UIParent = UIParent
 local TAB_DRAG_SCROLL_EDGE = 32
 local TAB_DRAG_SCROLL_SPEED = 300
 
-local function getHighlightColor(strength)
-  local brightness = 1 + math.max(0, math.min(1, tonumber(strength) or 0))
-  local color = Constants.COLORS.apache
-  return math.min(1, color.r * brightness), math.min(1, color.g * brightness), math.min(1, color.b * brightness)
+local function setTextColor(text, highlighted)
+  local color = Core.db.profile[highlighted and "tabHighlightTextColor" or "tabTextColor"] or Constants.COLORS.apache
+  text:SetTextColor(color.r, color.g, color.b, 1)
+  text:SetAlpha(color.a or 1)
 end
 
-local function getTabColor(chatFrame)
-  local strength = 0
-  if chatFrame and chatFrame.isDocked and GENERAL_CHAT_DOCK.selected == chatFrame then
-    strength = Core.db.profile.activeTabHighlightStrength
-  end
-  return getHighlightColor(strength)
+local function isSelected(chatFrame)
+  return chatFrame and chatFrame.isDocked and GENERAL_CHAT_DOCK.selected == chatFrame
 end
 
 
@@ -79,17 +75,22 @@ function ChatDockMixin:StyleOverflowList()
       if button.chatFrame and button.chatFrame.isTemporary and tab and tab.Text then
         fontString:SetTextColor(tab.Text:GetTextColor())
       else
-        fontString:SetTextColor(getTabColor(button.chatFrame))
+        setTextColor(fontString, button.glassyHovered or isSelected(button.chatFrame))
+        if not button.glassyHoverHooked then
+          button.glassyHoverHooked = true
+          button:HookScript("OnEnter", function ()
+            button.glassyHovered = true
+            setTextColor(button:GetFontString(), true)
+          end)
+          button:HookScript("OnLeave", function ()
+            button.glassyHovered = false
+            self:StyleOverflowList()
+          end)
+        end
       end
     end
     if button.highlight then
-      button.highlight:SetTexture("Interface\\Buttons\\WHITE8X8")
-      button.highlight:SetVertexColor(
-        Constants.COLORS.apache.r,
-        Constants.COLORS.apache.g,
-        Constants.COLORS.apache.b,
-        0.18 * (tonumber(Core.db.profile.hoverHighlightStrength) or 0)
-      )
+      button.highlight:SetTexture(nil)
     end
   end
 end
@@ -97,12 +98,10 @@ end
 function ChatDockMixin:UpdateOverflowButtonHighlight()
   local highlightTexture = self.overflowButton:GetHighlightTexture()
   if highlightTexture then
-    highlightTexture:SetVertexColor(
-      Constants.COLORS.apache.r,
-      Constants.COLORS.apache.g,
-      Constants.COLORS.apache.b,
-      0.18 * (tonumber(Core.db.profile.hoverHighlightStrength) or 0)
-    )
+    highlightTexture:SetTexture(nil)
+  end
+  if self.overflowButton.glassyText then
+    setTextColor(self.overflowButton.glassyText, self.overflowButton.glassyHovered)
   end
 end
 
@@ -129,17 +128,15 @@ function ChatDockMixin:StyleOverflowButton()
     button.glassyText:SetPoint("CENTER", 0, 2)
     button.glassyText:SetText("...")
   end
-  button.glassyText:SetTextColor(
-    Constants.COLORS.apache.r,
-    Constants.COLORS.apache.g,
-    Constants.COLORS.apache.b
-  )
+  setTextColor(button.glassyText, button.glassyHovered)
 
   button:HookScript("OnEnter", function ()
-    button.glassyText:SetTextColor(getHighlightColor(Core.db.profile.hoverHighlightStrength))
+    button.glassyHovered = true
+    setTextColor(button.glassyText, true)
   end)
   button:HookScript("OnLeave", function ()
-    button.glassyText:SetTextColor(getHighlightColor(0))
+    button.glassyHovered = false
+    setTextColor(button.glassyText, false)
   end)
   self:HookScript(button.list, "OnShow", function ()
     self:FilterOverflowList(button.list)

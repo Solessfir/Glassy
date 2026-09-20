@@ -269,11 +269,11 @@ function CombatLogBarMixin:Init(parent, slidingMessageFrame)
           self:RefreshButtons()
         end
 
-        if key == "font" or key == "textLeftPadding" then
+        if key == "font" or key == "tabFontSize" or key == "textLeftPadding" then
           self:RefreshButtons()
         end
 
-        if key == "hoverHighlightStrength" or key == "tabTextColor" or key == "tabHighlightTextColor" then
+        if key == "tabTextColor" or key == "tabHighlightTextColor" then
           self:RefreshButtons()
         end
 
