@@ -39,7 +39,7 @@ function DetachedChatDockMixin:SetTyping(visible)
 
   self.typing = typing
   if typing then
-    self:QuickShow()
+    self:Show()
   elseif not self.mouseOver then
     self:UpdateAutomaticVisibility()
   end

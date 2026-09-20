@@ -39,8 +39,8 @@ function GradientBackgroundMixin:SetGradientBackground(color, opacity, horizonta
   horizontalInset = horizontalInset or 0
   bottomInset = bottomInset or 0
   local availableWidth = math.max(1, self:GetWidth() + horizontalInset * 2)
-  local leftWidth = math.max(0, tonumber(Core.db.profile.backgroundFadeLeftWidth) or 0)
-  local rightWidth = math.max(0, tonumber(Core.db.profile.backgroundFadeRightWidth) or 0)
+  local leftWidth = availableWidth * math.max(0, math.min(100, tonumber(Core.db.profile.backgroundFadeLeftPercent) or 0)) / 100
+  local rightWidth = availableWidth * math.max(0, math.min(100, tonumber(Core.db.profile.backgroundFadeRightPercent) or 0)) / 100
   local totalWidth = leftWidth + rightWidth
   if totalWidth > availableWidth then
     local scale = availableWidth / totalWidth
@@ -104,6 +104,11 @@ function GradientBackgroundMixin:SetGradientBackground(color, opacity, horizonta
     self.centerBg:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", horizontalInset, bottomInset)
   end
   self.centerBg:SetColorTexture(red, green, blue, alpha)
+  if leftWidth + rightWidth >= availableWidth - 0.001 then
+    self.centerBg:Hide()
+  else
+    self.centerBg:Show()
+  end
 end
 
 function GradientBackgroundMixin:SetSeparatorColor(color, opacityMultiplier)

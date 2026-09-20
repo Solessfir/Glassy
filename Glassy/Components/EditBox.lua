@@ -42,6 +42,8 @@ Core.Components.EditBoxHelpers = {
 }
 function EditBoxMixin:SetBackgroundAlpha(alpha)
   self.glassyBackgroundAlpha = math.max(0, math.min(1, alpha))
+  if self.header then self.header:SetAlpha(self.glassyBackgroundAlpha) end
+  if self.headerSuffix then self.headerSuffix:SetAlpha(self.glassyBackgroundAlpha) end
   self:UpdateGlassyBackground()
 end
 
@@ -73,6 +75,38 @@ function EditBoxMixin:UpdateGlassyBackground()
   self.centerBg:Show()
   self.centerBg:SetAlpha(1)
   self.rightBg:SetAlpha(1)
+
+  local inset = self.glassyBackgroundTopInset or 0
+  if inset > 0 then
+    self.leftBg:SetPoint("TOPLEFT", self, "TOPLEFT", 0, -inset)
+    self.rightBg:SetPoint("TOPRIGHT", self, "TOPRIGHT", 0, -inset)
+    if not self.leftBg:IsShown() then
+      self.centerBg:SetPoint("TOPLEFT", self, "TOPLEFT", 0, -inset)
+    end
+    if inset >= self:GetHeight() then
+      self.leftBg:Hide()
+      self.centerBg:Hide()
+      self.rightBg:Hide()
+    end
+    if self.messageSeparator then self.messageSeparator:Hide() end
+  end
+end
+
+function EditBoxMixin:ClipBackgroundToMessages(messageFrame)
+  local inset = 0
+  if self:IsVisible() and Core.db.profile.editBoxAnchor.position == "BELOW"
+    and Core.db.profile.chatBackgroundColor.a > 0 then
+    local top, messageTop = self:GetTop(), messageFrame:GetTop()
+    if top and messageTop then
+      local bottom = messageTop - math.min(messageFrame.config.height, messageFrame:GetHeight())
+      bottom = bottom * messageFrame:GetEffectiveScale() / self:GetEffectiveScale()
+      inset = math.max(0, math.min(self:GetHeight(), top - bottom))
+    end
+  end
+  if self.glassyBackgroundTopInset ~= inset then
+    self.glassyBackgroundTopInset = inset
+    self:UpdateGlassyBackground()
+  end
 end
 
 function EditBoxMixin:UpdateMessageSeparator()
@@ -119,7 +153,8 @@ function EditBoxMixin:AnimateBackgroundAlpha(targetAlpha, onFinished)
     end,
     startAlpha,
     targetAlpha,
-    Constants.EDIT_BOX_TRANSITION_DURATION,
+    math.max(0, tonumber(Core.db.profile[targetAlpha == 1 and "chatFadeInDuration" or "chatFadeOutDuration"])
+      or Constants.EDIT_BOX_TRANSITION_DURATION) * math.abs(targetAlpha - startAlpha),
     getBackgroundEasing(),
     function ()
       self.editBoxBackgroundAlphaHandle = nil

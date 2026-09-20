@@ -43,3 +43,40 @@ for _, opacity in ipairs({0, 0.4, 1}) do
   end
 end
 print("PASS: background transitions preserve message opacity across hover and message fades")
+
+core.Libs = {}
+core.db.profile.editBoxAnchor = {position = "BELOW"}
+core.db.profile.chatBackgroundColor.a = 0.4
+assert(loadfile("Glassy/Components/EditBox.lua"))("Glassy", {core, {ACTIONS = {}}})
+local edit = {
+  IsVisible = function () return true end,
+  GetTop = function () return 50 end,
+  GetHeight = function () return 20 end,
+  GetEffectiveScale = function () return 0.6 end,
+  UpdateGlassyBackground = noop,
+}
+local viewport = {
+  config = {height = 220},
+  GetTop = function () return 250 end,
+  GetHeight = function () return 300 end,
+  GetEffectiveScale = function () return 0.6 end,
+}
+local clip = core.Components.EditBoxMixin.ClipBackgroundToMessages
+for _, height in ipairs({220, 210, 200, 210, 220}) do
+  viewport.config.height = height
+  clip(edit, viewport)
+  assert(edit.glassyBackgroundTopInset == height - 200,
+    "Input background must meet the moving message edge when opening and closing")
+end
+core.db.profile.editBoxAnchor.position = "ABOVE"
+clip(edit, viewport)
+assert(edit.glassyBackgroundTopInset == 0, "Input above chat must not be clipped")
+print("PASS: input background follows the message boundary through open and close transitions")
+edit.header = {SetAlpha = function (self, value) self.alpha = value end}
+edit.headerSuffix = {SetAlpha = function (self, value) self.alpha = value end}
+for _, alpha in ipairs({0, 0.5, 1}) do
+  core.Components.EditBoxMixin.SetBackgroundAlpha(edit, alpha)
+  assert(edit.header.alpha == alpha and edit.headerSuffix.alpha == alpha,
+    "Input channel labels must follow the background fade")
+end
+print("PASS: input channel label and suffix fade with the background")

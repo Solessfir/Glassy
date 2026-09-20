@@ -56,7 +56,7 @@ local function getMessageOptions()
           },
           chatBackgroundColor = {
             name = "Background",
-            desc = "Choose the color and opacity behind chat messages and the scroll overlay.\nDefault: black at 40% opacity.",
+            desc = "Choose the color and opacity behind chat messages and the scroll overlay.\nDefault: black at 50% opacity.",
             type = "color",
             hasAlpha = true,
             order = 1.2,
@@ -308,13 +308,13 @@ local function getMessageOptions()
           fadeInDuration = {
             name = "Fade in duration",
             desc = "How many seconds new messages and the chat header take to become fully visible. Set to 0 to show them instantly.\nDefault: "..
-              Core.defaults.profile.chatFadeInDuration.." seconds\nMin: 0\nMax: 30",
+              Core.defaults.profile.chatFadeInDuration.." seconds\nMin: 0\nMax: 5",
             type = "range",
             order = 3.1,
             min = 0,
-            max = 30,
+            max = 5,
             softMin = 0,
-            softMax = 10,
+            softMax = 3,
             step = 0.05,
             get = function ()
               return Core.db.profile.chatFadeInDuration
@@ -327,16 +327,16 @@ local function getMessageOptions()
           fadeOutDuration = {
             name = "Fade out duration",
             desc = "How many seconds messages and the chat header take to disappear after the fade-out delay. Set to 0 to hide them instantly.\nDefault: "..
-              Core.defaults.profile.chatFadeOutDuration.." seconds\nMin: 0\nMax: 30",
+              Core.defaults.profile.chatFadeOutDuration.." seconds\nMin: 0\nMax: 5",
             type = "range",
             order = 3.2,
             disabled = function ()
               return Core.db.profile.chatAlwaysVisible
             end,
             min = 0,
-            max = 30,
+            max = 5,
             softMin = 0,
-            softMax = 10,
+            softMax = 3,
             step = 0.05,
             get = function ()
               return Core.db.profile.chatFadeOutDuration
@@ -373,13 +373,13 @@ local function getMessageOptions()
           slideInDuration = {
             name = "Movement duration",
             desc = "How many seconds existing messages take to move upward when new text arrives. Set to 0 to disable movement.\nDefault: "..
-              Core.defaults.profile.chatSlideInDuration.." seconds\nMin: 0\nMax: 30",
+              Core.defaults.profile.chatSlideInDuration.." seconds\nMin: 0\nMax: 5",
             type = "range",
             order = 4.1,
             min = 0,
-            max = 30,
+            max = 5,
             softMin = 0,
-            softMax = 5,
+            softMax = 3,
             step = 0.05,
             get = function ()
               return Core.db.profile.chatSlideInDuration

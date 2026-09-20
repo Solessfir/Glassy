@@ -2,7 +2,9 @@
 
 ## What's new
 
+- Left and right background fade distances now scale with chat width. Existing pixel settings are converted automatically.
 - The chat background fills the empty space beneath visible tabs and fades with them.
+- Hover and typing transitions preserve message background opacity. The edit box and channel label follow the configured fade timing without overlapping the chat background.
 - New profiles now select the active UI font by its actual name after login, including font replacements from other addons, while preserving saved custom font choices.
 - Added live snapping to screen edges and corners while dragging the unlocked chat frame.
 - Made the message area always reuse the closed input box's space, removing the old static-area mode.

@@ -12,6 +12,10 @@ local getMessageFrameHeight = Helpers.getMessageFrameHeight
 local DEFAULT_UNREAD_ROW_HEIGHT = 24
 
 function SlidingMessageFrameMixin:UpdateGapBackground()
+  local editBox = self.layoutEditBox
+  if editBox and editBox.ClipBackgroundToMessages then
+    editBox:ClipBackgroundToMessages(self)
+  end
   local background = self.gapBackground
   local color = Core.db.profile.chatBackgroundColor
   local window = self.chatFrame and UIManager:GetChatWindow(self.chatFrame)
@@ -37,13 +41,13 @@ function SlidingMessageFrameMixin:UpdateGapBackground()
     background.glassyHeight = height
   end
   if background.glassyColor ~= color or background.glassyWidth ~= self:GetWidth()
-    or background.glassyLeftFade ~= Core.db.profile.backgroundFadeLeftWidth
-    or background.glassyRightFade ~= Core.db.profile.backgroundFadeRightWidth then
+    or background.glassyLeftFade ~= Core.db.profile.backgroundFadeLeftPercent
+    or background.glassyRightFade ~= Core.db.profile.backgroundFadeRightPercent then
     background:SetGradientBackground(color, color.a)
     background.glassyColor = color
     background.glassyWidth = self:GetWidth()
-    background.glassyLeftFade = Core.db.profile.backgroundFadeLeftWidth
-    background.glassyRightFade = Core.db.profile.backgroundFadeRightWidth
+    background.glassyLeftFade = Core.db.profile.backgroundFadeLeftPercent
+    background.glassyRightFade = Core.db.profile.backgroundFadeRightPercent
   end
 end
 
@@ -197,7 +201,8 @@ function SlidingMessageFrameMixin:UpdateDynamicEditBoxLayout()
     end,
     self.config.height,
     nextHeight,
-    Constants.EDIT_BOX_TRANSITION_DURATION,
+    math.max(0, tonumber(Core.db.profile[nextHeight < self.config.height and "chatFadeInDuration" or "chatFadeOutDuration"])
+      or Constants.EDIT_BOX_TRANSITION_DURATION),
     getEditBoxEasing(),
     function ()
       self.state.editBoxEasingHandle = nil

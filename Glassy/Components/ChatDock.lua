@@ -180,7 +180,7 @@ function ChatDockMixin:SetTyping(visible)
 
   self.state.typing = typing
   if typing then
-    self:QuickShow()
+    self:Show()
   elseif not self.state.mouseOver then
     self:UpdateAutomaticVisibility()
   end

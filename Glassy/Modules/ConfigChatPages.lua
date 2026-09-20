@@ -117,41 +117,41 @@ local function getGeneralOptions()
               Core:Dispatch(UpdateConfig("hoverHighlightStrength"))
             end,
           },
-          backgroundFadeLeftWidth = {
-            name = "Left fade distance",
+          backgroundFadeLeftPercent = {
+            name = "Left fade percent",
             desc = "Controls how gradually Glassy backgrounds fade at the left edge. Shorter distances create a sharper fade; 0 disables it.\nDefault: "..
-              Core.defaults.profile.backgroundFadeLeftWidth.." px\nMin: 0\nMax: 1000",
+              string.format("%.2f", Core.defaults.profile.backgroundFadeLeftPercent).."%\nMin: 0%\nMax: 100%",
             type = "range",
             order = 3.9,
             min = 0,
-            max = 1000,
+            max = 100,
             softMin = 0,
-            softMax = 500,
-            step = 5,
+            softMax = 100,
+            step = 1,
             get = function ()
-              return Core.db.profile.backgroundFadeLeftWidth
+              return Core.db.profile.backgroundFadeLeftPercent
             end,
             set = function (_, input)
-              Core.db.profile.backgroundFadeLeftWidth = input
+              Core.db.profile.backgroundFadeLeftPercent = input
               Core:Dispatch(UpdateConfig("backgroundFade"))
             end,
           },
-          backgroundFadeRightWidth = {
-            name = "Right fade distance",
+          backgroundFadeRightPercent = {
+            name = "Right fade percent",
             desc = "Controls how gradually Glassy backgrounds fade at the right edge. Shorter distances create a sharper fade; 0 disables it.\nDefault: "..
-              Core.defaults.profile.backgroundFadeRightWidth.." px\nMin: 0\nMax: 1000",
+              string.format("%.2f", Core.defaults.profile.backgroundFadeRightPercent).."%\nMin: 0%\nMax: 100%",
             type = "range",
             order = 4,
             min = 0,
-            max = 1000,
+            max = 100,
             softMin = 0,
-            softMax = 500,
-            step = 5,
+            softMax = 100,
+            step = 1,
             get = function ()
-              return Core.db.profile.backgroundFadeRightWidth
+              return Core.db.profile.backgroundFadeRightPercent
             end,
             set = function (_, input)
-              Core.db.profile.backgroundFadeRightWidth = input
+              Core.db.profile.backgroundFadeRightPercent = input
               Core:Dispatch(UpdateConfig("backgroundFade"))
             end,
           },
@@ -321,7 +321,7 @@ local function getTabOptions()
           },
           headerBackgroundColor = {
             name = "Background",
-            desc = "Choose the color and opacity behind the chat tabs and Combat Log filter bar.\nDefault: black at 40% opacity.",
+            desc = "Choose the color and opacity behind the chat tabs and Combat Log filter bar.\nDefault: black at 50% opacity.",
             type = "color",
             hasAlpha = true,
             order = 1.4,
@@ -425,7 +425,7 @@ local function getEditBoxOptions()
           },
           editBoxBackgroundColor = {
             name = "Background",
-            desc = "Choose the color and opacity behind the chat entry field.\nDefault: black at 40% opacity.",
+            desc = "Choose the color and opacity behind the chat entry field.\nDefault: black at 50% opacity.",
             type = "color",
             hasAlpha = true,
             order = 1.3,

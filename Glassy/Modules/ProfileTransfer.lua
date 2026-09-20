@@ -6,6 +6,24 @@ local MAX_TEXT_LENGTH = 131072
 local MAX_VALUES = 4096
 local MAX_DEPTH = 12
 
+function ProfileTransfer:NormalizeBackgroundFades(profile, defaults)
+  local width = math.max(1, tonumber(profile.frameWidth) or defaults.frameWidth or 600)
+  for _, side in ipairs({"Left", "Right"}) do
+    local key = "backgroundFade"..side
+    local pixels = tonumber(rawget(profile, key.."Width"))
+    local legacy = rawget(profile, key)
+    if pixels == nil and type(legacy) == "boolean" then
+      pixels = legacy and (side == "Left" and 50 or 250) or 0
+    end
+    local percent = pixels and pixels / width * 100 or tonumber(profile[key.."Percent"])
+    if percent ~= nil then
+      profile[key.."Percent"] = math.max(0, math.min(100, percent))
+    end
+    profile[key.."Width"] = nil
+    profile[key] = nil
+  end
+end
+
 local function fail(message)
   error(message, 0)
 end
@@ -217,6 +235,7 @@ function ProfileTransfer:Import(text, defaults)
     if type(decoded) ~= "table" or not string.match(string.sub(text, state.position), "^%s*$") then
       fail("invalid profile data")
     end
+    self:NormalizeBackgroundFades(decoded, defaults)
     local sanitized = sanitizeValue(decoded, defaults, 1)
     if next(sanitized) == nil then
       fail("profile has no supported settings")

@@ -3,7 +3,7 @@
 An immersive, minimal chat UI for all World of Warcraft versions.<br>
 It continues the original [Glass](https://www.curseforge.com/wow/addons/glass) design with Classic compatibility fixes, more customization, and new chat tools.
 
-![Glassy Preview](https://i.imgur.com/qNVFP1a.gif)
+![Glassy Preview](https://i.imgur.com/FjysGWP.gif)
 
 ## Required addons for the full experience
 
@@ -33,6 +33,7 @@ Close WoW before migrating. Install Glassy, then copy `WTF/Account/<account>/Sav
 
 - Keep chat out of the way until you need it. Messages fade smoothly and return when you hover or start typing.
 - Make it fit your UI with custom fonts, colors, backgrounds, spacing, opacity, and animations.
+- Background edge fades use a percentage of chat width, so they stay proportional when resized.
 - Keep tabs and the Combat Log organized with reordering, highlighting, and consistent styling.
 - Find and share conversations with retained history, timestamps, phrase filtering, and per-tab copying.
 - Type without giving up familiar shortcuts or your WoW keybindings.

@@ -301,24 +301,7 @@ local function normalizeTimestamps()
 end
 
 local function normalizeBackgroundFades()
-  local profile = Core.db.profile
-  local defaults = Core.defaults.profile
-  local leftWidth = rawget(profile, "backgroundFadeLeftWidth")
-  local rightWidth = rawget(profile, "backgroundFadeRightWidth")
-  local legacyLeft = rawget(profile, "backgroundFadeLeft")
-  local legacyRight = rawget(profile, "backgroundFadeRight")
-
-  if leftWidth == nil and type(legacyLeft) == "boolean" then
-    leftWidth = legacyLeft and 50 or 0
-  end
-  if rightWidth == nil and type(legacyRight) == "boolean" then
-    rightWidth = legacyRight and 250 or 0
-  end
-
-  profile.backgroundFadeLeftWidth = math.max(0, tonumber(leftWidth) or defaults.backgroundFadeLeftWidth)
-  profile.backgroundFadeRightWidth = math.max(0, tonumber(rightWidth) or defaults.backgroundFadeRightWidth)
-  profile.backgroundFadeLeft = nil
-  profile.backgroundFadeRight = nil
+  Core:GetModule("ProfileTransfer"):NormalizeBackgroundFades(Core.db.profile, Core.defaults.profile)
 end
 
 local function normalizeAnimationEasings()
@@ -598,8 +581,8 @@ function C:OnDebugCommand()
     local profile = Core.db.profile
     report[#report + 1] = "editBoxAnchor="..tostring(profile.editBoxAnchor.position)..
       " y="..tostring(profile.editBoxAnchor.yOfs)..
-      " fadeLeft="..tostring(profile.backgroundFadeLeftWidth)..
-      " fadeRight="..tostring(profile.backgroundFadeRightWidth)
+      " fadeLeft="..tostring(profile.backgroundFadeLeftPercent)..
+      " fadeRight="..tostring(profile.backgroundFadeRightPercent)
     for _, key in ipairs({"chatBackgroundColor", "unreadMessageBackgroundColor", "editBoxBackgroundColor", "unreadMessageSeparatorColor", "editBoxMessageSeparatorColor"}) do
       local color = profile[key] or {}
       report[#report + 1] = string.format("%s rgba=%s,%s,%s,%s", key, tostring(color.r), tostring(color.g), tostring(color.b), tostring(color.a))

@@ -29,8 +29,8 @@ end
 local function updateBackground(self)
   local color = Core.db.profile.chatBackgroundColor
   local frameWidth = self:GetWidth()
-  local leftFadeWidth = tonumber(Core.db.profile.backgroundFadeLeftWidth) or 0
-  local rightFadeWidth = tonumber(Core.db.profile.backgroundFadeRightWidth) or 0
+  local leftFadeWidth = tonumber(Core.db.profile.backgroundFadeLeftPercent) or 0
+  local rightFadeWidth = tonumber(Core.db.profile.backgroundFadeRightPercent) or 0
   if (
     self.glassyBackgroundWidth == frameWidth and
     self.glassyBackgroundLeftFadeWidth == leftFadeWidth and
