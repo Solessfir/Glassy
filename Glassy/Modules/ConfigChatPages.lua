@@ -461,6 +461,42 @@ local function getEditBoxOptions()
               Core:Dispatch(UpdateConfig("editBoxMessageSeparatorColor"))
             end,
           },
+          editBoxFadeInDuration = {
+            name = "Fade in duration",
+            desc = "Controls how the edit-box background fades when chat opens or closes.\nDefault: "..
+              Core.defaults.profile.editBoxFadeInDuration.." seconds\nMin: 0\nMax: 5",
+            type = "range",
+            order = 1.26,
+            min = 0,
+            max = 5,
+            softMax = 3,
+            step = 0.05,
+            get = function ()
+              return Core.db.profile.editBoxFadeInDuration
+            end,
+            set = function (_, input)
+              Core.db.profile.editBoxFadeInDuration = input
+              Core:Dispatch(UpdateConfig("editBoxFadeInDuration"))
+            end,
+          },
+          editBoxFadeOutDuration = {
+            name = "Fade out duration",
+            desc = "Controls how the edit-box background fades when chat opens or closes.\nDefault: "..
+              Core.defaults.profile.editBoxFadeOutDuration.." seconds\nMin: 0\nMax: 5",
+            type = "range",
+            order = 1.27,
+            min = 0,
+            max = 5,
+            softMax = 3,
+            step = 0.05,
+            get = function ()
+              return Core.db.profile.editBoxFadeOutDuration
+            end,
+            set = function (_, input)
+              Core.db.profile.editBoxFadeOutDuration = input
+              Core:Dispatch(UpdateConfig("editBoxFadeOutDuration"))
+            end,
+          },
           editBoxBackgroundEasing = {
             name = "Background easing",
             desc = "Controls how the edit-box background fades when chat opens or closes.\nDefault: "..

@@ -44,7 +44,12 @@ for _, opacity in ipairs({0, 0.4, 1}) do
 end
 print("PASS: background transitions preserve message opacity across hover and message fades")
 
-core.Libs = {}
+local transitionDuration
+core.Libs = {LibEasing = {
+  OutCubic = noop,
+  StopEasing = noop,
+  Ease = function (_, _, _, _, duration) transitionDuration = duration; return {} end,
+}}
 core.db.profile.editBoxAnchor = {position = "BELOW"}
 core.db.profile.chatBackgroundColor.a = 0.4
 assert(loadfile("Glassy/Components/EditBox.lua"))("Glassy", {core, {ACTIONS = {}}})
@@ -80,3 +85,27 @@ for _, alpha in ipairs({0, 0.5, 1}) do
     "Input channel labels must follow the background fade")
 end
 print("PASS: input channel label and suffix fade with the background")
+
+core.db.profile.editBoxBackgroundColor = {a = 0.5}
+core.db.profile.editBoxBackgroundEasing = "OutCubic"
+core.db.profile.editBoxFadeInDuration = 0.8
+core.db.profile.editBoxFadeOutDuration = 1.2
+core.db.profile.chatFadeInDuration = 3
+core.db.profile.chatFadeOutDuration = 4
+edit.GetBackgroundAlpha = core.Components.EditBoxMixin.GetBackgroundAlpha
+edit.StopBackgroundAlphaTransition = core.Components.EditBoxMixin.StopBackgroundAlphaTransition
+local animate = core.Components.EditBoxMixin.AnimateBackgroundAlpha
+edit.glassyBackgroundAlpha = 0
+animate(edit, 1)
+assert(transitionDuration == 0.8, "Opening the edit box must use its own duration")
+edit.glassyBackgroundAlpha = 1
+animate(edit, 0)
+assert(transitionDuration == 1.2, "Closing the edit box must use its own duration")
+edit.glassyBackgroundAlpha = 0.5
+animate(edit, 0)
+assert(transitionDuration == 0.6, "Interrupted fades must scale to the remaining opacity")
+core.db.profile.editBoxFadeInDuration = 0
+edit.glassyBackgroundAlpha = 0
+animate(edit, 1)
+assert(transitionDuration == 0)
+print("PASS: edit-box fade durations are independent of message fades")

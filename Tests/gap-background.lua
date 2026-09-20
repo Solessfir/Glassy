@@ -3,12 +3,14 @@ function dock:IsVisible() return self.visible end
 function dock:GetAlpha() return self.alpha end
 local ui = {dock = dock}
 function ui:GetChatWindow() return self.window end
+local resizeDuration
 local core = {
-  Libs = {},
+  Libs = {LibEasing = {Ease = function (_, _, _, _, duration) resizeDuration = duration end}},
   db = {profile = {chatBackgroundColor = {r = 0, g = 0, b = 0, a = 0.4}}},
   Components = {SlidingMessageFrameMixin = {}, SlidingMessageFrameHelpers = {
     getMessageTopInset = function () return 22 end,
     getBaseMessageTopInset = function () return 20 end,
+    getEditBoxEasing = function () return function () end end,
   }},
 }
 function core:GetModule() return ui end
@@ -83,3 +85,25 @@ ui.window = {detachedLayout = {dock = dock}}
 update(frame)
 assert(background.alpha == 0.5, "Detached tabs must fill their own gap")
 print("PASS: tab gap background geometry, fades, transparency, and detached windows")
+
+local resizing = {
+  config = {height = 250}, state = {},
+  IsShown = function () return true end,
+  CancelDynamicEditBoxLayout = function () end,
+  GetMessageFrameHeight = function (self) return self.nextHeight end,
+}
+core.db.profile.chatFadeInDuration = 3
+core.db.profile.chatFadeOutDuration = 4
+core.db.profile.editBoxFadeInDuration = 0.2
+core.db.profile.editBoxFadeOutDuration = 0.3
+local resize = core.Components.SlidingMessageFrameMixin.UpdateDynamicEditBoxLayout
+resizing.nextHeight = 230
+resize(resizing)
+assert(resizeDuration == 0.2, "Making room must use the edit-box fade-in duration")
+resizing.nextHeight = 270
+resize(resizing)
+assert(resizeDuration == 0.3, "Reclaiming space must use the edit-box fade-out duration")
+core.db.profile.editBoxFadeOutDuration = 0
+resize(resizing)
+assert(resizeDuration == 0, "Zero duration must reclaim space instantly")
+print("PASS: message-area resizing follows edit-box durations independently of message fades")

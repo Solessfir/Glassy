@@ -82,6 +82,8 @@ Core.defaults = {
     -- Edit box
     editBoxEasing = "OutCubic",
     editBoxBackgroundEasing = "OutCubic",
+    editBoxFadeInDuration = 0.2,
+    editBoxFadeOutDuration = 0.2,
     editBoxFontSize = 12,
     editBoxVerticalPadding = 0.45,
     editBoxMessageSeparatorColor = {
@@ -110,16 +112,16 @@ Core.defaults = {
       a = 0.5,
     },
     unreadMessageSeparatorColor = {
-      r = 0.8745,
-      g = 0.7294,
-      b = 0.4118,
+      r = 1,
+      g = 1,
+      b = 0,
       a = 0,
     },
     unreadMessageBackgroundColor = {
       r = 0,
       g = 0,
       b = 0,
-      a = 0.4,
+      a = 0.5,
     },
     messageLeading = 3,
     messageLinePadding = 0.25,

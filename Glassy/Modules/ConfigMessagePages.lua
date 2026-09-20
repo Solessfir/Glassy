@@ -71,7 +71,7 @@ local function getMessageOptions()
           },
           unreadMessageSeparatorColor = {
             name = "Unread-message separator",
-            desc = "Choose the separator color and opacity below the unread-message control. Set opacity to 0 to hide it.\nDefault: gold at 0% opacity.",
+            desc = "Choose the separator color and opacity below the unread-message control. Set opacity to 0 to hide it.\nDefault: yellow at 0% opacity.",
             type = "color",
             hasAlpha = true,
             order = 1.25,
@@ -86,7 +86,7 @@ local function getMessageOptions()
           },
           unreadMessageBackgroundColor = {
             name = "Unread-message background",
-            desc = "Choose the background color and opacity behind the jump-to-latest row, with or without unread messages.\nDefault: black at 40% opacity.",
+            desc = "Choose the background color and opacity behind the jump-to-latest row, with or without unread messages.\nDefault: black at 50% opacity.",
             type = "color",
             hasAlpha = true,
             order = 1.26,

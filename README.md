@@ -37,6 +37,7 @@ Close WoW before migrating. Install Glassy, then copy `WTF/Account/<account>/Sav
 - Keep tabs and the Combat Log organized with reordering, highlighting, and customizable text colors.
 - Find and share conversations with retained history, timestamps, phrase filtering, and per-tab copying.
 - Type without giving up familiar shortcuts or your WoW keybindings.
+- Adjust edit-box fade-in and fade-out timing separately from message fades.
 - Use the same addon across current WoW clients, with ten interface languages included.
 
 ## Commands

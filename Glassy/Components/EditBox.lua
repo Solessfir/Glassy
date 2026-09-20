@@ -153,8 +153,8 @@ function EditBoxMixin:AnimateBackgroundAlpha(targetAlpha, onFinished)
     end,
     startAlpha,
     targetAlpha,
-    math.max(0, tonumber(Core.db.profile[targetAlpha == 1 and "chatFadeInDuration" or "chatFadeOutDuration"])
-      or Constants.EDIT_BOX_TRANSITION_DURATION) * math.abs(targetAlpha - startAlpha),
+    math.max(0, math.min(5, tonumber(Core.db.profile[targetAlpha == 1 and "editBoxFadeInDuration" or "editBoxFadeOutDuration"])
+      or Constants.EDIT_BOX_TRANSITION_DURATION)) * math.abs(targetAlpha - startAlpha),
     getBackgroundEasing(),
     function ()
       self.editBoxBackgroundAlphaHandle = nil

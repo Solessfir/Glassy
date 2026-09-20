@@ -201,8 +201,8 @@ function SlidingMessageFrameMixin:UpdateDynamicEditBoxLayout()
     end,
     self.config.height,
     nextHeight,
-    math.max(0, tonumber(Core.db.profile[nextHeight < self.config.height and "chatFadeInDuration" or "chatFadeOutDuration"])
-      or Constants.EDIT_BOX_TRANSITION_DURATION),
+    math.max(0, math.min(5, tonumber(Core.db.profile[nextHeight < self.config.height and "editBoxFadeInDuration" or "editBoxFadeOutDuration"])
+      or Constants.EDIT_BOX_TRANSITION_DURATION)),
     getEditBoxEasing(),
     function ()
       self.state.editBoxEasingHandle = nil
