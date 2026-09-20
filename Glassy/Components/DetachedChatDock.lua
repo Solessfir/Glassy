@@ -4,6 +4,7 @@ local CreateSeparatorFrame = Core.Components.CreateSeparatorFrame
 
 local MOUSE_ENTER = Constants.EVENTS.MOUSE_ENTER
 local MOUSE_LEAVE = Constants.EVENTS.MOUSE_LEAVE
+local EDIT_BOX_VISIBILITY_CHANGED = Constants.EVENTS.EDIT_BOX_VISIBILITY_CHANGED
 local UPDATE_CONFIG = Constants.EVENTS.UPDATE_CONFIG
 
 -- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
@@ -13,6 +14,7 @@ local Mixin = Mixin
 -- luacheck: pop
 
 local DetachedChatDockMixin = {}
+Core.Components.DetachedChatDockMixin = DetachedChatDockMixin
 
 function DetachedChatDockMixin:UpdateFadeSettings()
   self:SetFadeInDuration(Core.db.profile.chatFadeInDuration)
@@ -21,10 +23,25 @@ function DetachedChatDockMixin:UpdateFadeSettings()
 end
 
 function DetachedChatDockMixin:UpdateAutomaticVisibility()
-  if Core.db.profile.chatAlwaysVisible then
+  if Core.db.profile.chatAlwaysVisible or self.typing then
     self:QuickShow()
   else
     self:HideDelay(Core.db.profile.chatHoldTime)
+  end
+end
+
+function DetachedChatDockMixin:SetTyping(visible)
+  self.editBoxVisible = not not visible
+  local typing = self.editBoxVisible and Core.db.profile.chatShowWhileTyping or false
+  if self.typing == typing then
+    return
+  end
+
+  self.typing = typing
+  if typing then
+    self:QuickShow()
+  elseif not self.mouseOver then
+    self:UpdateAutomaticVisibility()
   end
 end
 
@@ -49,7 +66,9 @@ function DetachedChatDockMixin:SetTab(tab)
 end
 
 function DetachedChatDockMixin:Init(parent)
+  self.editBoxVisible = false
   self.mouseOver = false
+  self.typing = false
   self:SetHeight(Constants.DOCK_HEIGHT)
   self:SetPoint("TOPLEFT", parent, "TOPLEFT")
   self:SetPoint("TOPRIGHT", parent, "TOPRIGHT")
@@ -70,6 +89,9 @@ function DetachedChatDockMixin:Init(parent)
       self.mouseOver = false
       self:UpdateAutomaticVisibility()
     end),
+    Core:Subscribe(EDIT_BOX_VISIBILITY_CHANGED, function (visible)
+      self:SetTyping(visible)
+    end),
     Core:Subscribe(UPDATE_CONFIG, function (key)
       if key == "headerBackgroundColor" or key == "tabMessageSeparatorColor" or key == "backgroundFade" then
         self:UpdateStyle()
@@ -77,6 +99,8 @@ function DetachedChatDockMixin:Init(parent)
         self:UpdateFadeSettings()
       elseif key == "chatAlwaysVisible" and (Core.db.profile.chatAlwaysVisible or not self.mouseOver) then
         self:UpdateAutomaticVisibility()
+      elseif key == "chatShowWhileTyping" then
+        self:SetTyping(self.editBoxVisible)
       end
     end),
   }

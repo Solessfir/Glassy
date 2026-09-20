@@ -283,7 +283,7 @@ local function getMessageOptions()
           },
           chatShowWhileTyping = {
             name = "Show while typing",
-            desc = "Reveal faded chat messages while the chat input is open.\nDefault: on",
+            desc = "Reveal faded chat messages and tabs while the chat input is open.\nDefault: on",
             type = "toggle",
             order = 2.3,
             disabled = function ()

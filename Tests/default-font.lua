@@ -8,7 +8,9 @@ UnitClass = function() return "Rogue", "ROGUE" end
 UnitRace = function() return "Human", "Human" end
 UnitFactionGroup = function() return "Alliance", "Alliance" end
 GetCurrentRegion = function() return 1 end
+GetCurrentRegionName = function() return "US" end
 GetLocale = function() return "enUS" end
+GetBuildInfo = function() return "", "", "", 11509 end
 assert(loadfile("libs/AceDB-3.0/AceDB-3.0.lua"))()
 
 local addon = {NewModule = function() end}

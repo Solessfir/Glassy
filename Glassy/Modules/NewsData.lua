@@ -20,6 +20,7 @@ What's new
 Improvements and fixes
 
 - Kept the unread-message row visible while typing and removed its forced shadow.
+- Made Show while typing reveal docked and detached chat tabs together with faded messages.
 - Removed gaps, overlaps, and dark seams between tabs, Combat Log filters, messages, the unread-message row, and the input box.
 - Made tab vertical offsets reduce the message area instead of pushing messages off-screen.
 - Smoothed input-box transitions and return-to-latest scrolling while preserving the latest-message position.

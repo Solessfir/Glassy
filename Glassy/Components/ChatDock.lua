@@ -4,6 +4,7 @@ local AceHook = Core.Libs.AceHook
 
 local MOUSE_ENTER = Constants.EVENTS.MOUSE_ENTER
 local MOUSE_LEAVE = Constants.EVENTS.MOUSE_LEAVE
+local EDIT_BOX_VISIBILITY_CHANGED = Constants.EVENTS.EDIT_BOX_VISIBILITY_CHANGED
 local UPDATE_CONFIG = Constants.EVENTS.UPDATE_CONFIG
 local CreateSeparatorFrame = Core.Components.CreateSeparatorFrame
 
@@ -163,16 +164,33 @@ function ChatDockMixin:UpdateFadeSettings()
 end
 
 function ChatDockMixin:UpdateAutomaticVisibility()
-  if Core.db.profile.chatAlwaysVisible then
+  if Core.db.profile.chatAlwaysVisible or self.state.typing then
     self:QuickShow()
   else
     self:HideDelay(Core.db.profile.chatHoldTime)
   end
 end
 
+function ChatDockMixin:SetTyping(visible)
+  self.state.editBoxVisible = not not visible
+  local typing = self.state.editBoxVisible and Core.db.profile.chatShowWhileTyping or false
+  if self.state.typing == typing then
+    return
+  end
+
+  self.state.typing = typing
+  if typing then
+    self:QuickShow()
+  elseif not self.state.mouseOver then
+    self:UpdateAutomaticVisibility()
+  end
+end
+
 function ChatDockMixin:Init(parent)
   self.state = {
-    mouseOver = false
+    editBoxVisible = false,
+    mouseOver = false,
+    typing = false,
   }
   self.selectionPersistenceReady = false
 
@@ -282,6 +300,9 @@ function ChatDockMixin:Init(parent)
 
         self:UpdateAutomaticVisibility()
       end),
+      Core:Subscribe(EDIT_BOX_VISIBILITY_CHANGED, function (visible)
+        self:SetTyping(visible)
+      end),
       Core:Subscribe(UPDATE_CONFIG, function (key)
         if key == "combatLogVisibility" then
           self:UpdateCombatLogVisibility()
@@ -306,6 +327,10 @@ function ChatDockMixin:Init(parent)
           if Core.db.profile.chatAlwaysVisible or not self.state.mouseOver then
             self:UpdateAutomaticVisibility()
           end
+        end
+
+        if key == "chatShowWhileTyping" then
+          self:SetTyping(self.state.editBoxVisible)
         end
 
         if key == "activeTabHighlightStrength" or key == "hoverHighlightStrength" then
