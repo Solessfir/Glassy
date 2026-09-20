@@ -117,7 +117,7 @@ local function getMessageFrameHeight(isCombatLog, frameHeight, editBox)
       end
     end
   end
-  return math.max(1, frameHeight - getBaseMessageTopInset(isCombatLog) + reusableHeight)
+  return math.max(1, frameHeight - getMessageTopInset(isCombatLog) + reusableHeight)
 end
 
 

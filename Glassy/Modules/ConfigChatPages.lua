@@ -349,7 +349,7 @@ local function getTabOptions()
           },
           tabMessageSpacing = {
             name = "Vertical offset",
-            desc = "Moves messages down from the chat tabs.\nDefault: "..
+            desc = "Adds space below the chat tabs while keeping the bottom of the message area fixed.\nDefault: "..
               Core.defaults.profile.tabMessageSpacing.." px\nMin: 0\nMax: "..MAX_TAB_MESSAGE_OFFSET,
             type = "range",
             order = 1.6,

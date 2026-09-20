@@ -14,6 +14,7 @@
 * Separate release-note data from the news window behavior.
 * Move Combat Log into a Tabs section, and Shortcuts and Compatibility into About sections.
 * Coalesce profile-change layout updates to prevent script timeouts when resetting or switching profiles.
+* Make the tab vertical offset reduce the message area instead of moving its bottom edge off-screen.
 
 ## 1.9.2 (2026-09-19)
 

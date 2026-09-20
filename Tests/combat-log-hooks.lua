@@ -101,6 +101,9 @@ layout.SetVerticalScroll = noop
 layout.GetVerticalScrollRange = function () return 0 end
 layout:SetLayout(detachedContainer, 320, 200, false, detachedContainer)
 assert(layout.parent == detachedContainer and layout.config.width == 320 and layout.config.height == 176)
+core.db.profile.tabMessageSpacing = 20
+assert(layout:GetMessageFrameHeight() == 156, "Tab offset did not reduce the message area")
+core.db.profile.tabMessageSpacing = 0
 local persistentMessage = frame("PersistentMessage")
 persistentMessage.shown = true
 layout.state.messages = {persistentMessage}
