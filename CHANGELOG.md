@@ -18,7 +18,7 @@
 * Set the default tab vertical offset to 2 px and the edit-box vertical offset to -2 px.
 * Extend the unread-message background through the gap created by a negative edit-box offset.
 * Keep the unread-message row visible while the edit box is open.
-* Make the shadow above the unread-message row optional and disable it by default.
+* Remove the shadow above the unread-message row.
 
 ## 1.9.2 (2026-09-19)
 

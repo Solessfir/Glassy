@@ -15,7 +15,6 @@ local Mixin = Mixin
 
 local ScrollOverlayFrame = {}
 local MIN_UNREAD_ROW_HEIGHT = 24
-local OVERLAY_FADE_HEIGHT = 40
 
 local function getLeftTextPadding()
     return math.max(0, tonumber(Core.db.profile.textLeftPadding) or Core.defaults.profile.textLeftPadding)
@@ -36,32 +35,19 @@ end
 
 function ScrollOverlayFrame:SetUnreadRowHeight(rowHeight)
     self.unreadRowHeight = math.max(MIN_UNREAD_ROW_HEIGHT, rowHeight or MIN_UNREAD_ROW_HEIGHT)
-    self:SetHeight(self.unreadRowHeight + OVERLAY_FADE_HEIGHT)
+    self:SetHeight(self.unreadRowHeight)
 
     if self.snapToBottomFrame then
       self.snapToBottomFrame:SetHeight(self.unreadRowHeight)
     end
-    if self.mask then
-      self.mask:ClearAllPoints()
-      self.mask:SetSize(16, self:GetHeight())
-      self.mask:SetPoint("CENTER", 0, -self:GetHeight() / 2)
-    end
     if self.icon then
       self:UpdateUnreadLayout()
-    end
-    if self.centerBg then
-      self:UpdateBackground()
     end
     local parent = self:GetParent()
     if parent and parent.UpdateViewportHeight then
       parent:UpdateViewportHeight(self.unreadRowHeight)
     end
     self:UpdateFrame()
-end
-
-function ScrollOverlayFrame:UpdateBackground()
-    local color = Core.db.profile.chatBackgroundColor
-    self:SetGradientBackground(color, Core.db.profile.unreadMessageShadow and color.a or 0, nil, self:GetUnreadRowHeight())
 end
 
 function ScrollOverlayFrame:UpdateUnreadBackground()
@@ -97,23 +83,10 @@ end
 
 function ScrollOverlayFrame:Init()
     self.unreadRowHeight = MIN_UNREAD_ROW_HEIGHT
-    self:SetHeight(self.unreadRowHeight + OVERLAY_FADE_HEIGHT)
+    self:SetHeight(self.unreadRowHeight)
     self:UpdateFrame()
     self:SetFadeInDuration(0.3)
     self:SetFadeOutDuration(0.15)
-
-    if self.mask == nil then
-      self.mask = self:CreateMaskTexture()
-    end
-    self.mask:SetTexture("Interface\\Addons\\Glassy\\Glassy\\Assets\\overlayMask", "CLAMP", "CLAMPTOBLACKADDITIVE")
-    self.mask:SetSize(16, self:GetHeight())
-    self.mask:SetPoint("CENTER", 0, -self:GetHeight() / 2)
-
-    self:UpdateBackground()
-
-    self.leftBg:AddMaskTexture(self.mask)
-    self.centerBg:AddMaskTexture(self.mask)
-    self.rightBg:AddMaskTexture(self.mask)
 
     -- Down arrow icon
     if self.icon == nil then
@@ -170,10 +143,6 @@ function ScrollOverlayFrame:Init()
 
           if key == "textLeftPadding" then
             self:UpdateUnreadLayout()
-          end
-
-          if key == "chatBackgroundColor" or key == "backgroundFade" or key == "unreadMessageShadow" then
-            self:UpdateBackground()
           end
 
           if key == "unreadMessageBackgroundColor" or key == "backgroundFade" then

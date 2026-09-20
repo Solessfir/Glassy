@@ -107,7 +107,7 @@ Ctrl+U, Ctrl+K, and Ctrl+Y are unavailable during Blizzard's chat messaging lock
 - Profiles can be exported and imported, either into a new profile or over the current one after confirmation.
 - An optional message blacklist hides messages containing configured phrases, including restored Prat history.
 - The complete interface is localized into ten languages.
-- New controls cover reveal while typing, tab hover highlighting, gradient separators, message spacing, edit-box padding, and unread-message appearance. Messages > Appearance includes an optional unread-message shadow, disabled by default.
+- New controls cover reveal while typing, tab hover highlighting, gradient separators, message spacing, edit-box padding, and unread-message appearance.
 - Settings now have dedicated Shortcuts and About pages, with `/gl news` available for reopening the in-game release notes.
 - Compatibility and performance fixes improve startup visibility, history restoration, frame bounds, Combat Log tabs, and Classic Forever support.
 

@@ -108,7 +108,6 @@ Core.defaults = {
       b = 0,
       a = 0.4,
     },
-    unreadMessageShadow = false,
     unreadMessageSeparatorColor = {
       r = 0.8745,
       g = 0.7294,

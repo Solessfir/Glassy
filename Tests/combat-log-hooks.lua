@@ -78,6 +78,7 @@ local core = {
   db = {profile = {activeTabHighlightStrength = 0.2, chatAlwaysVisible = false, chatHoldTime = 10, hoverHighlightStrength = 0.8, frameHeight = 230, frameWidth = 450, tabMessageSpacing = 0, textLeftPadding = 0}},
   defaults = {profile = {frameHeight = 230, frameWidth = 450, tabMessageSpacing = 0, textLeftPadding = 0}}, Subscribe = noop,
 }
+core.db.profile.editBoxAnchor = {position = "BELOW", yOfs = -2}
 local utils = {}
 assert(loadfile("Glassy/utils.lua"))("Glassy", {core, constants, utils})
 local function loadComponent(name)
@@ -132,7 +133,7 @@ assert(layout:GetNativeLayoutParent() == primaryContainer and layout:GetNativeLa
 assert(not layout:KeepDetachedNativeLayout("SetWidth", 500), "Docked layout skipped Glassy's override")
 layout:SetGlassyShown(true)
 assert(detachedContainer:IsShown(), "Detached container did not follow its message frame visibility")
-layout:SetLayout(primaryContainer, nil, nil, true, nil)
+layout:SetLayout(primaryContainer, nil, nil, false, nil)
 assert(layout.parent == primaryContainer and layout.config.width == 450 and layout.config.height == 206)
 assert(not detachedContainer:IsShown(), "Docking left the detached container visible")
 

@@ -177,6 +177,9 @@ local function normalizeBackgroundColors()
     defaults.unreadMessageBackgroundColor
   )
   profile.chatBackgroundOpacity = nil
+  profile.messageTopShadowColor = nil
+  profile.messageBottomShadowColor = nil
+  profile.unreadMessageShadow = nil
   profile.editBoxBackgroundOpacity = nil
   profile.tabMessageSeparator = nil
   profile.editBoxMessageSeparator = nil
@@ -593,7 +596,6 @@ function C:OnDebugCommand()
       " entryVisible="..tostring(editBox and editBox.glassyEntryVisible)..
       " scrollAtBottom="..tostring(messageFrame.state.scrollAtBottom)
     local profile = Core.db.profile
-    report[#report + 1] = "unreadMessageShadow="..tostring(profile.unreadMessageShadow)
     report[#report + 1] = "editBoxAnchor="..tostring(profile.editBoxAnchor.position)..
       " y="..tostring(profile.editBoxAnchor.yOfs)..
       " fadeLeft="..tostring(profile.backgroundFadeLeftWidth)..
