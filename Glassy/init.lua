@@ -99,7 +99,7 @@ Core.defaults = {
     },
     editBoxAnchor = {
       position = "BELOW",
-      yOfs = -5
+      yOfs = 0
     },
 
     -- Messages

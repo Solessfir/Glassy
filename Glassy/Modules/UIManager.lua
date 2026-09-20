@@ -283,9 +283,12 @@ function UIManager:InitializeChatWindows()
   end
 
   self.dock:RestoreSelectedTab(initiallyShownChatFrame)
-  -- Restoring Blizzard's selected chat window can show the dock again.
-  -- Start with only chat messages visible; hovering chat will reveal the tabs.
-  self.dock:QuickHide()
+  -- Restoring Blizzard's selected chat window can show the dock again. Reapply the configured persistent state without waiting for the normal hide delay.
+  if Core.db.profile.chatAlwaysVisible then
+    self.dock:QuickShow()
+  else
+    self.dock:QuickHide()
+  end
 end
 
 function UIManager:TryInitializeCombatLogBar()

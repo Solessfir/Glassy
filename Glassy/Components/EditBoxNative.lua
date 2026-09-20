@@ -5,6 +5,7 @@ local EditBoxMixin = Core.Components.EditBoxMixin
 local Helpers = Core.Components.EditBoxHelpers
 local getVerticalPadding = Helpers.getVerticalPadding
 local hasVisibleBackground = Helpers.hasVisibleBackground
+local shouldKeepBackgroundVisible = Helpers.shouldKeepBackgroundVisible
 
 local EditBoxVisibilityChanged = Constants.ACTIONS.EditBoxVisibilityChanged
 local UPDATE_CONFIG = Constants.EVENTS.UPDATE_CONFIG
@@ -54,6 +55,27 @@ local function hideExternalBackgrounds(editBox)
   -- Prat places its own backdrop inside Blizzard's edit box, so keep it hidden while Glassy supplies the styling.
   if editBox.pratFrame then
     editBox.pratFrame:Hide()
+  end
+end
+
+function EditBoxMixin:UpdateAutomaticVisibility()
+  if self.glassyEntryVisible then
+    return
+  end
+
+  if shouldKeepBackgroundVisible() then
+    self.glassyShowingPersistentBackground = true
+    self:Show()
+    self.glassyShowingPersistentBackground = nil
+    self.header:Hide()
+    if self.headerSuffix then
+      self.headerSuffix:Hide()
+    end
+    self:StopBackgroundAlphaTransition()
+    self:SetAlpha(1)
+    self:SetBackgroundAlpha(1)
+  elseif self:IsShown() then
+    self:Hide()
   end
 end
 
@@ -123,7 +145,9 @@ function EditBoxMixin:Init(parent, useParentWidth)
 
   super(self).HookScript(self, "OnShow", function ()
     hideExternalBackgrounds(self)
-    self:ShowEntry(false)
+    if not self.glassyShowingPersistentBackground then
+      self:ShowEntry(false)
+    end
   end)
 
   local altInputWatcher = CreateFrame("Frame")
@@ -212,7 +236,7 @@ function EditBoxMixin:Init(parent, useParentWidth)
     local wasVisible = frame:IsVisible()
     self.glassyHooks.hooks[frame].Show(frame)
     hideExternalBackgrounds(frame)
-    if wasVisible and not self.glassyEntryVisible then
+    if not frame.glassyShowingPersistentBackground and wasVisible and not self.glassyEntryVisible then
       self:ShowEntry(true)
     end
   end, true)
@@ -240,6 +264,18 @@ function EditBoxMixin:Init(parent, useParentWidth)
       frame.glassyClearingFocus = true
       frame:ClearFocus()
       frame.glassyClearingFocus = nil
+    end
+    if shouldKeepBackgroundVisible() then
+      self:StopBackgroundAlphaTransition()
+      self:SetAlpha(1)
+      if frame.SetFocusRegionsShown then
+        frame:SetFocusRegionsShown(false)
+      end
+      self:SetBackgroundAlpha(1)
+      if messageAreaChanged then
+        self:UpdateDynamicMessageArea()
+      end
+      return
     end
     self:AnimateBackgroundAlpha(0, function ()
       if not self.glassyEntryVisible then
@@ -292,6 +328,15 @@ function EditBoxMixin:Init(parent, useParentWidth)
       self:UpdateMessageSeparator()
     end
 
+    if
+      key == "chatAlwaysVisible" or
+      key == "dynamicEditBox" or
+      key == "editBoxBackgroundColor" or
+      key == "editBoxMessageSeparatorColor"
+    then
+      self:UpdateAutomaticVisibility()
+    end
+
     if (
       key == "font" or
       key == "frameWidth" or
@@ -307,8 +352,8 @@ function EditBoxMixin:Init(parent, useParentWidth)
   self.glassyEntryVisible = self:IsShown()
   Core:Dispatch(EditBoxVisibilityChanged(self.glassyEntryVisible))
   self:UpdateDynamicMessageArea()
+  self:UpdateAutomaticVisibility()
   C_Timer.After(0, function ()
     self.glassyInitialized = true
   end)
 end
-

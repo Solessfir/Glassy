@@ -46,6 +46,19 @@ assert(loadfile(editBoxFile or "Glassy/Components/EditBox.lua"))("Glassy", {Core
 assert(loadfile("Glassy/Components/EditBoxNative.lua"))("Glassy", {Core, Constants, {super = function () end}})
 assert(type(Core.Components.EditBoxMixin.Init) == "function", "EditBox native integration did not load")
 
+Core.db = {profile = {
+  chatAlwaysVisible = true,
+  dynamicEditBox = false,
+  editBoxAnchor = {position = "BELOW", yOfs = 0},
+  editBoxBackgroundColor = {a = 0.4},
+  editBoxMessageSeparatorColor = {a = 0},
+}}
+assert(Core.Components.EditBoxHelpers.shouldKeepBackgroundVisible(), "Always visible did not preserve the non-dynamic edit-box background")
+Core.db.profile.dynamicEditBox = true
+assert(not Core.Components.EditBoxHelpers.shouldKeepBackgroundVisible(), "Always visible preserved the dynamic edit-box background")
+local dynamicEditBox = Mixin({glassyEntryVisible = false, GetHeight = function () return 24 end}, Core.Components.EditBoxMixin)
+assert(dynamicEditBox:GetReusableMessageHeight() == 24, "Dynamic message area did not reclaim the full hidden edit-box height")
+
 for _, pratFirst in ipairs({false, true}) do
   ChatFrame1EditBox = newEditBox()
   local nativeHookScript, externalHooks = ChatFrame1EditBox.HookScript, ChatFrame1EditBox.hooks

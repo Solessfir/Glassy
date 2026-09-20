@@ -36,10 +36,18 @@ local function hasVisibleBackground()
     (separatorColor and (tonumber(separatorColor.a) or 0) > 0)
 end
 
+local function shouldKeepBackgroundVisible()
+  return
+    Core.db.profile.chatAlwaysVisible and
+    not Core.db.profile.dynamicEditBox and
+    hasVisibleBackground()
+end
+
 
 Core.Components.EditBoxHelpers = {
   getVerticalPadding = getVerticalPadding,
   hasVisibleBackground = hasVisibleBackground,
+  shouldKeepBackgroundVisible = shouldKeepBackgroundVisible,
 }
 function EditBoxMixin:SetBackgroundAlpha(alpha)
   self.glassyBackgroundAlpha = math.max(0, math.min(1, alpha))
@@ -163,8 +171,7 @@ function EditBoxMixin:GetReusableMessageHeight()
   end
 
   local yOffset = tonumber(Core.db.profile.editBoxAnchor.yOfs) or 0
-  local bottomPadding = self.header:GetLineHeight() * getVerticalPadding()
-  return math.max(0, self:GetHeight() - yOffset - bottomPadding)
+  return math.max(0, self:GetHeight() - yOffset)
 end
 
 function EditBoxMixin:UpdateDynamicMessageArea()

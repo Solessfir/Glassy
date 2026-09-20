@@ -85,7 +85,7 @@ local function getGeneralOptions()
           },
           chatAlwaysVisible = {
             name = "Always visible",
-            desc = "Keep chat messages and headers visible instead of fading them out.\nDefault: off",
+            desc = "Keep chat messages, tabs, headers, and the non-dynamic edit box visible instead of fading them out.\nDefault: off",
             type = "toggle",
             order = 3.4,
             get = function ()
@@ -489,17 +489,13 @@ local function getEditBoxOptions()
             end,
             set = function (_, input)
               Core.db.profile.editBoxAnchor.position = input
-              if input == "ABOVE" then
-                Core.db.profile.editBoxAnchor.yOfs = 5
-              else
-                Core.db.profile.editBoxAnchor.yOfs = -5
-              end
+              Core.db.profile.editBoxAnchor.yOfs = 0
               Core:Dispatch(UpdateConfig("editBoxAnchor"))
             end
           },
           editBoxAnchorYOfs = {
             name = "Vertical offset",
-            desc = "Moves the chat entry field vertically. Positive values move it up; negative values move it down.\nDefault: 5 above or -5 below\nMin: -9999\nMax: 9999",
+            desc = "Moves the chat entry field vertically. Positive values move it up; negative values move it down.\nDefault: 0\nMin: -9999\nMax: 9999",
             type = "range",
             order = 2.2,
             min = -9999,
