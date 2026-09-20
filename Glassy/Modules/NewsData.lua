@@ -17,6 +17,7 @@ Maintenance update
 - Separated edit-box appearance from Blizzard chat-input hooks.
 - Made the message area always reuse the closed edit box's space and removed the static-area setting.
 - Separated release-note data from the news window behavior.
+- Moved Combat Log into a Tabs section, and Shortcuts and Compatibility into About sections.
     ]]}
   },
   {

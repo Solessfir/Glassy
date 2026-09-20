@@ -348,20 +348,31 @@ end
 local function getOptions()
   local profile = C.Pages.profile()
   profile.order = 7
+  local tabs = C.Pages.tabs()
+  local combatLog = C.Pages.combatLog()
+  combatLog.inline = true
+  combatLog.order = 2
+  tabs.args.combatLog = combatLog
+  local about = C.Pages.about()
+  local shortcuts = C.Pages.shortcuts()
+  shortcuts.inline = true
+  shortcuts.order = 2
+  about.args.shortcuts = shortcuts
+  local compatibility = C.Pages.compatibility()
+  compatibility.inline = true
+  compatibility.order = 3
+  about.args.compatibility = compatibility
   return {
     name = "Glassy",
     handler = C,
     type = "group",
     args = {
       general = C.Pages.general(),
-      tabs = C.Pages.tabs(),
+      tabs = tabs,
       editBox = C.Pages.editBox(),
       messages = C.Pages.messages(),
-      combatLog = C.Pages.combatLog(),
-      compatibility = C.Pages.compatibility(),
-      shortcuts = C.Pages.shortcuts(),
       profile = profile,
-      about = C.Pages.about(),
+      about = about,
     },
   }
 end

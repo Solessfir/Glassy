@@ -66,6 +66,9 @@ local configFile = assert(io.open("Glassy/Modules/Config.lua", "r"))
 local configSource = configFile:read("*a")
 configFile:close()
 assert(configSource:find("tabs%s*=%s*C%.Pages%.tabs%(%s*%)"), "Tabs page is not included in the main config")
+assert(configSource:find("combatLog%.inline%s*=%s*true"), "Combat Log is not an inline Tabs section")
+assert(configSource:find("shortcuts%.inline%s*=%s*true"), "Shortcuts is not an inline About section")
+assert(configSource:find("compatibility%.inline%s*=%s*true"), "Compatibility is not an inline About section")
 assert(config.Pages.timestamps == nil, "Timestamps should not be a separate config page")
 
 ---@diagnostic disable-next-line: undefined-global

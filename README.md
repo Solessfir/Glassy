@@ -25,7 +25,7 @@ Custom fonts require an addon that registers them with LibSharedMedia, such as S
 2. Extract the `Glassy` folder into your client's `Interface/AddOns` folder, with `Glassy.toc` directly inside `Interface/AddOns/Glassy`. Use `_classic_era_` for Era/Hardcore, `_anniversary_` for Burning Crusade Anniversary, `_classic_` for Mists of Pandaria Classic, or `_retail_` for Retail.
 3. Install Prat and ElvUI if you want the features listed above.
 4. Restart WoW or reload after replacing an existing installation, then enter `/gl`.
-5. Open **Compatibility** to check detected addons and conflicting Prat modules.
+5. Open **About** and check its **Compatibility** section for detected addons and conflicting Prat modules.
 
 The current TOC accepts Classic Era and Hardcore `11509`, Classic Forever `16001`, Burning Crusade Anniversary `20506`, Mists of Pandaria Classic `50504`, and Retail `120100`. These clients have been tested in game, including Retail Combat Log tab switching and filter buttons. Future clients will need validation when available.
 
@@ -54,7 +54,7 @@ Use `/gl` to open Glassy. `/glassy` and `/glass` work as aliases for all command
 
 ## Shortcuts
 
-The same reference is available in **/gl → Shortcuts**.
+The same reference is available in the **Shortcuts** section under **/gl → About**.
 
 ### While typing
 
@@ -166,7 +166,7 @@ Disable features that move, resize, fade, or replace the same chat frames. In Le
 
 ## Reporting problems
 
-Include your WoW version, the error message, and steps to reproduce. For layout issues, include a screenshot and the output of `/gl debug`. Check **Compatibility** for conflicting modules first. Review any copied report before sharing it publicly.
+Include your WoW version, the error message, and steps to reproduce. For layout issues, include a screenshot and the output of `/gl debug`. Check the **Compatibility** section under **About** for conflicting modules first. Review any copied report before sharing it publicly.
 
 ## Development and releases
 
