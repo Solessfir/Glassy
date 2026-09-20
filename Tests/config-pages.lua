@@ -52,7 +52,6 @@ for _, page in ipairs({
   "tabs",
   "editBox",
   "messages",
-  "timestamps",
   "combatLog",
   "compatibility",
   "shortcuts",
@@ -67,6 +66,21 @@ local configFile = assert(io.open("Glassy/Modules/Config.lua", "r"))
 local configSource = configFile:read("*a")
 configFile:close()
 assert(configSource:find("tabs%s*=%s*C%.Pages%.tabs%(%s*%)"), "Tabs page is not included in the main config")
+assert(config.Pages.timestamps == nil, "Timestamps should not be a separate config page")
+
+---@diagnostic disable-next-line: undefined-global
+local messagePagesFile = assert(io.open("Glassy/Modules/ConfigMessagePages.lua", "r"))
+local messagePagesSource = messagePagesFile:read("*a")
+messagePagesFile:close()
+assert(messagePagesSource:find("timestampsEnabled%s*=%s*{"), "Timestamp settings are missing from Messages appearance")
+
+---@diagnostic disable-next-line: undefined-global
+local chatPagesFile = assert(io.open("Glassy/Modules/ConfigChatPages.lua", "r"))
+local chatPagesSource = chatPagesFile:read("*a")
+chatPagesFile:close()
+assert(not chatPagesSource:find("dynamicEditBox", 1, true), "Dynamic message area is still configurable")
+assert(chatPagesSource:find("hoverHighlightStrength", 1, true), "Shared hover highlight is missing from General")
+assert(not messagePagesSource:find("combatLogHoverHighlightStrength", 1, true), "Combat Log still has a separate hover highlight")
 
 assert(type(config.IsMoverUnlocked) == "function")
 assert(type(config.ToggleMover) == "function")

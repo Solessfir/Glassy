@@ -3,7 +3,6 @@ local C = Core:GetModule("Config")
 
 local SettingsValues = C.SettingsValues
 local MAX_COMBAT_LOG_BAR_OFFSET = SettingsValues.maxCombatLogBarOffset
-local MAX_COMBAT_LOG_HOVER_HIGHLIGHT = SettingsValues.maxTabHoverHighlight
 local UpdateConfig = Constants.ACTIONS.UpdateConfig
 
 local getTimestampFrameOptions = C.GetTimestampFrameOptions
@@ -72,7 +71,7 @@ local function getMessageOptions()
           },
           unreadMessageSeparatorColor = {
             name = "Unread-message separator",
-            desc = "Choose the separator color and opacity below the unread-message control. Set opacity to 0 to hide it.\nDefault: gold at 65% opacity.",
+            desc = "Choose the separator color and opacity below the unread-message control. Set opacity to 0 to hide it.\nDefault: gold at 0% opacity.",
             type = "color",
             hasAlpha = true,
             order = 1.25,
@@ -168,6 +167,89 @@ local function getMessageOptions()
             set = function (_, input)
               Core.db.profile.emojisEnabled = input
               Core:Dispatch(UpdateConfig("emojiDisplay"))
+            end,
+          },
+          timestampsEnabled = {
+            name = "Show timestamps",
+            desc = "Adds Glassy-owned timestamps to new and retained chat messages. Enabling this turns off WoW's built-in timestamps to prevent duplicates.\nDefault: Disabled",
+            type = "toggle",
+            order = 1.7,
+            get = function ()
+              return Core.db.profile.timestampsEnabled
+            end,
+            set = function (_, input)
+              Core.db.profile.timestampsEnabled = input
+              if input then
+                disableBuiltinTimestamps()
+              end
+              Core:Dispatch(UpdateConfig("timestampDisplay"))
+            end,
+          },
+          timestampFormat = {
+            name = "Format",
+            desc = "Choose the time format used before each message.\nDefault: [23:59:59]",
+            type = "select",
+            order = 1.8,
+            values = TIMESTAMP_FORMATS,
+            disabled = function ()
+              return not Core.db.profile.timestampsEnabled
+            end,
+            get = function ()
+              return Core.db.profile.timestampFormat
+            end,
+            set = function (_, input)
+              Core.db.profile.timestampFormat = input
+              Core:Dispatch(UpdateConfig("timestampDisplay"))
+            end,
+          },
+          timestampColorEnabled = {
+            name = "Override color",
+            desc = "Apply the selected color to timestamps. Disable this to add no timestamp color code, allowing the chat line's existing color to apply.\nDefault: Enabled",
+            type = "toggle",
+            order = 1.9,
+            disabled = function ()
+              return not Core.db.profile.timestampsEnabled
+            end,
+            get = function ()
+              return Core.db.profile.timestampColorEnabled
+            end,
+            set = function (_, input)
+              Core.db.profile.timestampColorEnabled = input
+              Core:Dispatch(UpdateConfig("timestampDisplay"))
+            end,
+          },
+          timestampColor = {
+            name = "Color",
+            desc = "Choose the timestamp text color used when Override color is enabled.\nDefault: gray",
+            type = "color",
+            order = 2,
+            disabled = function ()
+              return not Core.db.profile.timestampsEnabled or not Core.db.profile.timestampColorEnabled
+            end,
+            get = function ()
+              local color = Core.db.profile.timestampColor
+              return color.r, color.g, color.b
+            end,
+            set = function (_, r, g, b)
+              Core.db.profile.timestampColor = {r = r, g = g, b = b, a = 1}
+              Core:Dispatch(UpdateConfig("timestampDisplay"))
+            end,
+          },
+          timestampFrames = {
+            name = "Chat windows",
+            desc = "Choose which chat windows receive Glassy timestamps.",
+            type = "multiselect",
+            order = 2.1,
+            values = getTimestampFrameOptions,
+            disabled = function ()
+              return not Core.db.profile.timestampsEnabled
+            end,
+            get = function (_, frameName)
+              return Core.db.profile.timestampFrames[frameName]
+            end,
+            set = function (_, frameName, enabled)
+              Core.db.profile.timestampFrames[frameName] = enabled
+              Core:Dispatch(UpdateConfig("timestampDisplay"))
             end,
           },
         },
@@ -428,107 +510,6 @@ local function getMessageOptions()
   }
 end
 
-local function getTimestampOptions()
-  return {
-    name = "Timestamps",
-    type = "group",
-    order = 4,
-    args = {
-      settings = {
-        name = "Settings",
-        type = "group",
-        inline = true,
-        order = 1,
-        args = {
-          timestampsEnabled = {
-            name = "Show timestamps",
-            desc = "Adds Glassy-owned timestamps to new and retained chat messages. Enabling this turns off WoW's built-in timestamps to prevent duplicates.\nDefault: Disabled",
-            type = "toggle",
-            order = 1.1,
-            get = function ()
-              return Core.db.profile.timestampsEnabled
-            end,
-            set = function (_, input)
-              Core.db.profile.timestampsEnabled = input
-              if input then
-                disableBuiltinTimestamps()
-              end
-              Core:Dispatch(UpdateConfig("timestampDisplay"))
-            end,
-          },
-          timestampFormat = {
-            name = "Format",
-            desc = "Choose the time format used before each message.\nDefault: [23:59:59]",
-            type = "select",
-            order = 1.2,
-            values = TIMESTAMP_FORMATS,
-            disabled = function ()
-              return not Core.db.profile.timestampsEnabled
-            end,
-            get = function ()
-              return Core.db.profile.timestampFormat
-            end,
-            set = function (_, input)
-              Core.db.profile.timestampFormat = input
-              Core:Dispatch(UpdateConfig("timestampDisplay"))
-            end,
-          },
-          timestampColorEnabled = {
-            name = "Override color",
-            desc = "Apply the selected color to timestamps. Disable this to add no timestamp color code, allowing the chat line's existing color to apply.\nDefault: Enabled",
-            type = "toggle",
-            order = 1.3,
-            disabled = function ()
-              return not Core.db.profile.timestampsEnabled
-            end,
-            get = function ()
-              return Core.db.profile.timestampColorEnabled
-            end,
-            set = function (_, input)
-              Core.db.profile.timestampColorEnabled = input
-              Core:Dispatch(UpdateConfig("timestampDisplay"))
-            end,
-          },
-          timestampColor = {
-            name = "Color",
-            desc = "Choose the timestamp text color used when Override color is enabled.\nDefault: gray",
-            type = "color",
-            order = 1.4,
-            disabled = function ()
-              return not Core.db.profile.timestampsEnabled or not Core.db.profile.timestampColorEnabled
-            end,
-            get = function ()
-              local color = Core.db.profile.timestampColor
-              return color.r, color.g, color.b
-            end,
-            set = function (_, r, g, b)
-              Core.db.profile.timestampColor = {r = r, g = g, b = b, a = 1}
-              Core:Dispatch(UpdateConfig("timestampDisplay"))
-            end,
-          },
-          timestampFrames = {
-            name = "Chat windows",
-            desc = "Choose which chat windows receive Glassy timestamps.",
-            type = "multiselect",
-            order = 1.5,
-            values = getTimestampFrameOptions,
-            disabled = function ()
-              return not Core.db.profile.timestampsEnabled
-            end,
-            get = function (_, frameName)
-              return Core.db.profile.timestampFrames[frameName]
-            end,
-            set = function (_, frameName, enabled)
-              Core.db.profile.timestampFrames[frameName] = enabled
-              Core:Dispatch(UpdateConfig("timestampDisplay"))
-            end,
-          },
-        },
-      },
-    },
-  }
-end
-
 local function getCombatLogOptions()
   return {
     name = "Combat Log",
@@ -621,28 +602,6 @@ local function getCombatLogOptions()
               Core:Dispatch(UpdateConfig("combatLogBarLayout"))
             end,
           },
-          combatLogHoverHighlightStrength = {
-            name = "Hover highlight",
-            desc = "Brightens Combat Log filters while the pointer is over them. A value of 0 uses the base highlight; 1 applies the strongest highlight.\nDefault: "..
-              Core.defaults.profile.combatLogHoverHighlightStrength,
-            type = "range",
-            order = 1.4,
-            min = 0,
-            max = MAX_COMBAT_LOG_HOVER_HIGHLIGHT,
-            softMin = 0,
-            softMax = MAX_COMBAT_LOG_HOVER_HIGHLIGHT,
-            step = 0.05,
-            disabled = function ()
-              return Core.db.profile.combatLogBarPosition == "HIDDEN"
-            end,
-            get = function ()
-              return Core.db.profile.combatLogHoverHighlightStrength
-            end,
-            set = function (_, input)
-              Core.db.profile.combatLogHoverHighlightStrength = input
-              Core:Dispatch(UpdateConfig("combatLogHoverHighlightStrength"))
-            end,
-          },
         },
       },
     },
@@ -652,5 +611,4 @@ end
 
 
 C.Pages.messages = getMessageOptions
-C.Pages.timestamps = getTimestampOptions
 C.Pages.combatLog = getCombatLogOptions

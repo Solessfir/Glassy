@@ -23,7 +23,11 @@ end
 
 function ScrollOverlayFrame:UpdateUnreadLayout()
     self.icon:ClearAllPoints()
-    self.icon:SetPoint("BOTTOMLEFT", getLeftTextPadding(), math.max(0, (self.unreadRowHeight - 16) / 2))
+    self.icon:SetPoint(
+      "BOTTOMLEFT",
+      getLeftTextPadding(),
+      math.max(0, (self.unreadRowHeight - self.icon:GetHeight()) / 2)
+    )
 end
 
 function ScrollOverlayFrame:GetUnreadRowHeight()
@@ -67,7 +71,7 @@ end
 
 function ScrollOverlayFrame:UpdateFrame()
     local visibleHeight = self:GetParent().config.height
-    local topOffset = math.max(0, visibleHeight - self:GetHeight() + 2)
+    local topOffset = math.max(0, visibleHeight - self:GetHeight())
 
     self:ClearAllPoints()
     self:SetPoint("TOPLEFT", 0, -topOffset)
@@ -99,9 +103,9 @@ function ScrollOverlayFrame:Init()
       self.icon = self:CreateTexture(nil, "ARTWORK")
     end
     self.icon:SetTexture("Interface\\Addons\\Glassy\\Glassy\\Assets\\snapToBottomIcon")
-    self.icon:SetSize(16, 16)
+    self.icon:SetTexCoord(2 / 16, 10 / 16, 1 / 16, 11 / 16)
+    self.icon:SetSize(8, 10)
     self.icon:SetAlpha(0.85)
-    self:UpdateUnreadLayout()
 
     -- See new messages click area
     if self.snapToBottomFrame == nil then
@@ -115,6 +119,7 @@ function ScrollOverlayFrame:Init()
     self.snapToBottomFrame:SetPoint("BOTTOMLEFT")
     self.snapToBottomFrame:SetPoint("BOTTOMRIGHT")
     self.snapToBottomFrame:EnableMouse(true)
+    self:UpdateUnreadLayout()
     self:UpdateUnreadBackground()
 
     if self.newMessageAlertFrame == nil then
@@ -124,7 +129,8 @@ function ScrollOverlayFrame:Init()
     self.newMessageAlertFrame:QuickHide()
 
     self.snapToBottomFrame:SetScript("OnEnter", function ()
-      self.icon:SetAlpha(1)
+      local strength = math.max(0, math.min(1, tonumber(Core.db.profile.hoverHighlightStrength) or 0))
+      self.icon:SetAlpha(0.85 + 0.15 * strength)
       self.newMessageAlertFrame:SetHighlighted(true)
       GameTooltip:SetOwner(self.snapToBottomFrame, "ANCHOR_TOPLEFT")
       GameTooltip:SetText(L("Jump to latest message"), 1, 1, 1)

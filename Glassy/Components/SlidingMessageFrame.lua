@@ -106,7 +106,7 @@ local function getMessageFrameHeight(isCombatLog, frameHeight, editBox)
     editBox = nil
   end
   local reusableHeight = 0
-  if Core.db.profile.dynamicEditBox and Core.db.profile.editBoxAnchor.position == "BELOW" and editBox then
+  if Core.db.profile.editBoxAnchor.position == "BELOW" and editBox then
     if type(editBox.GetReusableMessageHeight) == "function" then
       reusableHeight = editBox:GetReusableMessageHeight()
     else

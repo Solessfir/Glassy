@@ -23,11 +23,14 @@ function NewMessageAlertFrameMixin:UpdateLayout()
 end
 
 function NewMessageAlertFrameMixin:SetHighlighted(highlighted)
-    if highlighted then
-      self.text:SetTextColor(1, 1, 1)
-    else
-      self.text:SetTextColor(Colors.apache.r, Colors.apache.g, Colors.apache.b)
-    end
+    self.highlighted = highlighted
+    local strength = highlighted and math.max(0, math.min(1, tonumber(Core.db.profile.hoverHighlightStrength) or 0)) or 0
+    local brightness = 1 + strength
+    self.text:SetTextColor(
+      math.min(1, Colors.apache.r * brightness),
+      math.min(1, Colors.apache.g * brightness),
+      math.min(1, Colors.apache.b * brightness)
+    )
 end
 
 function NewMessageAlertFrameMixin:Init()
@@ -63,6 +66,10 @@ function NewMessageAlertFrameMixin:Init()
 
           if key == "backgroundFade" or key == "unreadMessageSeparatorColor" then
             self.bottomLine:SetSeparatorColor(Core.db.profile.unreadMessageSeparatorColor)
+          end
+
+          if key == "hoverHighlightStrength" then
+            self:SetHighlighted(self.highlighted)
           end
         end)
       }

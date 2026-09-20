@@ -30,7 +30,7 @@ end
 
 function DetachedChatDockMixin:UpdateStyle()
   local backgroundColor = Core.db.profile.headerBackgroundColor
-  self:SetGradientBackground(backgroundColor, backgroundColor.a)
+  self:SetGradientBackground(backgroundColor, backgroundColor.a, nil, -self:GetPhysicalPixelHeight())
   self.messageSeparator:SetSeparatorColor(Core.db.profile.tabMessageSeparatorColor)
 end
 

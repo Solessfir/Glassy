@@ -6,7 +6,7 @@ local LSM = Core.Libs.LSM
 local SettingsValues = C.SettingsValues
 
 local MAX_ACTIVE_TAB_HIGHLIGHT = SettingsValues.maxActiveTabHighlight
-local MAX_TAB_HOVER_HIGHLIGHT = SettingsValues.maxTabHoverHighlight
+local MAX_HOVER_HIGHLIGHT = SettingsValues.maxHoverHighlight
 local MAX_TAB_MESSAGE_OFFSET = SettingsValues.maxTabMessageOffset
 local MIN_FRAME_HEIGHT = SettingsValues.minFrameHeight
 local MAX_TEXT_LEFT_PADDING = SettingsValues.maxTextLeftPadding
@@ -85,15 +85,34 @@ local function getGeneralOptions()
           },
           chatAlwaysVisible = {
             name = "Always visible",
-            desc = "Keep chat messages, tabs, headers, and the non-dynamic edit box visible instead of fading them out.\nDefault: off",
+            desc = "Keep chat messages, tabs, and headers visible instead of fading them out.\nDefault: off",
             type = "toggle",
-            order = 3.4,
+            order = 3.5,
             get = function ()
               return Core.db.profile.chatAlwaysVisible
             end,
             set = function (_, input)
               Core.db.profile.chatAlwaysVisible = input
               Core:Dispatch(UpdateConfig("chatAlwaysVisible"))
+            end,
+          },
+          hoverHighlightStrength = {
+            name = "Hover highlight",
+            desc = "Brightens tabs, Combat Log filters, and unread messages while the pointer is over them. A value of 0 disables the highlight; 1 applies the strongest highlight.\nDefault: "..
+              Core.defaults.profile.hoverHighlightStrength.."\nMin: 0\nMax: "..MAX_HOVER_HIGHLIGHT,
+            type = "range",
+            order = 3.4,
+            min = 0,
+            max = MAX_HOVER_HIGHLIGHT,
+            softMin = 0,
+            softMax = MAX_HOVER_HIGHLIGHT,
+            step = 0.05,
+            get = function ()
+              return Core.db.profile.hoverHighlightStrength
+            end,
+            set = function (_, input)
+              Core.db.profile.hoverHighlightStrength = input
+              Core:Dispatch(UpdateConfig("hoverHighlightStrength"))
             end,
           },
           backgroundFadeLeftWidth = {
@@ -285,30 +304,11 @@ local function getTabOptions()
               Core:Dispatch(UpdateConfig("activeTabHighlightStrength"))
             end,
           },
-          tabHoverHighlightStrength = {
-            name = "Hover highlight",
-            desc = "Brightens a chat tab while the pointer is over it. A value of 0 disables the highlight; 1 applies the strongest highlight.\nDefault: "..
-              Core.defaults.profile.tabHoverHighlightStrength.."\nMin: 0\nMax: "..MAX_TAB_HOVER_HIGHLIGHT,
-            type = "range",
-            order = 1.2,
-            min = 0,
-            max = MAX_TAB_HOVER_HIGHLIGHT,
-            softMin = 0,
-            softMax = MAX_TAB_HOVER_HIGHLIGHT,
-            step = 0.05,
-            get = function ()
-              return Core.db.profile.tabHoverHighlightStrength
-            end,
-            set = function (_, input)
-              Core.db.profile.tabHoverHighlightStrength = input
-              Core:Dispatch(UpdateConfig("tabHoverHighlightStrength"))
-            end,
-          },
           chatTabTooltips = {
             name = "Tooltips",
             desc = "Show interaction hints when hovering over chat tabs.\nDefault: off",
             type = "toggle",
-            order = 1.3,
+            order = 1.2,
             get = function ()
               return Core.db.profile.chatTabTooltips
             end,
@@ -511,38 +511,15 @@ local function getEditBoxOptions()
               Core:Dispatch(UpdateConfig("editBoxAnchor"))
             end
           },
-          placementRowBreak = {
-            name = "",
-            type = "description",
-            order = 2.25,
-            width = "full",
-          },
-          dynamicEditBox = {
-            name = "Dynamic message area",
-            desc = "Uses the chat entry field's space for messages while the field is closed. Opening chat moves messages up and restores the entry field. This applies when the field is attached below the chat; disable it to keep the message area static.\nDefault: Enabled",
-            type = "toggle",
-            order = 2.3,
-            width = 1.2,
-            get = function ()
-              return Core.db.profile.dynamicEditBox
-            end,
-            set = function (_, input)
-              Core.db.profile.dynamicEditBox = input
-              Core:Dispatch(UpdateConfig("dynamicEditBox"))
-            end,
-          },
           editBoxEasing = {
             name = "Movement easing",
-            desc = "Controls how messages move when the dynamic chat entry field opens or closes.\nDefault: "..
+            desc = "Controls how messages move when the chat entry field opens or closes.\nDefault: "..
               EASING_VALUES[Core.defaults.profile.editBoxEasing],
             type = "select",
-            order = 2.4,
+            order = 2.3,
             width = 1,
             values = EASING_VALUES,
             sorting = EASING_SORTING,
-            disabled = function ()
-              return not Core.db.profile.dynamicEditBox
-            end,
             get = function ()
               return Core.db.profile.editBoxEasing
             end,

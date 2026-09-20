@@ -6,7 +6,7 @@ local AceConfigDialog = Core.Libs.AceConfigDialog
 local AceGUI = Core.Libs.AceGUI
 local L = function(text) return Core:Localize(text) end
 
-local CURRENT_SETTINGS_VERSION = 3
+local CURRENT_SETTINGS_VERSION = 6
 
 local OpenNews = Constants.ACTIONS.OpenNews
 local LockMover = Constants.ACTIONS.LockMover
@@ -18,7 +18,7 @@ local SAVE_FRAME_POSITION = Constants.EVENTS.SAVE_FRAME_POSITION
 
 local SettingsValues = {
   maxActiveTabHighlight = 1,
-  maxTabHoverHighlight = 1,
+  maxHoverHighlight = 1,
   maxTabMessageOffset = 50,
   maxCombatLogBarOffset = 500,
   minFrameHeight = 100,
@@ -70,8 +70,7 @@ C.SettingsValues = SettingsValues
 C.Pages = {}
 
 local MAX_ACTIVE_TAB_HIGHLIGHT = SettingsValues.maxActiveTabHighlight
-local MAX_TAB_HOVER_HIGHLIGHT = SettingsValues.maxTabHoverHighlight
-local MAX_COMBAT_LOG_HOVER_HIGHLIGHT = SettingsValues.maxTabHoverHighlight
+local MAX_HOVER_HIGHLIGHT = SettingsValues.maxHoverHighlight
 local MAX_TAB_MESSAGE_OFFSET = SettingsValues.maxTabMessageOffset
 local MAX_COMBAT_LOG_BAR_OFFSET = SettingsValues.maxCombatLogBarOffset
 local MIN_FRAME_HEIGHT = SettingsValues.minFrameHeight
@@ -195,6 +194,21 @@ local function migrateSettings()
   if version < 3 and rawget(profile, "editBoxVerticalPadding") == 0.35 then
     profile.editBoxVerticalPadding = nil
   end
+  if version < 4 then
+    profile.dynamicEditBox = nil
+  end
+  if version < 5 then
+    profile.hoverHighlightStrength = rawget(profile, "tabHoverHighlightStrength") or
+      rawget(profile, "combatLogHoverHighlightStrength")
+    profile.tabHoverHighlightStrength = nil
+    profile.combatLogHoverHighlightStrength = nil
+  end
+  if version < 6 then
+    local color = rawget(profile, "unreadMessageSeparatorColor")
+    if type(color) == "table" and color.r == 0.8745 and color.g == 0.7294 and color.b == 0.4118 and color.a == 0.65 then
+      color.a = 0
+    end
+  end
   profile.settingsVersion = CURRENT_SETTINGS_VERSION
 end
 
@@ -222,23 +236,13 @@ local function normalizeActiveTabHighlight()
   Core.db.profile.activeTabHighlightStrength = math.max(0, math.min(MAX_ACTIVE_TAB_HIGHLIGHT, strength))
 end
 
-local function normalizeTabHoverHighlight()
-  local strength = tonumber(Core.db.profile.tabHoverHighlightStrength) or
-    Core.defaults.profile.tabHoverHighlightStrength
-  Core.db.profile.tabHoverHighlightStrength = math.max(0, math.min(MAX_TAB_HOVER_HIGHLIGHT, strength))
-end
-
-local function normalizeCombatLogHoverHighlight()
-  local strength = tonumber(Core.db.profile.combatLogHoverHighlightStrength) or
-    Core.defaults.profile.combatLogHoverHighlightStrength
-  Core.db.profile.combatLogHoverHighlightStrength = math.max(
-    0,
-    math.min(MAX_COMBAT_LOG_HOVER_HIGHLIGHT, strength)
-  )
+local function normalizeHoverHighlight()
+  local strength = tonumber(Core.db.profile.hoverHighlightStrength) or
+    Core.defaults.profile.hoverHighlightStrength
+  Core.db.profile.hoverHighlightStrength = math.max(0, math.min(MAX_HOVER_HIGHLIGHT, strength))
 end
 
 local function normalizeEditBox()
-  Core.db.profile.dynamicEditBox = Core.db.profile.dynamicEditBox ~= false
   local padding = tonumber(Core.db.profile.editBoxVerticalPadding) or
     Core.defaults.profile.editBoxVerticalPadding
   Core.db.profile.editBoxVerticalPadding = math.max(
@@ -330,8 +334,7 @@ local function normalizeSettings()
   normalizeTabMessageSpacing()
   normalizeTextLeftPadding()
   normalizeActiveTabHighlight()
-  normalizeTabHoverHighlight()
-  normalizeCombatLogHoverHighlight()
+  normalizeHoverHighlight()
   normalizeEditBox()
   normalizeCombatLogBar()
   normalizeTimestamps()
@@ -354,7 +357,6 @@ local function getOptions()
       tabs = C.Pages.tabs(),
       editBox = C.Pages.editBox(),
       messages = C.Pages.messages(),
-      timestamps = C.Pages.timestamps(),
       combatLog = C.Pages.combatLog(),
       compatibility = C.Pages.compatibility(),
       shortcuts = C.Pages.shortcuts(),
@@ -533,7 +535,7 @@ function C:RefreshConfig()
   normalizeTabMessageSpacing()
   normalizeTextLeftPadding()
   normalizeActiveTabHighlight()
-  normalizeTabHoverHighlight()
+  normalizeHoverHighlight()
   normalizeEditBox()
   normalizeCombatLogBar()
   normalizeTimestamps()
@@ -549,7 +551,7 @@ function C:RefreshConfig()
   Core:Dispatch(UpdateConfig("framePosition"))
   Core:Dispatch(UpdateConfig("textLeftPadding"))
   Core:Dispatch(UpdateConfig("activeTabHighlightStrength"))
-  Core:Dispatch(UpdateConfig("tabHoverHighlightStrength"))
+  Core:Dispatch(UpdateConfig("hoverHighlightStrength"))
   Core:Dispatch(UpdateConfig("chatTabTooltips"))
   Core:Dispatch(UpdateConfig("tabMessageSeparatorColor"))
   Core:Dispatch(UpdateConfig("tabMessageSpacing"))
@@ -557,7 +559,6 @@ function C:RefreshConfig()
   Core:Dispatch(UpdateConfig("backgroundFade"))
   Core:Dispatch(UpdateConfig("combatLogVisibility"))
   Core:Dispatch(UpdateConfig("combatLogBarLayout"))
-  Core:Dispatch(UpdateConfig("combatLogHoverHighlightStrength"))
 
   -- Edit box
   Core:Dispatch(UpdateConfig("editBoxFontSize"))
@@ -567,7 +568,6 @@ function C:RefreshConfig()
   Core:Dispatch(UpdateConfig("editBoxBackgroundEasing"))
   Core:Dispatch(UpdateConfig("editBoxEasing"))
   Core:Dispatch(UpdateConfig("editBoxAnchor"))
-  Core:Dispatch(UpdateConfig("dynamicEditBox"))
 
   -- Messages
   Core:Dispatch(UpdateConfig("messageFontSize"))

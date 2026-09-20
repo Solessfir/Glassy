@@ -153,6 +153,7 @@ function ChatDockMixin:UpdateTabVisualStates()
   if self.overflowButton.list:IsShown() then
     self:StyleOverflowList()
   end
+  self:UpdateOverflowButtonHighlight()
 end
 
 function ChatDockMixin:UpdateFadeSettings()
@@ -251,15 +252,15 @@ function ChatDockMixin:Init(parent)
   self:StyleOverflowButton()
   self:UpdateTabOrder()
 
-  -- Gradient background
-  local backgroundColor = Core.db.profile.headerBackgroundColor
-  self:SetGradientBackground(backgroundColor, backgroundColor.a)
-
   if self.messageSeparator == nil then
     self.messageSeparator = CreateSeparatorFrame(self)
     self.messageSeparator:SetPoint("BOTTOMLEFT")
     self.messageSeparator:SetPoint("BOTTOMRIGHT")
   end
+
+  -- Overlap the message background by one physical pixel to avoid a subpixel seam.
+  local backgroundColor = Core.db.profile.headerBackgroundColor
+  self:SetGradientBackground(backgroundColor, backgroundColor.a, nil, -self:GetPhysicalPixelHeight())
   updateMessageSeparator(self)
 
   if Core.db.profile.chatAlwaysVisible then
@@ -290,7 +291,7 @@ function ChatDockMixin:Init(parent)
           self:SetWidth(Core.db.profile.frameWidth)
 
           backgroundColor = Core.db.profile.headerBackgroundColor
-          self:SetGradientBackground(backgroundColor, backgroundColor.a)
+          self:SetGradientBackground(backgroundColor, backgroundColor.a, nil, -self:GetPhysicalPixelHeight())
         end
 
         if key == "tabMessageSeparatorColor" or key == "frameWidth" or key == "backgroundFade" then
@@ -307,7 +308,7 @@ function ChatDockMixin:Init(parent)
           end
         end
 
-        if key == "activeTabHighlightStrength" or key == "tabHoverHighlightStrength" then
+        if key == "activeTabHighlightStrength" or key == "hoverHighlightStrength" then
           self:UpdateTabVisualStates()
         end
       end)

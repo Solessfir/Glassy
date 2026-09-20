@@ -36,7 +36,7 @@ function CombatLogBarMixin:UpdateButtonHighlightFont(button)
   local font = "GlassyCombatLogHighlightFont"
   if isSelectedFilterButton(button) then
     local activeStrength = tonumber(Core.db.profile.activeTabHighlightStrength) or 0
-    local hoverStrength = tonumber(Core.db.profile.combatLogHoverHighlightStrength) or 0
+    local hoverStrength = tonumber(Core.db.profile.hoverHighlightStrength) or 0
     if not button.glassyHovered or activeStrength >= hoverStrength then
       font = "GlassyCombatLogActiveFont"
     end
@@ -269,7 +269,7 @@ function CombatLogBarMixin:Init(parent, slidingMessageFrame)
           self:RefreshButtons()
         end
 
-        if key == "activeTabHighlightStrength" or key == "combatLogHoverHighlightStrength" then
+        if key == "activeTabHighlightStrength" or key == "hoverHighlightStrength" then
           self:RefreshButtons()
         end
 

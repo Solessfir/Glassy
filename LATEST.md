@@ -9,4 +9,5 @@
 - Added regression coverage for configuration load order and chat-window registration, detaching, resizing, tab replacement, redocking, cleanup, and reopening.
 - Centralized settings limits and choices shared by profile normalization and the settings pages.
 - Separated edit-box appearance from Blizzard chat-input hooks.
+- Made the message area always reuse the closed edit box's space and removed the static-area setting.
 - Separated release-note data from the news window behavior.

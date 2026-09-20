@@ -98,6 +98,7 @@ Ctrl+U, Ctrl+K, and Ctrl+Y are unavailable during Blizzard's chat messaging lock
 - Added regression coverage for configuration load order and chat-window registration, detaching, resizing, tab replacement, redocking, cleanup, and reopening.
 - Centralized settings limits and choices shared by profile normalization and the settings pages.
 - Separated edit-box appearance from Blizzard chat-input hooks.
+- Made the message area always reuse the closed edit box's space and removed the static-area setting.
 - Separated release-note data from the news window behavior.
 
 ## What's new in 1.9.2
@@ -118,7 +119,7 @@ Ctrl+U, Ctrl+K, and Ctrl+Y are unavailable during Blizzard's chat messaging lock
 - **Timestamps:** Glassy-owned formatting, optional custom color, and per-tab controls.
 - **Backgrounds:** independent colors and opacity, plus adjustable left/right fades.
 - **Animations:** separate fade and slide easing, an animation preview, and improved interrupted transitions.
-- **Dynamic input space:** optionally let messages use the closed edit box's space, with separate movement and background-fade controls.
+- **Dynamic input space:** messages use the closed edit box's space, with separate movement and background-fade controls.
 - **Tabs:** drag to reorder, optional active-tab highlighting, and improved overflow and unread-message feedback.
 - **Chat editing:** terminal-style shortcuts and Alt keybindings while typing.
 - **Channels:** open Blizzard's Channels window from a tab's right-click menu.

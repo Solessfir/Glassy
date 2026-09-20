@@ -36,18 +36,9 @@ local function hasVisibleBackground()
     (separatorColor and (tonumber(separatorColor.a) or 0) > 0)
 end
 
-local function shouldKeepBackgroundVisible()
-  return
-    Core.db.profile.chatAlwaysVisible and
-    not Core.db.profile.dynamicEditBox and
-    hasVisibleBackground()
-end
-
-
 Core.Components.EditBoxHelpers = {
   getVerticalPadding = getVerticalPadding,
   hasVisibleBackground = hasVisibleBackground,
-  shouldKeepBackgroundVisible = shouldKeepBackgroundVisible,
 }
 function EditBoxMixin:SetBackgroundAlpha(alpha)
   self.glassyBackgroundAlpha = math.max(0, math.min(1, alpha))
@@ -163,7 +154,6 @@ end
 
 function EditBoxMixin:GetReusableMessageHeight()
   if (
-    not Core.db.profile.dynamicEditBox or
     Core.db.profile.editBoxAnchor.position ~= "BELOW" or
     self.glassyEntryVisible
   ) then

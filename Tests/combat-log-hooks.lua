@@ -75,7 +75,7 @@ local constants = {ENV = "retail", ACTIONS = {}, EVENTS = {}, COLORS = {apache =
 local core = {
   Libs = {AceHook = AceHook, LibEasing = {}}, Components = {},
   GetModule = function (_, name) return name == "UIManager" and uiManager or {} end,
-  db = {profile = {activeTabHighlightStrength = 0.2, chatAlwaysVisible = false, chatHoldTime = 10, combatLogHoverHighlightStrength = 0.8, dynamicEditBox = false, frameHeight = 230, frameWidth = 450, tabMessageSpacing = 0, textLeftPadding = 0}},
+  db = {profile = {activeTabHighlightStrength = 0.2, chatAlwaysVisible = false, chatHoldTime = 10, hoverHighlightStrength = 0.8, frameHeight = 230, frameWidth = 450, tabMessageSpacing = 0, textLeftPadding = 0}},
   defaults = {profile = {frameHeight = 230, frameWidth = 450, tabMessageSpacing = 0, textLeftPadding = 0}}, Subscribe = noop,
 }
 local utils = {}

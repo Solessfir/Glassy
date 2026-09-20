@@ -27,6 +27,10 @@ end
 function GradientBackgroundMixin:Init()
 end
 
+function GradientBackgroundMixin:GetPhysicalPixelHeight()
+  return getPhysicalPixelHeight(self)
+end
+
 function GradientBackgroundMixin:SetGradientBackground(color, opacity, horizontalInset, bottomInset)
   local red = clampColorChannel(color and color.r, 0)
   local green = clampColorChannel(color and color.g, 0)

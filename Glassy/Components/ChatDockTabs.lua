@@ -17,13 +17,18 @@ local UIParent = UIParent
 local TAB_DRAG_SCROLL_EDGE = 32
 local TAB_DRAG_SCROLL_SPEED = 300
 
-local function getTabColor(chatFrame)
-  local brightness = 1
-  if chatFrame and chatFrame.isDocked and GENERAL_CHAT_DOCK.selected == chatFrame then
-    brightness = 1 + math.max(0, math.min(1, tonumber(Core.db.profile.activeTabHighlightStrength) or 0))
-  end
+local function getHighlightColor(strength)
+  local brightness = 1 + math.max(0, math.min(1, tonumber(strength) or 0))
   local color = Constants.COLORS.apache
   return math.min(1, color.r * brightness), math.min(1, color.g * brightness), math.min(1, color.b * brightness)
+end
+
+local function getTabColor(chatFrame)
+  local strength = 0
+  if chatFrame and chatFrame.isDocked and GENERAL_CHAT_DOCK.selected == chatFrame then
+    strength = Core.db.profile.activeTabHighlightStrength
+  end
+  return getHighlightColor(strength)
 end
 
 
@@ -83,9 +88,21 @@ function ChatDockMixin:StyleOverflowList()
         Constants.COLORS.apache.r,
         Constants.COLORS.apache.g,
         Constants.COLORS.apache.b,
-        0.18
+        0.18 * (tonumber(Core.db.profile.hoverHighlightStrength) or 0)
       )
     end
+  end
+end
+
+function ChatDockMixin:UpdateOverflowButtonHighlight()
+  local highlightTexture = self.overflowButton:GetHighlightTexture()
+  if highlightTexture then
+    highlightTexture:SetVertexColor(
+      Constants.COLORS.apache.r,
+      Constants.COLORS.apache.g,
+      Constants.COLORS.apache.b,
+      0.18 * (tonumber(Core.db.profile.hoverHighlightStrength) or 0)
+    )
   end
 end
 
@@ -104,12 +121,7 @@ function ChatDockMixin:StyleOverflowButton()
     highlightTexture:SetTexture("Interface\\Buttons\\WHITE8X8")
     highlightTexture:ClearAllPoints()
     highlightTexture:SetAllPoints(button)
-    highlightTexture:SetVertexColor(
-      Constants.COLORS.apache.r,
-      Constants.COLORS.apache.g,
-      Constants.COLORS.apache.b,
-      0.18
-    )
+    self:UpdateOverflowButtonHighlight()
   end
 
   if button.glassyText == nil then
@@ -124,14 +136,10 @@ function ChatDockMixin:StyleOverflowButton()
   )
 
   button:HookScript("OnEnter", function ()
-    button.glassyText:SetTextColor(1, 1, 1)
+    button.glassyText:SetTextColor(getHighlightColor(Core.db.profile.hoverHighlightStrength))
   end)
   button:HookScript("OnLeave", function ()
-    button.glassyText:SetTextColor(
-      Constants.COLORS.apache.r,
-      Constants.COLORS.apache.g,
-      Constants.COLORS.apache.b
-    )
+    button.glassyText:SetTextColor(getHighlightColor(0))
   end)
   self:HookScript(button.list, "OnShow", function ()
     self:FilterOverflowList(button.list)
@@ -406,4 +414,3 @@ function ChatDockMixin:StopTabDrag(tab)
   self:LayoutDockedTabs(orderedFrames, true)
   self:UpdateTabVisualStates()
 end
-

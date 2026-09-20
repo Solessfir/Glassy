@@ -47,7 +47,7 @@ Core.defaults = {
     frameHeight = 250,
     textLeftPadding = 4,
     activeTabHighlightStrength = 0,
-    tabHoverHighlightStrength = 0.65,
+    hoverHighlightStrength = 0.65,
     chatTabTooltips = false,
     tabMessageSeparatorColor = {
       r = 0.8745,
@@ -75,12 +75,10 @@ Core.defaults = {
     combatLogBarPosition = "BELOW",
     combatLogBarXOffset = 0,
     combatLogBarYOffset = 0,
-    combatLogHoverHighlightStrength = 0.65,
     selectedTab = "",
     tabOrder = {},
 
     -- Edit box
-    dynamicEditBox = true,
     editBoxEasing = "OutCubic",
     editBoxBackgroundEasing = "OutCubic",
     editBoxFontSize = 12,
@@ -114,7 +112,7 @@ Core.defaults = {
       r = 0.8745,
       g = 0.7294,
       b = 0.4118,
-      a = 0.65,
+      a = 0,
     },
     unreadMessageBackgroundColor = {
       r = 0,

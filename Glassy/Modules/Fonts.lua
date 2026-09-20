@@ -74,7 +74,7 @@ function Fonts:OnEnable()
 
   self.fonts.GlassyCombatLogHighlightFont = CreateFont("GlassyCombatLogHighlightFont")
   setFont(self.fonts.GlassyCombatLogHighlightFont, 12)
-  setCombatLogHighlightColor(self.fonts.GlassyCombatLogHighlightFont, "combatLogHoverHighlightStrength")
+  setCombatLogHighlightColor(self.fonts.GlassyCombatLogHighlightFont, "hoverHighlightStrength")
   self.fonts.GlassyCombatLogHighlightFont:SetShadowColor(0, 0, 0, 0)
   self.fonts.GlassyCombatLogHighlightFont:SetJustifyH("LEFT")
   self.fonts.GlassyCombatLogHighlightFont:SetJustifyV("MIDDLE")
@@ -115,8 +115,8 @@ function Fonts:OnEnable()
       setCombatLogHighlightColor(self.fonts.GlassyCombatLogActiveFont, "activeTabHighlightStrength")
     end
 
-    if key == "combatLogHoverHighlightStrength" then
-      setCombatLogHighlightColor(self.fonts.GlassyCombatLogHighlightFont, "combatLogHoverHighlightStrength")
+    if key == "hoverHighlightStrength" then
+      setCombatLogHighlightColor(self.fonts.GlassyCombatLogHighlightFont, "hoverHighlightStrength")
     end
 
     if key == "font" or key == "editBoxFontSize" then

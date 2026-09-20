@@ -241,11 +241,9 @@ function SlidingMessageFrameMixin:InitializeScrollFrame()
       self.overlay:Hide()
       self.overlay:HideNewMessageAlert()
 
-      local startOffset = math.max(
-        self:GetVerticalScrollRange() - self.config.height * 2,
-        self:GetVerticalScroll()
-      )
-      local endOffset = self:GetVerticalScrollRange()
+      self:UpdateViewportHeight()
+      local startOffset = self:GetVerticalScroll()
+      local endOffset = self:GetVerticalScrollRange() + self.config.overflowHeight
 
       LibEasing:Ease(
         function (offset) self:SetVerticalScroll(offset) end,
@@ -254,7 +252,7 @@ function SlidingMessageFrameMixin:InitializeScrollFrame()
         0.3,
         LibEasing.OutCubic,
         function ()
-          self:SetHeight(self.config.height + self.config.overflowHeight)
+          self:SetVerticalScroll(endOffset)
         end
       )
     end)

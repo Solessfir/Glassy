@@ -9,6 +9,8 @@
 * Add regression coverage for configuration load order and chat-window registration, detaching, resizing, tab replacement, redocking, cleanup, and reopening.
 * Centralize settings limits and choices shared by profile normalization and the settings pages.
 * Separate edit-box appearance from Blizzard chat-input hooks.
+* Make the message area always reuse the closed edit box's space and remove the static-area setting.
+* Use one General appearance setting for tab, Combat Log, overflow, and unread-message hover highlighting. Remove the unread-row seam, center its visible arrow artwork, and hide its separator by default.
 * Separate release-note data from the news window behavior.
 
 ## 1.9.2 (2026-09-19)

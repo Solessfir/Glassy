@@ -110,7 +110,7 @@ function ChatTabMixin:UpdateVisualState()
     brightness = 1 + math.max(0, math.min(1, tonumber(Core.db.profile.activeTabHighlightStrength) or 0))
   end
   if self.glassyHovered then
-    local hoverStrength = math.max(0, math.min(1, tonumber(Core.db.profile.tabHoverHighlightStrength) or 0))
+    local hoverStrength = math.max(0, math.min(1, tonumber(Core.db.profile.hoverHighlightStrength) or 0))
     brightness = math.max(brightness, 1 + hoverStrength)
   end
 
@@ -322,7 +322,7 @@ function ChatTabMixin:Init(slidingMessageFrame, dock)
           dock:UpdateTabOrder()
         end
 
-        if key == "activeTabHighlightStrength" or key == "tabHoverHighlightStrength" then
+        if key == "activeTabHighlightStrength" or key == "hoverHighlightStrength" then
           self:UpdateVisualState()
         end
 
