@@ -136,6 +136,21 @@ layout:SetLayout(primaryContainer, nil, nil, true, nil)
 assert(layout.parent == primaryContainer and layout.config.width == 450 and layout.config.height == 206)
 assert(not detachedContainer:IsShown(), "Docking left the detached container visible")
 
+local typingFrame = core.Components.CreateSlidingMessageFrame()
+local overlayShows, overlayHides = 0, 0
+typingFrame.state = {editBoxVisible = false, messages = {}, mouseOver = false, scrollAtBottom = false, typing = false}
+typingFrame.overlay = {
+  Show = function () overlayShows = overlayShows + 1 end,
+  HideDelay = function () overlayHides = overlayHides + 1 end,
+}
+typingFrame.CancelMessageHideTimer = noop
+typingFrame.ScheduleVisibleMessageHides = noop
+core.db.profile.chatShowWhileTyping = false
+typingFrame:SetTyping(true)
+assert(overlayShows == 1 and typingFrame.state.editBoxVisible, "Open edit box did not keep the unread row visible")
+typingFrame:SetTyping(false)
+assert(overlayHides == 1 and not typingFrame.state.editBoxVisible, "Closed edit box did not restore unread-row fading")
+
 local batched = core.Components.CreateSlidingMessageFrame()
 batched.state = {incomingMessages = {}, incomingScrollbackMessages = {}}
 for index = 1, 40 do batched.state.incomingMessages[index] = index end

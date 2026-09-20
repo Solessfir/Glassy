@@ -6,7 +6,7 @@ local AceConfigDialog = Core.Libs.AceConfigDialog
 local AceGUI = Core.Libs.AceGUI
 local L = function(text) return Core:Localize(text) end
 
-local CURRENT_SETTINGS_VERSION = 6
+local CURRENT_SETTINGS_VERSION = 7
 
 local OpenNews = Constants.ACTIONS.OpenNews
 local LockMover = Constants.ACTIONS.LockMover
@@ -209,6 +209,15 @@ local function migrateSettings()
       color.a = 0
     end
   end
+  if version < 7 then
+    if rawget(profile, "tabMessageSpacing") == 0 then
+      profile.tabMessageSpacing = nil
+    end
+    local editBoxAnchor = rawget(profile, "editBoxAnchor")
+    if type(editBoxAnchor) == "table" and rawget(editBoxAnchor, "yOfs") == 0 then
+      editBoxAnchor.yOfs = nil
+    end
+  end
   profile.settingsVersion = CURRENT_SETTINGS_VERSION
 end
 
@@ -405,6 +414,8 @@ function C:OnSlashCommand(input)
     toggleMover()
   elseif input == "debug" then
     self:OnDebugCommand()
+  elseif input == "debug 3" then
+    C_Timer.After(3, function () self:OnDebugCommand() end)
   elseif input == "news" then
     Core:Dispatch(OpenNews())
   else
@@ -428,8 +439,8 @@ local function debugNumber(value)
   return value and string.format("%.1f", value) or "nil"
 end
 
-local function debugPoint(region)
-  local point, relativeTo, relativePoint, xOffset, yOffset = region:GetPoint(1)
+local function debugPoint(region, index)
+  local point, relativeTo, relativePoint, xOffset, yOffset = region:GetPoint(index or 1)
   return string.format(
     "%s > %s:%s (%s, %s)",
     point or "nil",
@@ -449,6 +460,42 @@ local function debugGeometry(region)
     debugNumber(region:GetBottom()),
     debugNumber(region:GetTop())
   )
+end
+
+local function appendDebugRegion(report, label, region)
+  if not region then
+    report[#report + 1] = label..": nil"
+    return
+  end
+  local scale = region:GetEffectiveScale()
+  -- Classic textures expose their own alpha but not a frame's effective-alpha method.
+  local effectiveAlpha = region.GetEffectiveAlpha and string.format("%.4f", region:GetEffectiveAlpha()) or "unavailable"
+  report[#report + 1] = string.format(
+    "%s: %s shown=%s visible=%s alpha=%.4f effectiveAlpha=%s scale=%.6f top=%.6f bottom=%.6f parent=%s",
+    label, debugName(region), tostring(region:IsShown()), tostring(region:IsVisible()),
+    region:GetAlpha(), effectiveAlpha, scale,
+    region:GetTop() or 0, region:GetBottom() or 0, debugName(region:GetParent())
+  )
+  for index = 1, region:GetNumPoints() do
+    report[#report + 1] = "  anchor "..index..": "..debugPoint(region, index)
+  end
+  if region.GetDrawLayer then
+    local layer, sublevel = region:GetDrawLayer()
+    report[#report + 1] = "  layer="..tostring(layer).." sublevel="..tostring(sublevel)
+  elseif region.GetFrameLevel then
+    report[#report + 1] = "  strata="..region:GetFrameStrata().." level="..region:GetFrameLevel()
+  end
+end
+
+local function appendDebugBackground(report, label, frame)
+  appendDebugRegion(report, label, frame)
+  if frame then
+    for _, key in ipairs({"leftBg", "centerBg", "rightBg", "mask"}) do
+      if frame[key] then
+        appendDebugRegion(report, "  "..key, frame[key])
+      end
+    end
+  end
 end
 
 local copyableFrame
@@ -533,6 +580,36 @@ function C:OnDebugCommand()
       fontFlags or "",
       debugPoint(text)
     )
+  end
+
+  local messageFrame = uiManager:GetVisibleSlidingMessageFrame(_G.SELECTED_CHAT_FRAME)
+  if messageFrame then
+    local overlay = messageFrame.overlay
+    local editBox = messageFrame.layoutEditBox
+    local alert = overlay and overlay.newMessageAlertFrame
+    report[#report + 1] = "Background diagnostic: "..debugName(messageFrame.chatFrame)
+    report[#report + 1] = "typing="..tostring(messageFrame.state.isTyping)..
+      " editBoxVisible="..tostring(messageFrame.state.editBoxVisible)..
+      " entryVisible="..tostring(editBox and editBox.glassyEntryVisible)..
+      " scrollAtBottom="..tostring(messageFrame.state.scrollAtBottom)
+    local profile = Core.db.profile
+    report[#report + 1] = "unreadMessageShadow="..tostring(profile.unreadMessageShadow)
+    report[#report + 1] = "editBoxAnchor="..tostring(profile.editBoxAnchor.position)..
+      " y="..tostring(profile.editBoxAnchor.yOfs)..
+      " fadeLeft="..tostring(profile.backgroundFadeLeftWidth)..
+      " fadeRight="..tostring(profile.backgroundFadeRightWidth)
+    for _, key in ipairs({"chatBackgroundColor", "unreadMessageBackgroundColor", "editBoxBackgroundColor", "unreadMessageSeparatorColor", "editBoxMessageSeparatorColor"}) do
+      local color = profile[key] or {}
+      report[#report + 1] = string.format("%s rgba=%s,%s,%s,%s", key, tostring(color.r), tostring(color.g), tostring(color.b), tostring(color.a))
+    end
+    appendDebugBackground(report, "Overlay", overlay)
+    appendDebugBackground(report, "Unread background", overlay and overlay.snapToBottomFrame)
+    appendDebugBackground(report, "Unread separator", alert and alert.bottomLine)
+    appendDebugBackground(report, "Edit box", editBox)
+    appendDebugBackground(report, "Edit box separator", editBox and editBox.messageSeparator)
+    if editBox then
+      appendDebugRegion(report, "Prat backdrop", editBox.pratFrame)
+    end
   end
 
   showDebugReport(table.concat(report, "\n"))

@@ -99,6 +99,7 @@ function SlidingMessageFrameMixin:ResetForChatFrame(chatFrame)
   self.state = {
     mouseOver = false,
     typing = false,
+    editBoxVisible = false,
     showingTooltip = false,
     prevEasingHandle = nil,
     editBoxEasingHandle = nil,
@@ -410,7 +411,9 @@ function SlidingMessageFrameMixin:SubscribeToEvents()
         -- Hide chats when mouse leaves
         self.state.mouseOver = false
 
-        self.overlay:HideDelay(Core.db.profile.chatHoldTime)
+        if not self.state.editBoxVisible then
+          self.overlay:HideDelay(Core.db.profile.chatHoldTime)
+        end
         if not self.state.typing then
           self:ScheduleVisibleMessageHides()
         end

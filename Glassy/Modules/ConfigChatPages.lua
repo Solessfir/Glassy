@@ -489,13 +489,13 @@ local function getEditBoxOptions()
             end,
             set = function (_, input)
               Core.db.profile.editBoxAnchor.position = input
-              Core.db.profile.editBoxAnchor.yOfs = 0
+              Core.db.profile.editBoxAnchor.yOfs = Core.defaults.profile.editBoxAnchor.yOfs
               Core:Dispatch(UpdateConfig("editBoxAnchor"))
             end
           },
           editBoxAnchorYOfs = {
             name = "Vertical offset",
-            desc = "Moves the chat entry field vertically. Positive values move it up; negative values move it down.\nDefault: 0\nMin: -9999\nMax: 9999",
+            desc = "Moves the chat entry field vertically. Positive values move it up; negative values move it down.\nDefault: -2\nMin: -9999\nMax: 9999",
             type = "range",
             order = 2.2,
             min = -9999,

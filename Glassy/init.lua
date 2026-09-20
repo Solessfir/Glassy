@@ -55,7 +55,7 @@ Core.defaults = {
       b = 0.4118,
       a = 0,
     },
-    tabMessageSpacing = 0,
+    tabMessageSpacing = 2,
     backgroundFadeLeftWidth = 0,
     backgroundFadeRightWidth = 250,
     headerBackgroundColor = {
@@ -97,7 +97,7 @@ Core.defaults = {
     },
     editBoxAnchor = {
       position = "BELOW",
-      yOfs = 0
+      yOfs = -2
     },
 
     -- Messages
@@ -108,6 +108,7 @@ Core.defaults = {
       b = 0,
       a = 0.4,
     },
+    unreadMessageShadow = false,
     unreadMessageSeparatorColor = {
       r = 0.8745,
       g = 0.7294,

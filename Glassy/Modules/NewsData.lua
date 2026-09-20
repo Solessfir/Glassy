@@ -20,6 +20,10 @@ Maintenance update
 - Moved Combat Log into a Tabs section, and Shortcuts and Compatibility into About sections.
 - Coalesced profile-change layout updates to prevent script timeouts when resetting or switching profiles.
 - Made the tab vertical offset reduce the message area instead of moving its bottom edge off-screen.
+- Set the default tab vertical offset to 2 px and the edit-box vertical offset to -2 px.
+- Extended the unread-message background through the gap created by a negative edit-box offset.
+- Kept the unread-message row visible while the edit box is open.
+- Made the shadow above the unread-message row optional and disabled it by default.
     ]]}
   },
   {

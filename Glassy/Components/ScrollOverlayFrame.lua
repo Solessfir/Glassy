@@ -61,12 +61,26 @@ end
 
 function ScrollOverlayFrame:UpdateBackground()
     local color = Core.db.profile.chatBackgroundColor
-    self:SetGradientBackground(color, color.a, nil, self:GetUnreadRowHeight())
+    self:SetGradientBackground(color, Core.db.profile.unreadMessageShadow and color.a or 0, nil, self:GetUnreadRowHeight())
 end
 
 function ScrollOverlayFrame:UpdateUnreadBackground()
     local color = Core.db.profile.unreadMessageBackgroundColor
-    self.snapToBottomFrame:SetGradientBackground(color, color.a)
+    local parent = self:GetParent()
+    local editBox = parent and parent.layoutEditBox
+    local anchor = Core.db.profile.editBoxAnchor
+    local background = self.snapToBottomFrame
+    background:SetGradientBackground(color, color.a)
+    if editBox and editBox.glassyEntryVisible and anchor and anchor.position == "BELOW"
+      and (tonumber(anchor.yOfs) or 0) <= 0
+    then
+      -- Share the edit box edge instead of approximating it with pixel offsets.
+      background.leftBg:SetPoint("BOTTOMLEFT", editBox, "TOPLEFT")
+      background.rightBg:SetPoint("BOTTOMRIGHT", editBox, "TOPRIGHT")
+      if not background.rightBg:IsShown() then
+        background.centerBg:SetPoint("BOTTOMRIGHT", editBox, "TOPRIGHT")
+      end
+    end
 end
 
 function ScrollOverlayFrame:UpdateFrame()
@@ -76,6 +90,9 @@ function ScrollOverlayFrame:UpdateFrame()
     self:ClearAllPoints()
     self:SetPoint("TOPLEFT", 0, -topOffset)
     self:SetPoint("TOPRIGHT", 0, -topOffset)
+    if self.snapToBottomFrame then
+      self:UpdateUnreadBackground()
+    end
 end
 
 function ScrollOverlayFrame:Init()
@@ -155,7 +172,7 @@ function ScrollOverlayFrame:Init()
             self:UpdateUnreadLayout()
           end
 
-          if key == "chatBackgroundColor" or key == "backgroundFade" then
+          if key == "chatBackgroundColor" or key == "backgroundFade" or key == "unreadMessageShadow" then
             self:UpdateBackground()
           end
 

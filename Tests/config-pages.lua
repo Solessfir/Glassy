@@ -85,6 +85,14 @@ assert(not chatPagesSource:find("dynamicEditBox", 1, true), "Dynamic message are
 assert(chatPagesSource:find("hoverHighlightStrength", 1, true), "Shared hover highlight is missing from General")
 assert(not messagePagesSource:find("combatLogHoverHighlightStrength", 1, true), "Combat Log still has a separate hover highlight")
 
+---@diagnostic disable-next-line: undefined-global
+local initFile = assert(io.open("Glassy/init.lua", "r"))
+local initSource = initFile:read("*a")
+initFile:close()
+assert(initSource:find("tabMessageSpacing%s*=%s*2"), "Tab vertical offset default is not 2")
+assert(initSource:find('editBoxAnchor%s*=%s*{%s*position%s*=%s*"BELOW",%s*yOfs%s*=%s*-2'),
+  "Edit box vertical offset default is not -2")
+
 assert(type(config.IsMoverUnlocked) == "function")
 assert(type(config.ToggleMover) == "function")
 assert(type(config.GetTimestampFrameOptions) == "function")

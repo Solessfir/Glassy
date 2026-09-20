@@ -99,6 +99,19 @@ local function getMessageOptions()
               Core:Dispatch(UpdateConfig("unreadMessageBackgroundColor"))
             end,
           },
+          unreadMessageShadow = {
+            name = "Unread-message shadow",
+            desc = "Draw a fading shadow over messages above the jump-to-latest row.\nDefault: Off",
+            type = "toggle",
+            order = 1.27,
+            get = function ()
+              return Core.db.profile.unreadMessageShadow
+            end,
+            set = function (_, input)
+              Core.db.profile.unreadMessageShadow = input
+              Core:Dispatch(UpdateConfig("unreadMessageShadow"))
+            end,
+          },
           messageLeading = {
             name = "Wrapped line spacing",
             desc = "Extra vertical space, in pixels, between wrapped lines within the same chat message.\nDefault: "..

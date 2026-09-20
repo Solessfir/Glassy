@@ -212,12 +212,20 @@ function SlidingMessageFrameMixin:UpdateAlwaysVisible()
 end
 
 function SlidingMessageFrameMixin:SetTyping(visible)
-  local typing = not not (visible and Core.db.profile.chatShowWhileTyping)
-  if self.state.typing == typing then
+  local editBoxVisible = not not visible
+  local typing = editBoxVisible and Core.db.profile.chatShowWhileTyping or false
+  if self.state.typing == typing and self.state.editBoxVisible == editBoxVisible then
     return
   end
 
+  self.state.editBoxVisible = editBoxVisible
   self.state.typing = typing
+  if editBoxVisible and not self.state.scrollAtBottom then
+    self.overlay:Show()
+  elseif not editBoxVisible and not self.state.mouseOver and not self.state.scrollAtBottom then
+    self.overlay:HideDelay(Core.db.profile.chatHoldTime)
+  end
+
   if typing then
     self:CancelMessageHideTimer(true)
     for _, message in ipairs(self.state.messages) do
@@ -635,7 +643,7 @@ function SlidingMessageFrameMixin:Update(incoming, reverse)
     self.state.unreadMessages = true
     self.overlay:Show()
     self.overlay:ShowNewMessageAlert()
-    if not self.state.mouseOver then
+    if not self.state.mouseOver and not self.state.editBoxVisible then
       self.overlay:HideDelay(Core.db.profile.chatHoldTime)
     end
   end
