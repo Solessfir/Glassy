@@ -24,6 +24,7 @@ local UPDATE_CONFIG = Constants.EVENTS.UPDATE_CONFIG
 -- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
 -- luacheck: push ignore 113
 local CreateFrame = CreateFrame
+local Mixin = Mixin
 local DEFAULT_CHAT_FRAME = DEFAULT_CHAT_FRAME
 -- luacheck: pop
 
@@ -222,6 +223,19 @@ function SlidingMessageFrameMixin:ConfigureNativeLayout(chatFrame)
 end
 
 function SlidingMessageFrameMixin:InitializeScrollFrame()
+  if self.gapBackground == nil then
+    -- ScrollFrame children overlay the scroll child, even when their textures use BACKGROUND.
+    self.gapBackground = CreateFrame("Frame", nil, self:GetParent())
+    Mixin(self.gapBackground, Core.Components.GradientBackgroundMixin)
+    self.gapBackground:SetAlpha(0)
+    self.gapBackground:SetScript("OnUpdate", function () self:UpdateGapBackground() end)
+    self:HookScript(self, "OnShow", function () self.gapBackground:Show() end)
+    self:HookScript(self, "OnHide", function () self.gapBackground:Hide() end)
+  end
+  self.gapBackground:SetParent(self:GetParent())
+  self.gapBackground:SetFrameStrata(self:GetFrameStrata())
+  self.gapBackground:SetFrameLevel(math.max(0, self:GetFrameLevel() - 1))
+  self.gapBackground:SetShown(self:IsShown())
   self:SetHeight(self.config.height + self.config.overflowHeight)
   self:SetWidth(self.config.width)
   self:ClearAllPoints()
@@ -472,6 +486,7 @@ function SlidingMessageFrameMixin:SubscribeToEvents()
         end
 
         if key == "chatBackgroundColor" or key == "backgroundFade" then
+          self.gapBackground.glassyColor = nil
           for _, message in ipairs(self.state.messages) do
             message:UpdateTextures()
           end

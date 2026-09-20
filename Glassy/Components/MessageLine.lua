@@ -51,6 +51,31 @@ local function updateBackground(self)
   self.glassyBackgroundGreen = color.g
   self.glassyBackgroundBlue = color.b
   self.glassyBackgroundAlpha = color.a
+  self.glassyCoverageOpacity = nil
+  self:SetBackgroundCoverage(self.glassyBackgroundCoverage or 0)
+end
+
+function MessageLineMixin:SetBackgroundCoverage(coverage)
+  self.glassyBackgroundCoverage = coverage
+  local color = Core.db.profile.chatBackgroundColor
+  -- Preserve existing lines without double-fading backgrounds as hidden lines return.
+  local messageAlpha = self:GetAlpha()
+  local opacity = 0
+  if messageAlpha > coverage then
+    opacity = color.a * (messageAlpha - coverage) / (messageAlpha * (1 - color.a * coverage))
+  end
+  if self.glassyCoverageOpacity == opacity then return end
+  self.glassyCoverageOpacity = opacity
+  if opacity == 0 then
+    self:DisableDrawLayer("BACKGROUND")
+    return
+  end
+  self:EnableDrawLayer("BACKGROUND")
+  self.centerBg:SetColorTexture(color.r, color.g, color.b, opacity)
+  local transparent = CreateColor(color.r, color.g, color.b, 0)
+  local opaque = CreateColor(color.r, color.g, color.b, opacity)
+  self.leftBg:SetGradient("HORIZONTAL", transparent, opaque)
+  self.rightBg:SetGradient("HORIZONTAL", opaque, transparent)
 end
 
 function MessageLineMixin:UpdateFadeSettings()

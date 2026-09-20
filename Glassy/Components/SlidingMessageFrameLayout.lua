@@ -11,6 +11,42 @@ local getEditBoxEasing = Helpers.getEditBoxEasing
 local getMessageFrameHeight = Helpers.getMessageFrameHeight
 local DEFAULT_UNREAD_ROW_HEIGHT = 24
 
+function SlidingMessageFrameMixin:UpdateGapBackground()
+  local background = self.gapBackground
+  local color = Core.db.profile.chatBackgroundColor
+  local window = self.chatFrame and UIManager:GetChatWindow(self.chatFrame)
+  local dock = self.detachedContainer and window and window.detachedLayout and window.detachedLayout.dock
+    or (not self.detachedContainer and UIManager.dock)
+  local filled = dock and dock:IsVisible() and dock:GetAlpha() > 0 and color.a > 0 or false
+  local coverage = filled and dock:GetAlpha() or 0
+  -- One continuous surface prevents holes as individual messages fade out.
+  for _, message in ipairs(self.state.messages) do
+    message:SetBackgroundCoverage(coverage)
+  end
+  background:SetAlpha(filled and dock:GetAlpha() or 0)
+  if not filled then return end
+  local height = math.min(self.config.height, self:GetHeight())
+  if not background.glassyAnchored then
+    -- The viewport already includes the configured spacing below the tabs.
+    background:SetPoint("TOPLEFT", self, "TOPLEFT", 0, 0)
+    background:SetPoint("TOPRIGHT", self, "TOPRIGHT", 0, 0)
+    background.glassyAnchored = true
+  end
+  if background.glassyHeight ~= height then
+    background:SetPoint("BOTTOMLEFT", self, "TOPLEFT", 0, -math.max(1, height))
+    background.glassyHeight = height
+  end
+  if background.glassyColor ~= color or background.glassyWidth ~= self:GetWidth()
+    or background.glassyLeftFade ~= Core.db.profile.backgroundFadeLeftWidth
+    or background.glassyRightFade ~= Core.db.profile.backgroundFadeRightWidth then
+    background:SetGradientBackground(color, color.a)
+    background.glassyColor = color
+    background.glassyWidth = self:GetWidth()
+    background.glassyLeftFade = Core.db.profile.backgroundFadeLeftWidth
+    background.glassyRightFade = Core.db.profile.backgroundFadeRightWidth
+  end
+end
+
 function SlidingMessageFrameMixin:GetLayoutWidth()
   return math.max(
     1,
@@ -216,6 +252,11 @@ function SlidingMessageFrameMixin:SetLayout(parent, width, height, editBox, deta
   self.detachedContainer = detachedContainer
 
   self:SetParent(parent)
+  if self.gapBackground then
+    self.gapBackground:SetParent(parent)
+    self.gapBackground:SetFrameStrata(self:GetFrameStrata())
+    self.gapBackground:SetFrameLevel(math.max(0, self:GetFrameLevel() - 1))
+  end
   self:RefreshLayout(false)
 
   if Constants.ENV ~= "retail" and not self.state.isCombatLog then

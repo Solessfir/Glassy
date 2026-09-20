@@ -59,6 +59,9 @@ local function frame(name)
   function object:GetParent() return self.parent end
   function object:SetParent(parent) self.parent = parent end
   object.SetIgnoreParentAlpha, object.SetFrameStrata = noop, noop
+  object.GetFrameStrata = function () return "MEDIUM" end
+  object.GetFrameLevel = function () return 3 end
+  function object:SetFrameLevel(level) self.frameLevel = level end
   for key, fn in pairs(object) do
     if type(fn) == "function" then object[key] = nativeMethod(fn) end
   end
@@ -374,4 +377,19 @@ assert(region.SetPoint == nativePoint and corrections == 1)
 owner:UnhookAll()
 region:SetPoint("LEFT", 0, 0)
 assert(corrections == 1)
-print("PASS: Retail native chat visibility, tab styling and filter bar methods preserved; post-hooks bounded; Classic visibility and Shift-click copy retained.")
+local scroll = core.Components.CreateSlidingMessageFrame(nil, primaryContainer)
+scroll.parent = primaryContainer
+scroll.state = {isCombatLog = false}
+scroll.config = {height = 200, width = 450, overflowHeight = 60}
+scroll.overlay, scroll.messageFramePool = {}, {}
+scroll.slider = frame("BackgroundTestSlider")
+scroll.slider.bg = {SetAllPoints = noop, SetColorTexture = noop}
+scroll.SetVerticalScroll, scroll.SetScrollChild, scroll.EnableMouse = noop, noop, noop
+scroll:InitializeScrollFrame()
+scroll:InitializeScrollFrame()
+assert(scroll.gapBackground:GetParent() == primaryContainer and scroll.gapBackground.frameLevel < scroll:GetFrameLevel())
+scroll:Show()
+assert(scroll.gapBackground:IsShown(), "AceHook-embedded scroll frame must reveal its background")
+scroll:Hide()
+assert(not scroll.gapBackground:IsShown(), "Background must hide with its scroll frame")
+print("PASS: native hooks, Combat Log, and AceHook-embedded background initialization and visibility")

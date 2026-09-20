@@ -4,6 +4,7 @@
 
 ### What's new
 
+- The chat background fills the empty space beneath visible tabs and fades with them.
 - New profiles now select the active UI font by its actual name after login, including font replacements from other addons, while preserving saved custom font choices.
 - Added live snapping to screen edges and corners while dragging the unlocked chat frame.
 - Made the message area always reuse the closed input box's space, removing the old static-area mode.
