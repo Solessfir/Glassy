@@ -27,6 +27,13 @@ jobs:
       - name: Install Lua 5.1
         run: sudo apt-get update && sudo apt-get install -y lua5.1
 
+      - name: Check release generation
+        run: |
+          python3 Tests/test-prepare-release.py
+          python3 Tests/prepare-release.py --check --tag "$RELEASE_TAG"
+        env:
+          RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+
       - name: Prepare branch package check
         if: github.ref_type != 'tag'
         run: git tag --points-at HEAD | xargs -r git tag --delete

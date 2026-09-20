@@ -11,7 +11,10 @@ local Core = {}
 loadAddonFile("Glassy/Modules/NewsData.lua", "Glassy", {Core})
 
 assert(type(Core.NewsEntries) == "table", "news entries should load")
-assert(Core.NewsEntries[1].name == "1.9.3 (2026-09-20)", "newest release should be first")
+local latest = assert(io.open("LATEST.md", "r"))
+local heading = latest:read("*l")
+latest:close()
+assert(Core.NewsEntries[1].name == heading:match("^# (.+)$"), "newest release should match LATEST.md")
 
 for index, entry in ipairs(Core.NewsEntries) do
   assert(type(entry.name) == "string" and entry.name ~= "", "release " .. index .. " needs a name")

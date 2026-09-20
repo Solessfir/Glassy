@@ -3,7 +3,7 @@
 An immersive, minimal chat UI for all World of Warcraft versions.<br>
 It continues the original [Glass](https://www.curseforge.com/wow/addons/glass) design with Classic compatibility fixes, more customization, and new chat tools.
 
-![Glassy Preview](https://i.imgur.com/GuqRFsa.gif)
+![Glassy Preview](https://i.imgur.com/iw2bgve.gif)
 
 ## Required addons for the full experience
 
@@ -91,15 +91,28 @@ Ctrl+U, Ctrl+K, and Ctrl+Y are unavailable during Blizzard's chat messaging lock
 
 ## What's new in 1.9.3
 
-- New profiles select the active UI font by its actual name after login, including font replacements from other addons. Saved custom font choices remain unchanged.
-- The unlocked chat frame now snaps live to screen edges and corners while it is being dragged.
-- The message area always reuses the closed input box's space, with smoother transitions and cleaner spacing when the input box opens.
-- **Always visible** now keeps messages, tabs, headers, and the active input box visible together.
-- Tabs, Combat Log filters, overflow controls, and the unread-message row share one hover-highlight setting.
-- The unread-message row stays visible while typing and now joins the input box without gaps, overlaps, or a forced shadow.
-- Settings now follow the interface more naturally: **General**, **Tabs**, **Messages**, and **Edit Box**, with Combat Log controls under Tabs and timestamps under Messages.
-- Default placement was refined for a flush layout: 600 × 250 frame size, zero frame offsets, 2 px tab offset, and -2 px input-box offset.
-- Profile changes, chat-window lifecycle, detaching, redocking, and large layout refreshes are more reliable across all supported clients.
+### What's new
+
+- New profiles now select the active UI font by its actual name after login, including font replacements from other addons, while preserving saved custom font choices.
+- Added live snapping to screen edges and corners while dragging the unlocked chat frame.
+- Made the message area always reuse the closed input box's space, removing the old static-area mode.
+- Expanded **Always visible** to keep messages, tabs, headers, and the active input box visible together.
+- Added one shared hover-highlight control for tabs, Combat Log filters, overflow controls, and the unread-message row.
+- Reorganized settings into **General**, **Tabs**, **Messages**, and **Edit Box**. Combat Log controls now live under Tabs, timestamps under Messages, and Shortcuts and Compatibility under About.
+- Refined the default layout to a 600 × 250 frame with zero frame offsets, a 2 px tab offset, and a -2 px input-box offset.
+- Added a release-preparation command that generates README, changelog, and in-game notes from one source, with CI checks to catch stale release metadata and notes.
+
+### Improvements and fixes
+
+- Kept the unread-message row visible while typing and removed its forced shadow.
+- Removed gaps, overlaps, and dark seams between tabs, Combat Log filters, messages, the unread-message row, and the input box.
+- Made tab vertical offsets reduce the message area instead of pushing messages off-screen.
+- Smoothed input-box transitions and return-to-latest scrolling while preserving the latest-message position.
+- Prevented profile resets and switches from exhausting the script budget during large layout refreshes.
+- Improved normal, temporary, and detached chat-window setup, cleanup, redocking, resizing, and reopening across supported clients.
+- Split large UI responsibilities into focused components and expanded regression coverage for chat-window and configuration behavior.
+- Centralized shared settings limits, separated edit-box appearance from native input hooks, and separated release-note data from the news window.
+- Centered the unread-message arrow, hid its separator by default, and extended its background through negative input-box offsets.
 
 ## What's new in 1.9.2
 
@@ -172,13 +185,16 @@ Include your WoW version, the error message, and steps to reproduce. For layout 
 
 `Tests/` contains Lua 5.1 regression tests. With the libraries available in `libs/`, run each test in a separate Lua process. `.luacheckrc` configures optional source linting with `luacheck Glassy`.
 
-GitHub Actions checks branch pushes and pull requests by building a package without uploading, validating its contents, compiling the Lua files, and running the regression tests. Tests and development files are excluded from the addon ZIP.
+GitHub Actions checks branch pushes and pull requests by checking generated release notes, building a package without uploading, validating its contents, compiling the Lua files, and running the regression tests. Tests and development files are excluded from the addon ZIP.
 
 To release:
 
-1. Update the version in `Glassy.toc`, then update `CHANGELOG.md`, `LATEST.md`, and the in-game history in `Glassy/Modules/NewsData.lua` for that version.
-2. Commit and push; wait for the checks to pass.
-3. Create an annotated version tag, such as `git tag -a v1.9.3 -m "Glassy 1.9.3"`, then push that tag with `git push origin v1.9.3`.
+1. Write the complete release notes in `LATEST.md`. This is the source of truth for the current release; do not edit its generated copies separately.
+2. Run `python Tests/prepare-release.py VERSION --date YYYY-MM-DD`, replacing the placeholders with the release version and date. Omitting `--date` uses today's date. The command updates all root TOC versions, the latest README and CHANGELOG sections, and the in-game news while preserving older releases.
+3. Run `python Tests/prepare-release.py --check` and `python Tests/test-prepare-release.py`. Commit and push; wait for the checks to pass.
+4. Create an annotated tag with `git tag -a vVERSION -m "Glassy VERSION"`, then push it with `git push origin vVERSION`, using the same version as step 2.
+
+For development notes, use `--date unreleased`, then rerun with the release date before tagging. CI rejects stale generated notes and mismatched versions or dates; release tags also reject undated notes. The command does not commit, tag, publish, or copy files into game clients. Desktop previews and store descriptions remain manual editorial tasks.
 
 The tag workflow publishes one multi-client ZIP to [CurseForge](https://www.curseforge.com/wow/addons/glassy) and [Wago Addons](https://addons.wago.io/addons/glassy), then attaches it to GitHub Releases. It uses the repository's `CF_API_KEY` and `WAGO_API_TOKEN` secrets plus GitHub's automatic token. No separate packaging webhook is needed; enabling one could upload duplicate releases. Branch pushes and manual check runs do not publish.
 

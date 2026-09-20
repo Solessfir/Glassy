@@ -2,31 +2,29 @@
 import os
 from pathlib import Path
 import re
+import subprocess
 import sys
 import xml.etree.ElementTree as ET
 
 source = Path(__file__).resolve().parent.parent
+tag = os.environ.get("RELEASE_TAG", "")
+subprocess.run([sys.executable, str(source / "Tests/prepare-release.py"), "--check", "--tag", tag], check=True)
 package = Path(sys.argv[1]).resolve()
 toc = (package / "Glassy.toc").read_text(encoding="utf-8-sig")
 version = re.search(r"^## Version: (.+)$", toc, re.M).group(1).strip()
 init = (package / "Glassy/init.lua").read_text()
-latest = (source / "LATEST.md").read_text()
-readme = (source / "README.md").read_text()
-changelog = (source / "CHANGELOG.md").read_text()
-news = (package / "Glassy/Modules/NewsData.lua").read_text()
-latest_heading = re.search(rf"^# {re.escape(version)} \((\d{{4}}-\d{{2}}-\d{{2}})\)$", latest, re.M)
+latest = (source / "LATEST.md").read_text(encoding="utf-8")
+latest_heading = re.match(rf"# {re.escape(version)} \((\d{{4}}-\d{{2}}-\d{{2}}|unreleased)\)\n", latest)
 assert 'GetAddOnMetadata(AddonName, "Version")' in init, "Runtime version must come from TOC metadata"
 assert not re.search(r'Core\.Version\s*=\s*["\']\d', init), "Runtime version must not be hardcoded"
 assert latest_heading, "Latest release notes mismatch"
 release_date = latest_heading.group(1)
-assert f"## What's new in {version}" in readme.splitlines(), "README release notes mismatch"
-assert f"## {version} ({release_date})" in changelog, "Changelog release heading mismatch"
-assert f' name = "{version} ({release_date})"' in news, "In-game release notes mismatch"
+for filename in ("README.md", "Glassy/Modules/NewsData.lua"):
+    assert (package / filename).read_text(encoding="utf-8-sig") == (source / filename).read_text(encoding="utf-8-sig"), f"Stale packaged {filename}"
 assert "## X-Curse-Project-ID: 1695833" in toc, "Incorrect CurseForge project"
 assert "## X-Wago-ID: qGYZPRNg" in toc, "Incorrect Wago project"
 for locale in ("deDE", "esES", "frFR", "itIT", "koKR", "ptBR", "ruRU", "zhCN", "zhTW"):
     assert (package / f"Glassy/Locales/{locale}.lua").is_file(), f"Missing {locale} locale"
-tag = os.environ.get("RELEASE_TAG", "")
 if tag:
     assert tag == f"v{version}", f"Tag {tag!r} does not match version {version!r}"
 
