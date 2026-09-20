@@ -28,7 +28,7 @@ local function getMessageOptions()
   return {
     name = "Messages",
     type = "group",
-    order = 3,
+    order = 2,
     args = {
       section1 = {
         name = "Appearance",
@@ -178,19 +178,6 @@ local function getMessageOptions()
         inline = true,
         order = 2,
         args = {
-          chatAlwaysVisible = {
-            name = "Always visible",
-            desc = "Keep chat messages and headers visible instead of fading them out.\nDefault: off",
-            type = "toggle",
-            order = 2.1,
-            get = function ()
-              return Core.db.profile.chatAlwaysVisible
-            end,
-            set = function (_, input)
-              Core.db.profile.chatAlwaysVisible = input
-              Core:Dispatch(UpdateConfig("chatAlwaysVisible"))
-            end,
-          },
           chatHoldTime = {
             name = "Fade out delay",
             desc = "How many seconds Glassy waits after a message arrives before starting its fade out.\nDefault: "..
@@ -350,7 +337,7 @@ local function getMessageOptions()
         name = "Behavior",
         type = "group",
         inline = true,
-        order = 5,
+        order = 6,
         args = {
           indentWordWrap = {
             name = "Indent on line wrap",
@@ -414,7 +401,7 @@ local function getMessageOptions()
         name = "History",
         type = "group",
         inline = true,
-        order = 6,
+        order = 5,
         args = {
           scrollbackLines = {
             type = "range",

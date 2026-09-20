@@ -351,6 +351,7 @@ local function getOptions()
     type = "group",
     args = {
       general = C.Pages.general(),
+      tabs = C.Pages.tabs(),
       editBox = C.Pages.editBox(),
       messages = C.Pages.messages(),
       timestamps = C.Pages.timestamps(),

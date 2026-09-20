@@ -83,104 +83,17 @@ local function getGeneralOptions()
               Core:Dispatch(UpdateConfig("textLeftPadding"))
             end,
           },
-          activeTabHighlightStrength = {
-            name = "Active tab highlight",
-            desc = "Brightens the active chat tab or Combat Log filter. A value of 0 disables the highlight; 1 applies the strongest highlight.\nDefault: "..
-              Core.defaults.profile.activeTabHighlightStrength.."\nMin: 0\nMax: "..MAX_ACTIVE_TAB_HIGHLIGHT,
-            type = "range",
-            order = 3.4,
-            min = 0,
-            max = MAX_ACTIVE_TAB_HIGHLIGHT,
-            softMin = 0,
-            softMax = MAX_ACTIVE_TAB_HIGHLIGHT,
-            step = 0.05,
-            get = function ()
-              return Core.db.profile.activeTabHighlightStrength
-            end,
-            set = function (_, input)
-              Core.db.profile.activeTabHighlightStrength = input
-              Core:Dispatch(UpdateConfig("activeTabHighlightStrength"))
-            end,
-          },
-          tabHoverHighlightStrength = {
-            name = "Tab hover highlight",
-            desc = "Brightens a chat tab while the pointer is over it. A value of 0 disables the highlight; 1 applies the strongest highlight.\nDefault: "..
-              Core.defaults.profile.tabHoverHighlightStrength.."\nMin: 0\nMax: "..MAX_TAB_HOVER_HIGHLIGHT,
-            type = "range",
-            order = 3.5,
-            min = 0,
-            max = MAX_TAB_HOVER_HIGHLIGHT,
-            softMin = 0,
-            softMax = MAX_TAB_HOVER_HIGHLIGHT,
-            step = 0.05,
-            get = function ()
-              return Core.db.profile.tabHoverHighlightStrength
-            end,
-            set = function (_, input)
-              Core.db.profile.tabHoverHighlightStrength = input
-              Core:Dispatch(UpdateConfig("tabHoverHighlightStrength"))
-            end,
-          },
-          chatTabTooltips = {
-            name = "Chat tab tooltips",
-            desc = "Show interaction hints when hovering over chat tabs.\nDefault: off",
+          chatAlwaysVisible = {
+            name = "Always visible",
+            desc = "Keep chat messages and headers visible instead of fading them out.\nDefault: off",
             type = "toggle",
-            order = 3.6,
+            order = 3.4,
             get = function ()
-              return Core.db.profile.chatTabTooltips
+              return Core.db.profile.chatAlwaysVisible
             end,
             set = function (_, input)
-              Core.db.profile.chatTabTooltips = input
-              Core:Dispatch(UpdateConfig("chatTabTooltips"))
-            end,
-          },
-          tabMessageSeparatorColor = {
-            name = "Separator",
-            desc = "Choose the separator color and opacity between chat tabs and messages. Set opacity to 0 to hide it.\nDefault: gold at 0% opacity.",
-            type = "color",
-            hasAlpha = true,
-            order = 3.7,
-            get = function ()
-              local color = Core.db.profile.tabMessageSeparatorColor
-              return color.r, color.g, color.b, color.a
-            end,
-            set = function (_, r, g, b, a)
-              Core.db.profile.tabMessageSeparatorColor = {r = r, g = g, b = b, a = a}
-              Core:Dispatch(UpdateConfig("tabMessageSeparatorColor"))
-            end,
-          },
-          tabMessageSpacing = {
-            name = "Vertical offset",
-            desc = "Moves messages down from the chat tabs.\nDefault: "..
-              Core.defaults.profile.tabMessageSpacing.." px\nMin: 0\nMax: "..MAX_TAB_MESSAGE_OFFSET,
-            type = "range",
-            order = 3.75,
-            min = 0,
-            max = MAX_TAB_MESSAGE_OFFSET,
-            softMin = 0,
-            softMax = 20,
-            step = 1,
-            get = function ()
-              return Core.db.profile.tabMessageSpacing
-            end,
-            set = function (_, input)
-              Core.db.profile.tabMessageSpacing = input
-              Core:Dispatch(UpdateConfig("tabMessageSpacing"))
-            end,
-          },
-          headerBackgroundColor = {
-            name = "Header background",
-            desc = "Choose the color and opacity behind the chat tabs and Combat Log filter bar.\nDefault: black at 40% opacity.",
-            type = "color",
-            hasAlpha = true,
-            order = 3.8,
-            get = function ()
-              local color = Core.db.profile.headerBackgroundColor
-              return color.r, color.g, color.b, color.a
-            end,
-            set = function (_, r, g, b, a)
-              Core.db.profile.headerBackgroundColor = {r = r, g = g, b = b, a = a}
-              Core:Dispatch(UpdateConfig("headerBackgroundColor"))
+              Core.db.profile.chatAlwaysVisible = input
+              Core:Dispatch(UpdateConfig("chatAlwaysVisible"))
             end,
           },
           backgroundFadeLeftWidth = {
@@ -341,11 +254,129 @@ local function getGeneralOptions()
   }
 end
 
+local function getTabOptions()
+  return {
+    name = "Tabs",
+    type = "group",
+    order = 1.5,
+    args = {
+      appearance = {
+        name = "Appearance",
+        type = "group",
+        inline = true,
+        order = 1,
+        args = {
+          activeTabHighlightStrength = {
+            name = "Active tab highlight",
+            desc = "Brightens the active chat tab or Combat Log filter. A value of 0 disables the highlight; 1 applies the strongest highlight.\nDefault: "..
+              Core.defaults.profile.activeTabHighlightStrength.."\nMin: 0\nMax: "..MAX_ACTIVE_TAB_HIGHLIGHT,
+            type = "range",
+            order = 1.1,
+            min = 0,
+            max = MAX_ACTIVE_TAB_HIGHLIGHT,
+            softMin = 0,
+            softMax = MAX_ACTIVE_TAB_HIGHLIGHT,
+            step = 0.05,
+            get = function ()
+              return Core.db.profile.activeTabHighlightStrength
+            end,
+            set = function (_, input)
+              Core.db.profile.activeTabHighlightStrength = input
+              Core:Dispatch(UpdateConfig("activeTabHighlightStrength"))
+            end,
+          },
+          tabHoverHighlightStrength = {
+            name = "Hover highlight",
+            desc = "Brightens a chat tab while the pointer is over it. A value of 0 disables the highlight; 1 applies the strongest highlight.\nDefault: "..
+              Core.defaults.profile.tabHoverHighlightStrength.."\nMin: 0\nMax: "..MAX_TAB_HOVER_HIGHLIGHT,
+            type = "range",
+            order = 1.2,
+            min = 0,
+            max = MAX_TAB_HOVER_HIGHLIGHT,
+            softMin = 0,
+            softMax = MAX_TAB_HOVER_HIGHLIGHT,
+            step = 0.05,
+            get = function ()
+              return Core.db.profile.tabHoverHighlightStrength
+            end,
+            set = function (_, input)
+              Core.db.profile.tabHoverHighlightStrength = input
+              Core:Dispatch(UpdateConfig("tabHoverHighlightStrength"))
+            end,
+          },
+          chatTabTooltips = {
+            name = "Tooltips",
+            desc = "Show interaction hints when hovering over chat tabs.\nDefault: off",
+            type = "toggle",
+            order = 1.3,
+            get = function ()
+              return Core.db.profile.chatTabTooltips
+            end,
+            set = function (_, input)
+              Core.db.profile.chatTabTooltips = input
+              Core:Dispatch(UpdateConfig("chatTabTooltips"))
+            end,
+          },
+          headerBackgroundColor = {
+            name = "Background",
+            desc = "Choose the color and opacity behind the chat tabs and Combat Log filter bar.\nDefault: black at 40% opacity.",
+            type = "color",
+            hasAlpha = true,
+            order = 1.4,
+            get = function ()
+              local color = Core.db.profile.headerBackgroundColor
+              return color.r, color.g, color.b, color.a
+            end,
+            set = function (_, r, g, b, a)
+              Core.db.profile.headerBackgroundColor = {r = r, g = g, b = b, a = a}
+              Core:Dispatch(UpdateConfig("headerBackgroundColor"))
+            end,
+          },
+          tabMessageSeparatorColor = {
+            name = "Separator",
+            desc = "Choose the separator color and opacity between chat tabs and messages. Set opacity to 0 to hide it.\nDefault: gold at 0% opacity.",
+            type = "color",
+            hasAlpha = true,
+            order = 1.5,
+            get = function ()
+              local color = Core.db.profile.tabMessageSeparatorColor
+              return color.r, color.g, color.b, color.a
+            end,
+            set = function (_, r, g, b, a)
+              Core.db.profile.tabMessageSeparatorColor = {r = r, g = g, b = b, a = a}
+              Core:Dispatch(UpdateConfig("tabMessageSeparatorColor"))
+            end,
+          },
+          tabMessageSpacing = {
+            name = "Vertical offset",
+            desc = "Moves messages down from the chat tabs.\nDefault: "..
+              Core.defaults.profile.tabMessageSpacing.." px\nMin: 0\nMax: "..MAX_TAB_MESSAGE_OFFSET,
+            type = "range",
+            order = 1.6,
+            min = 0,
+            max = MAX_TAB_MESSAGE_OFFSET,
+            softMin = 0,
+            softMax = 20,
+            step = 1,
+            get = function ()
+              return Core.db.profile.tabMessageSpacing
+            end,
+            set = function (_, input)
+              Core.db.profile.tabMessageSpacing = input
+              Core:Dispatch(UpdateConfig("tabMessageSpacing"))
+            end,
+          },
+        },
+      },
+    },
+  }
+end
+
 local function getEditBoxOptions()
   return {
     name = "Edit box",
     type = "group",
-    order = 2,
+    order = 3,
     args = {
       section1 = {
         name = "Appearance",
@@ -533,4 +564,5 @@ end
 
 
 C.Pages.general = getGeneralOptions
+C.Pages.tabs = getTabOptions
 C.Pages.editBox = getEditBoxOptions

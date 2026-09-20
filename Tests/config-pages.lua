@@ -49,6 +49,7 @@ end
 
 for _, page in ipairs({
   "general",
+  "tabs",
   "editBox",
   "messages",
   "timestamps",
@@ -60,6 +61,12 @@ for _, page in ipairs({
 }) do
   assert(type(config.Pages[page]) == "function", "Missing config page: "..page)
 end
+
+---@diagnostic disable-next-line: undefined-global
+local configFile = assert(io.open("Glassy/Modules/Config.lua", "r"))
+local configSource = configFile:read("*a")
+configFile:close()
+assert(configSource:find("tabs%s*=%s*C%.Pages%.tabs%(%s*%)"), "Tabs page is not included in the main config")
 
 assert(type(config.IsMoverUnlocked) == "function")
 assert(type(config.ToggleMover) == "function")
