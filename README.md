@@ -3,7 +3,7 @@
 An immersive, minimal chat UI for all World of Warcraft versions.<br>
 It continues the original [Glass](https://www.curseforge.com/wow/addons/glass) design with Classic compatibility fixes, more customization, and new chat tools.
 
-![Glassy Preview](https://i.imgur.com/iw2bgve.gif)
+![Glassy Preview](https://i.imgur.com/qNVFP1a.gif)
 
 ## Required addons for the full experience
 
@@ -15,8 +15,6 @@ It continues the original [Glass](https://www.curseforge.com/wow/addons/glass) d
 
 These are feature requirements, not addon-loading requirements: Glassy can run on its own, but it does not generate those icons, save chat history between sessions, or bundle emoji textures. Its own scrolling, retained session history, timestamps, and copy window work without Prat.
 
-Custom fonts require an addon that registers them with LibSharedMedia, such as SharedMedia or your own media pack. Fonts and personal settings shown in previews are not bundled with Glassy.
-
 ## Install
 
 **Downloads:** [GitHub Releases](https://github.com/Solessfir/Glassy/releases) · [CurseForge](https://www.curseforge.com/wow/addons/glassy) · [Wago Addons](https://addons.wago.io/addons/glassy).
@@ -27,19 +25,18 @@ Custom fonts require an addon that registers them with LibSharedMedia, such as S
 4. Restart WoW or reload after replacing an existing installation, then enter `/gl`.
 5. Open **About** and check its **Compatibility** section for detected addons and conflicting Prat modules.
 
-The current TOC accepts Classic Era and Hardcore `11509`, Classic Forever `16001`, Burning Crusade Anniversary `20506`, Mists of Pandaria Classic `50504`, and Retail `120100`. These clients have been tested in game, including Retail Combat Log tab switching and filter buttons. Future clients will need validation when available.
-
-The interface is localized for English, German, Spanish (EU and Latin America), French, Italian, Korean, Brazilian Portuguese, Russian, Simplified Chinese, and Traditional Chinese. WoW selects the language automatically from the game client locale. The archived release-note prose in **What's new** remains in its original English rather than being partially translated.
-
-On Retail, protected message text is passed directly to Blizzard's text renderer without applying Glassy timestamps or emojis. Protected contents are represented as `<protected>` in copied chat. Blizzard's chat messaging restrictions still apply.
-
-Retail keeps Blizzard's selected tab at login. Dragging a tab changes its position without selecting it; click the tab to select it. This keeps Combat Log filter updates in Blizzard's secure click handler.
-
-When using a Git checkout, note that `libs/` is ignored by Git. Release packaging fetches the libraries listed in `.pkgmeta`; a source ZIP alone is not a complete, ready-to-install addon.
-
 ### Upgrading from Glass
 
 Close WoW before migrating. Install Glassy, then copy `WTF/Account/<account>/SavedVariables/Glass.lua` to `Glassy.lua` in the same folder and change the top-level `GlassDB =` assignment to `GlassyDB =`. Only do this if you have no existing Glassy settings to preserve. Keep the original file as a backup and remove or disable the old Glass addon so both do not load together.
+
+## Features
+
+- Keep chat out of the way until you need it. Messages fade smoothly and return when you hover or start typing.
+- Make it fit your UI with custom fonts, colors, backgrounds, spacing, opacity, and animations.
+- Keep tabs and the Combat Log organized with reordering, highlighting, and consistent styling.
+- Find and share conversations with retained history, timestamps, phrase filtering, and per-tab copying.
+- Type without giving up familiar shortcuts or your WoW keybindings.
+- Use the same addon across current WoW clients, with ten interface languages included.
 
 ## Commands
 
@@ -89,58 +86,6 @@ Ctrl+U, Ctrl+K, and Ctrl+Y are unavailable during Blizzard's chat messaging lock
 | Click the return-to-bottom arrow | Return to the newest messages. |
 | Hover over an item link | Show its tooltip. |
 
-## What's new in 1.9.3
-
-### What's new
-
-- New profiles now select the active UI font by its actual name after login, including font replacements from other addons, while preserving saved custom font choices.
-- Added live snapping to screen edges and corners while dragging the unlocked chat frame.
-- Made the message area always reuse the closed input box's space, removing the old static-area mode.
-- Expanded **Always visible** to keep messages, tabs, headers, and the active input box visible together.
-- Added one shared hover-highlight control for tabs, Combat Log filters, overflow controls, and the unread-message row.
-- Reorganized settings into **General**, **Tabs**, **Messages**, and **Edit Box**. Combat Log controls now live under Tabs, timestamps under Messages, and Shortcuts and Compatibility under About.
-- Refined the default layout to a 600 × 250 frame with zero frame offsets, a 2 px tab offset, and a -2 px input-box offset.
-- Added a release-preparation command that generates README, changelog, and in-game notes from one source, with CI checks to catch stale release metadata and notes.
-
-### Improvements and fixes
-
-- Kept the unread-message row visible while typing and removed its forced shadow.
-- Made **Show while typing** reveal docked and detached chat tabs together with faded messages.
-- Removed gaps, overlaps, and dark seams between tabs, Combat Log filters, messages, the unread-message row, and the input box.
-- Made tab vertical offsets reduce the message area instead of pushing messages off-screen.
-- Smoothed input-box transitions and return-to-latest scrolling while preserving the latest-message position.
-- Prevented profile resets and switches from exhausting the script budget during large layout refreshes.
-- Improved normal, temporary, and detached chat-window setup, cleanup, redocking, resizing, and reopening across supported clients.
-- Split large UI responsibilities into focused components and expanded regression coverage for chat-window and configuration behavior.
-- Centralized shared settings limits, separated edit-box appearance from native input hooks, and separated release-note data from the news window.
-- Centered the unread-message arrow, hid its separator by default, and extended its background through negative input-box offsets.
-
-## What's new in 1.9.2
-
-- Detached chat windows now use Glassy styling and behavior while keeping their Blizzard-managed position and size.
-- Profiles can be exported and imported, either into a new profile or over the current one after confirmation.
-- An optional message blacklist hides messages containing configured phrases, including restored Prat history.
-- The complete interface is localized into ten languages.
-- New controls cover reveal while typing, tab hover highlighting, gradient separators, message spacing, edit-box padding, and unread-message appearance.
-- Settings now have dedicated Shortcuts and About pages, with `/gl news` available for reopening the in-game release notes.
-- Compatibility and performance fixes improve startup visibility, history restoration, frame bounds, Combat Log tabs, and Classic Forever support.
-
-## What's new in this fork
-
-- **Chat copying:** a per-tab copy window and configurable retained history.
-- **Message blacklist:** optionally hide messages containing configured plain-text phrases, including restored Prat history.
-- **Combat Log:** Glassy-styled entries, adjustable filter-bar position and appearance, and an option to hide the log while retaining recent events.
-- **Timestamps:** Glassy-owned formatting, optional custom color, and per-tab controls.
-- **Backgrounds:** independent colors and opacity, plus adjustable left/right fades.
-- **Animations:** separate fade and slide easing, an animation preview, and improved interrupted transitions.
-- **Dynamic input space:** messages use the closed edit box's space, with separate movement and background-fade controls.
-- **Tabs:** drag to reorder, optional active-tab highlighting, and improved overflow and unread-message feedback.
-- **Chat editing:** terminal-style shortcuts and Alt keybindings while typing.
-- **Channels:** open Blizzard's Channels window from a tab's right-click menu.
-- **Emojis:** optional shortcode rendering using ElvUI textures, even with ElvUI Chat disabled.
-- **Compatibility:** detected Prat/ElvUI versions and guidance for conflicting Prat modules.
-- **Reliability:** Classic Era fixes for temporary windows, Combat Log controls, fonts, layout updates, and chat editing; bounded rendering and reduced idle work.
-
 See [latest release notes](LATEST.md) and the [changelog](CHANGELOG.md) for details. In-game notes are available through **What's new** in settings.
 
 ## Customization
@@ -184,20 +129,7 @@ Include your WoW version, the error message, and steps to reproduce. For layout 
 
 ## Development and releases
 
-`Tests/` contains Lua 5.1 regression tests. With the libraries available in `libs/`, run each test in a separate Lua process. `.luacheckrc` configures optional source linting with `luacheck Glassy`.
-
-GitHub Actions checks branch pushes and pull requests by checking generated release notes, building a package without uploading, validating its contents, compiling the Lua files, and running the regression tests. Tests and development files are excluded from the addon ZIP.
-
-To release:
-
-1. Write the complete release notes in `LATEST.md`. This is the source of truth for the current release; do not edit its generated copies separately.
-2. Run `python Tests/prepare-release.py VERSION --date YYYY-MM-DD`, replacing the placeholders with the release version and date. Omitting `--date` uses today's date. The command updates all root TOC versions, the latest README and CHANGELOG sections, and the in-game news while preserving older releases.
-3. Run `python Tests/prepare-release.py --check` and `python Tests/test-prepare-release.py`. Commit and push; wait for the checks to pass.
-4. Create an annotated tag with `git tag -a vVERSION -m "Glassy VERSION"`, then push it with `git push origin vVERSION`, using the same version as step 2.
-
-For development notes, use `--date unreleased`, then rerun with the release date before tagging. CI rejects stale generated notes and mismatched versions or dates; release tags also reject undated notes. The command does not commit, tag, publish, or copy files into game clients. Desktop previews and store descriptions remain manual editorial tasks.
-
-The tag workflow publishes one multi-client ZIP to [CurseForge](https://www.curseforge.com/wow/addons/glassy) and [Wago Addons](https://addons.wago.io/addons/glassy), then attaches it to GitHub Releases. It uses the repository's `CF_API_KEY` and `WAGO_API_TOKEN` secrets plus GitHub's automatic token. No separate packaging webhook is needed; enabling one could upload duplicate releases. Branch pushes and manual check runs do not publish.
+See [Development and releases](DEVELOPMENT.md).
 
 ## Credits and license
 

@@ -56,21 +56,16 @@ def generated_files(root, version, stamp, body):
         result[toc] = content
 
     nested = re.sub(r"^(#{2,5}) ", r"\1# ", body, flags=re.M)
-    for filename, heading, pattern, insertion in (
-        ("README.md", f"## What's new in {version}" + (" (unreleased)" if stamp == "unreleased" else ""),
-         rf"^## What's new in {re.escape(version)}(?: \(unreleased\))?$", r"^## What's new in "),
-        ("CHANGELOG.md", f"## {version} ({stamp})",
-         rf"^## {re.escape(version)} \([^)]+\)$", rf"^## {VERSION} \("),
-    ):
-        path = root / filename
-        content = read(path)
-        updated = replace_section(content, pattern, heading, nested)
-        if updated is None:
-            first = re.search(insertion, content, re.M)
-            if first is None:
-                raise ValueError(f"No release sections found in {filename}")
-            updated = content[:first.start()] + heading + "\n\n" + nested + "\n\n" + content[first.start():]
-        result[path] = updated
+    path = root / "CHANGELOG.md"
+    content = read(path)
+    heading = f"## {version} ({stamp})"
+    updated = replace_section(content, rf"^## {re.escape(version)} \([^)]+\)$", heading, nested)
+    if updated is None:
+        first = re.search(rf"^## {VERSION} \(", content, re.M)
+        if first is None:
+            raise ValueError("No release sections found in CHANGELOG.md")
+        updated = content[:first.start()] + heading + "\n\n" + nested + "\n\n" + content[first.start():]
+    result[path] = updated
 
     # News uses plain text, not a Markdown renderer.
     plain = re.sub(r"^#{2,6} ", "", body, flags=re.M).replace("**", "").replace("`", "")

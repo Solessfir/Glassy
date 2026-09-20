@@ -12,7 +12,7 @@ notes = tools["release_notes"]
 
 with tempfile.TemporaryDirectory(prefix="glassy-release-") as directory:
     root = Path(directory)
-    files = ["LATEST.md", "README.md", "CHANGELOG.md", "Glassy/Modules/NewsData.lua"]
+    files = ["LATEST.md", "CHANGELOG.md", "Glassy/Modules/NewsData.lua"]
     files += [path.name for path in source.glob("*.toc")]
     for filename in files:
         target = root / filename
@@ -32,10 +32,9 @@ with tempfile.TemporaryDirectory(prefix="glassy-release-") as directory:
     generated = generate(root, "99.0.0", "unreleased", new_body)
     for path, text in generated.items():
         path.write_text(text, encoding="utf-8")
-    for name in ("README.md", "CHANGELOG.md"):
-        heading = "## " + ("What's new in " if name == "README.md" else "") + version
-        old_release = previous[name][previous[name].index(heading):]
-        assert old_release in generated[root / name], f"Older {name} releases must remain unchanged"
+    heading = "## " + version
+    old_release = previous["CHANGELOG.md"][previous["CHANGELOG.md"].index(heading):]
+    assert old_release in generated[root / "CHANGELOG.md"], "Older changelog releases must remain unchanged"
     assert "[==[" in generated[root / "Glassy/Modules/NewsData.lua"], "Lua strings must safely contain closing delimiters"
     assert all(tools["read"](path) == text for path, text in generate(root, "99.0.0", "unreleased", new_body).items())
     tools["validate_tag"]("99.0.0", "unreleased", "")
@@ -50,16 +49,15 @@ with tempfile.TemporaryDirectory(prefix="glassy-release-") as directory:
     dated = generate(root, "99.0.0", "2026-09-21", new_body)
     for path, text in dated.items():
         path.write_text(text, encoding="utf-8")
-    for name in ("README.md", "CHANGELOG.md"):
-        assert dated[root / name].count("## " + ("What's new in " if name == "README.md" else "") + "99.0.0") == 1
-    for filename in ("Glassy.toc", "README.md", "CHANGELOG.md", "Glassy/Modules/NewsData.lua"):
+    assert dated[root / "CHANGELOG.md"].count("## 99.0.0") == 1
+    for filename in ("Glassy.toc", "CHANGELOG.md", "Glassy/Modules/NewsData.lua"):
         path = root / filename
         original = tools["read"](path)
         changed = original.replace("99.0.0", "99.0.1", 1)
         path.write_text(changed, encoding="utf-8")
         assert generate(root, "99.0.0", "2026-09-21", new_body)[path] != changed, f"Stale {filename} must fail checking"
         path.write_text(original, encoding="utf-8")
-    for filename in ("README.md", "CHANGELOG.md", "Glassy/Modules/NewsData.lua"):
+    for filename in ("CHANGELOG.md", "Glassy/Modules/NewsData.lua"):
         path = root / filename
         original = tools["read"](path)
         stale = original.replace("Unicode", "Stale text", 1)

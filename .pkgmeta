@@ -3,6 +3,7 @@ enable-nolib-creation: no
 
 ignore:
     - Tests
+    - DEVELOPMENT.md
 
 externals:
     libs/LibStub: https://repos.wowace.com/wow/libstub/trunk

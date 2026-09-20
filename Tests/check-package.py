@@ -52,6 +52,6 @@ for line in toc.splitlines():
         check_file(package / line.replace("\\", "/"))
 for name in ("LICENSE", "README.md", "Media/Icon.tga", "Glassy/Assets/snapToBottomIcon.tga"):
     check_file(package / name)
-for name in ("Tests", "tests", ".git", ".github", ".travis.yml", ".luacheckrc", ".pkgmeta"):
+for name in ("Tests", "tests", "DEVELOPMENT.md", ".git", ".github", ".travis.yml", ".luacheckrc", ".pkgmeta"):
     assert not (package / name).exists(), f"Development file in package: {name}"
 print(f"PASS: Glassy {version} ({release_date}), metadata, {len(visited)} referenced files, and clean package contents")
