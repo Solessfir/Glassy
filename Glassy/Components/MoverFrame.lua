@@ -16,6 +16,7 @@ local EDIT_MODE_HOVER_ALPHA = 0.5
 local EDIT_MODE_BORDER_ALPHA = 1
 local EDIT_MODE_BORDER_SIZE = 2
 local LEGACY_EDIT_BOX_MARGIN = 35
+local CORNER_SNAP_DISTANCE = 20
 
 -- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
 -- luacheck: push ignore 113
@@ -32,6 +33,36 @@ function MoverFrameMixin:AddBoundsRegion(region, shouldInclude)
     })
     self:ScheduleBoundsUpdate()
   end
+end
+
+function MoverFrameMixin:SnapToNearestCorner()
+  local parent = self:GetParent()
+  local centerX, centerY = self:GetCenter()
+  local parentCenterX, parentCenterY
+  if parent then
+    parentCenterX, parentCenterY = parent:GetCenter()
+  end
+  local left, right = self:GetLeft(), self:GetRight()
+  local bottom, top = self:GetBottom(), self:GetTop()
+  local parentLeft, parentRight = parent and parent:GetLeft(), parent and parent:GetRight()
+  local parentBottom, parentTop = parent and parent:GetBottom(), parent and parent:GetTop()
+  if not (centerX and centerY and parentCenterX and parentCenterY and left and right and bottom and top and
+      parentLeft and parentRight and parentBottom and parentTop) then
+    return
+  end
+
+  local horizontal = centerX <= parentCenterX and "LEFT" or "RIGHT"
+  local vertical = centerY <= parentCenterY and "BOTTOM" or "TOP"
+  local point = vertical..horizontal
+  local xOfs = horizontal == "LEFT" and left - parentLeft or right - parentRight
+  local yOfs = vertical == "BOTTOM" and bottom - parentBottom or top - parentTop
+
+  if math.abs(xOfs) <= CORNER_SNAP_DISTANCE and math.abs(yOfs) <= CORNER_SNAP_DISTANCE then
+    xOfs, yOfs = 0, 0
+  end
+
+  self:ClearAllPoints()
+  self:SetPoint(point, parent, point, xOfs, yOfs)
 end
 
 function MoverFrameMixin:ScheduleBoundsUpdate()
@@ -183,6 +214,7 @@ function MoverFrameMixin:Init()
   end)
   self.boundsFrame:SetScript("OnDragStop", function ()
     self:StopMovingOrSizing()
+    self:SnapToNearestCorner()
   end)
   self.boundsFrame:SetScript("OnEnter", function ()
     self.bg:SetColorTexture(EDIT_MODE_BLUE_R, EDIT_MODE_BLUE_G, EDIT_MODE_BLUE_B, EDIT_MODE_HOVER_ALPHA)

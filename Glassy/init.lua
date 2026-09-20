@@ -43,8 +43,8 @@ Core.defaults = {
     -- General
     font = "Friz Quadrata TT",
     fontFlags = "",
-    frameWidth = 450,
-    frameHeight = 230,
+    frameWidth = 600,
+    frameHeight = 250,
     textLeftPadding = 4,
     activeTabHighlightStrength = 0,
     tabHoverHighlightStrength = 0.65,
@@ -66,8 +66,8 @@ Core.defaults = {
     },
     positionAnchor = {
       point = "BOTTOMLEFT",
-      xOfs = 20,
-      yOfs = 230
+      xOfs = 0,
+      yOfs = 0
     },
 
     -- Combat log
