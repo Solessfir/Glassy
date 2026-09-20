@@ -10,10 +10,18 @@ package = Path(sys.argv[1]).resolve()
 toc = (package / "Glassy.toc").read_text(encoding="utf-8-sig")
 version = re.search(r"^## Version: (.+)$", toc, re.M).group(1).strip()
 init = (package / "Glassy/init.lua").read_text()
+latest = (source / "LATEST.md").read_text()
+readme = (source / "README.md").read_text()
+changelog = (source / "CHANGELOG.md").read_text()
+news = (package / "Glassy/Modules/NewsData.lua").read_text()
+latest_heading = re.search(rf"^# {re.escape(version)} \((\d{{4}}-\d{{2}}-\d{{2}})\)$", latest, re.M)
 assert 'GetAddOnMetadata(AddonName, "Version")' in init, "Runtime version must come from TOC metadata"
 assert not re.search(r'Core\.Version\s*=\s*["\']\d', init), "Runtime version must not be hardcoded"
-assert re.search(rf"^# {re.escape(version)} \(\d{{4}}-\d{{2}}-\d{{2}}\)$", (source / "LATEST.md").read_text(), re.M), "Latest release notes mismatch"
-assert f' name = "{version} (' in (package / "Glassy/Modules/NewsData.lua").read_text(), "In-game release notes mismatch"
+assert latest_heading, "Latest release notes mismatch"
+release_date = latest_heading.group(1)
+assert f"## What's new in {version}" in readme.splitlines(), "README release notes mismatch"
+assert f"## {version} ({release_date})" in changelog, "Changelog release heading mismatch"
+assert f' name = "{version} ({release_date})"' in news, "In-game release notes mismatch"
 assert "## X-Curse-Project-ID: 1695833" in toc, "Incorrect CurseForge project"
 assert "## X-Wago-ID: qGYZPRNg" in toc, "Incorrect Wago project"
 for locale in ("deDE", "esES", "frFR", "itIT", "koKR", "ptBR", "ruRU", "zhCN", "zhTW"):
@@ -48,4 +56,4 @@ for name in ("LICENSE", "README.md", "Media/Icon.tga", "Glassy/Assets/snapToBott
     check_file(package / name)
 for name in ("Tests", "tests", ".git", ".github", ".travis.yml", ".luacheckrc", ".pkgmeta"):
     assert not (package / name).exists(), f"Development file in package: {name}"
-print(f"PASS: Glassy {version}, metadata, {len(visited)} referenced files, and clean package contents")
+print(f"PASS: Glassy {version} ({release_date}), metadata, {len(visited)} referenced files, and clean package contents")

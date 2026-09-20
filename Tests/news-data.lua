@@ -11,7 +11,7 @@ local Core = {}
 loadAddonFile("Glassy/Modules/NewsData.lua", "Glassy", {Core})
 
 assert(type(Core.NewsEntries) == "table", "news entries should load")
-assert(Core.NewsEntries[1].name == "1.9.3 (2026-09-19)", "newest release should be first")
+assert(Core.NewsEntries[1].name == "1.9.3 (2026-09-20)", "newest release should be first")
 
 for index, entry in ipairs(Core.NewsEntries) do
   assert(type(entry.name) == "string" and entry.name ~= "", "release " .. index .. " needs a name")

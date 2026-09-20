@@ -1,7 +1,8 @@
 # Changelog
 
-## 1.9.3 (2026-09-19)
+## 1.9.3 (2026-09-20)
 
+* Select the active UI font by its actual SharedMedia name after login for new profiles, including font replacements from other addons, without changing saved custom font choices.
 * Consolidate normal, temporary, and detached chat-window state into one lifecycle-managed record per Blizzard chat frame.
 * Split settings into profile, appearance, message, and support page modules while keeping migration, registration, commands, and diagnostics in the configuration core.
 * Separate message rendering, layout, and Blizzard chat integration into focused SlidingMessageFrame modules.

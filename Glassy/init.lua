@@ -157,16 +157,39 @@ Core.defaults = {
 function Core:OnInitialize()
   self.listeners = {}
 
+  self.defaults.profile.font = self.Libs.LSM:GetDefault("font")
   self.db = self.Libs.AceDB:New("GlassyDB", self.defaults, true)
   self.printBuffer = {}
 end
 
 function Core:OnEnable()
+  -- Other addons replace Blizzard fonts during login; resolve their final path next frame.
+  _G.C_Timer.After(0, function() self:SelectDefaultFont() end)
   -- Buffer print messages until ViragDevTool loads
   for _, item in ipairs(self.printBuffer) do
     Utils.print(unpack(item))
   end
   self.printBuffer = {}
+end
+
+function Core:SelectDefaultFont()
+  local path = _G.GameFontNormal and _G.GameFontNormal:GetFont() or _G.STANDARD_TEXT_FONT
+  local media = self.Libs.LSM:HashTable("font")
+  local selected = self.Libs.LSM:GetDefault("font")
+  for _, name in ipairs(self.Libs.LSM:List("font")) do
+    if path and media[name]:lower():gsub("/", "\\") == path:lower():gsub("/", "\\") then
+      selected = name
+      break
+    end
+  end
+
+  self.db:RegisterDefaults(nil)
+  if self.db.profile.font == "Glassy: Game default" then
+    self.db.profile.font = nil
+  end
+  self.defaults.profile.font = selected
+  self.db:RegisterDefaults(self.defaults)
+  self:Dispatch(Constants.ACTIONS.UpdateConfig("font"))
 end
 
 function Core:Subscribe(messageType, listener)

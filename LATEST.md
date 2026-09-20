@@ -1,20 +1,21 @@
-# 1.9.3 (2026-09-19)
+# 1.9.3 (2026-09-20)
 
-## Maintenance
+## What's new
 
-- Consolidated normal, temporary, and detached chat-window state into one lifecycle-managed record per Blizzard chat frame.
-- Split settings into profile, appearance, message, and support page modules while keeping migration, registration, commands, and diagnostics in the configuration core.
-- Separated message rendering, layout, and Blizzard chat integration into focused SlidingMessageFrame modules.
-- Separated chat-dock lifecycle, tab overflow and dragging, and detached-window behavior into focused components.
-- Added regression coverage for configuration load order and chat-window registration, detaching, resizing, tab replacement, redocking, cleanup, and reopening.
-- Centralized settings limits and choices shared by profile normalization and the settings pages.
-- Separated edit-box appearance from Blizzard chat-input hooks.
-- Made the message area always reuse the closed edit box's space and removed the static-area setting.
-- Separated release-note data from the news window behavior.
-- Moved Combat Log into a Tabs section, and Shortcuts and Compatibility into About sections.
-- Coalesced profile-change layout updates to prevent script timeouts when resetting or switching profiles.
-- Made the tab vertical offset reduce the message area instead of moving its bottom edge off-screen.
-- Set the default tab vertical offset to 2 px and the edit-box vertical offset to -2 px.
-- Extended the unread-message background through the gap created by a negative edit-box offset.
-- Kept the unread-message row visible while the edit box is open.
-- Removed the shadow above the unread-message row.
+- New profiles now select the active UI font by its actual name after login, including font replacements from other addons, while preserving saved custom font choices.
+- Added live snapping to screen edges and corners while dragging the unlocked chat frame.
+- Made the message area always reuse the closed input box's space, removing the old static-area mode.
+- Expanded **Always visible** to keep messages, tabs, headers, and the active input box visible together.
+- Added one shared hover-highlight control for tabs, Combat Log filters, overflow controls, and the unread-message row.
+- Reorganized settings into **General**, **Tabs**, **Messages**, and **Edit Box**. Combat Log controls now live under Tabs, timestamps under Messages, and Shortcuts and Compatibility under About.
+- Refined the default layout to a 600 × 250 frame with zero frame offsets, a 2 px tab offset, and a -2 px input-box offset.
+
+## Improvements and fixes
+
+- Kept the unread-message row visible while typing and removed its forced shadow.
+- Removed gaps, overlaps, and dark seams between tabs, Combat Log filters, messages, the unread-message row, and the input box.
+- Made tab vertical offsets reduce the message area instead of pushing messages off-screen.
+- Smoothed input-box transitions and return-to-latest scrolling while preserving the latest-message position.
+- Prevented profile resets and switches from exhausting the script budget during large layout refreshes.
+- Improved normal, temporary, and detached chat-window setup, cleanup, redocking, resizing, and reopening across supported clients.
+- Split large UI responsibilities into focused components and expanded regression coverage for chat-window and configuration behavior.

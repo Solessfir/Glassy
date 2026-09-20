@@ -36,8 +36,10 @@ local function getGeneralOptions()
         args = {
           font = {
             name = "Font",
-            desc = "Choose the font used for chat messages, tabs, Combat Log filters, and the edit box.\nDefault: "..
-              Core.defaults.profile.font,
+            desc = function()
+              return L("Choose the font used for chat messages, tabs, Combat Log filters, and the edit box.\nDefault: "..
+                Core.defaults.profile.font)
+            end,
             type = "select",
             order = 3.1,
             dialogControl = "LSM30_Font",

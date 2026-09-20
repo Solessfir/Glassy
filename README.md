@@ -91,15 +91,15 @@ Ctrl+U, Ctrl+K, and Ctrl+Y are unavailable during Blizzard's chat messaging lock
 
 ## What's new in 1.9.3
 
-- Consolidated normal, temporary, and detached chat-window state into one lifecycle-managed record per Blizzard chat frame.
-- Split settings into profile, appearance, message, and support page modules while keeping migration, registration, commands, and diagnostics in the configuration core.
-- Separated message rendering, layout, and Blizzard chat integration into focused SlidingMessageFrame modules.
-- Separated chat-dock lifecycle, tab overflow and dragging, and detached-window behavior into focused components.
-- Added regression coverage for configuration load order and chat-window registration, detaching, resizing, tab replacement, redocking, cleanup, and reopening.
-- Centralized settings limits and choices shared by profile normalization and the settings pages.
-- Separated edit-box appearance from Blizzard chat-input hooks.
-- Made the message area always reuse the closed edit box's space and removed the static-area setting.
-- Separated release-note data from the news window behavior.
+- New profiles select the active UI font by its actual name after login, including font replacements from other addons. Saved custom font choices remain unchanged.
+- The unlocked chat frame now snaps live to screen edges and corners while it is being dragged.
+- The message area always reuses the closed input box's space, with smoother transitions and cleaner spacing when the input box opens.
+- **Always visible** now keeps messages, tabs, headers, and the active input box visible together.
+- Tabs, Combat Log filters, overflow controls, and the unread-message row share one hover-highlight setting.
+- The unread-message row stays visible while typing and now joins the input box without gaps, overlaps, or a forced shadow.
+- Settings now follow the interface more naturally: **General**, **Tabs**, **Messages**, and **Edit Box**, with Combat Log controls under Tabs and timestamps under Messages.
+- Default placement was refined for a flush layout: 600 × 250 frame size, zero frame offsets, 2 px tab offset, and -2 px input-box offset.
+- Profile changes, chat-window lifecycle, detaching, redocking, and large layout refreshes are more reliable across all supported clients.
 
 ## What's new in 1.9.2
 
@@ -137,7 +137,7 @@ Use `/gl` to configure:
 - Fonts, sizes, outlines, message spacing, indentation, and inline-icon alignment.
 - Header, message, and input backgrounds with color and opacity controls, plus optional gradient separators.
 - Message hold time, optional reveal while typing, fade durations, slide movement, and easing.
-- Edit-box position and optional dynamic message space.
+- Edit-box position and dynamic message-space movement.
 - Tab appearance, Combat Log visibility, and filter-bar layout.
 - Timestamp formats, colors, and enabled chat windows.
 - Scrollback limits and emoji rendering.
@@ -176,9 +176,9 @@ GitHub Actions checks branch pushes and pull requests by building a package with
 
 To release:
 
-1. Update the version in `Glassy.toc`, then update `CHANGELOG.md`, `LATEST.md`, and the in-game history in `Glassy/Modules/News.lua` for that version.
+1. Update the version in `Glassy.toc`, then update `CHANGELOG.md`, `LATEST.md`, and the in-game history in `Glassy/Modules/NewsData.lua` for that version.
 2. Commit and push; wait for the checks to pass.
-3. Create an annotated version tag, such as `git tag -a v1.9.2 -m "Glassy 1.9.2"`, then push that tag with `git push origin v1.9.2`.
+3. Create an annotated version tag, such as `git tag -a v1.9.3 -m "Glassy 1.9.3"`, then push that tag with `git push origin v1.9.3`.
 
 The tag workflow publishes one multi-client ZIP to [CurseForge](https://www.curseforge.com/wow/addons/glassy) and [Wago Addons](https://addons.wago.io/addons/glassy), then attaches it to GitHub Releases. It uses the repository's `CF_API_KEY` and `WAGO_API_TOKEN` secrets plus GitHub's automatic token. No separate packaging webhook is needed; enabling one could upload duplicate releases. Branch pushes and manual check runs do not publish.
 

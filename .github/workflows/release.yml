@@ -36,7 +36,7 @@ jobs:
         with:
           args: -d
 
-      - name: Check package and release metadata
+      - name: Check package and synchronized release metadata
         run: python3 Tests/check-package.py .release/Glassy
         env:
           RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
