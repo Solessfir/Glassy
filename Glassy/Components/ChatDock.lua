@@ -161,6 +161,14 @@ function ChatDockMixin:UpdateFadeSettings()
   self:SetFadeEasing(Core.db.profile.chatFadeEasing)
 end
 
+function ChatDockMixin:UpdateAutomaticVisibility()
+  if Core.db.profile.chatAlwaysVisible then
+    self:QuickShow()
+  else
+    self:HideDelay(Core.db.profile.chatHoldTime)
+  end
+end
+
 function ChatDockMixin:Init(parent)
   self.state = {
     mouseOver = false
@@ -254,7 +262,11 @@ function ChatDockMixin:Init(parent)
   end
   updateMessageSeparator(self)
 
-  self:QuickHide()
+  if Core.db.profile.chatAlwaysVisible then
+    self:QuickShow()
+  else
+    self:QuickHide()
+  end
 
   if self.subscriptions == nil then
     self.subscriptions = {
@@ -267,14 +279,7 @@ function ChatDockMixin:Init(parent)
         -- Hide chat tab when mouse leaves
         self.state.mouseOver = false
 
-        if Core.db.profile.chatShowOnMouseOver then
-          -- When chatShowOnMouseOver is on, synchronize the chat tab's fade out with
-          -- the chat
-          self:HideDelay(Core.db.profile.chatHoldTime)
-        else
-          -- Otherwise hide it immediately on mouse leave
-          self:Hide()
-        end
+        self:UpdateAutomaticVisibility()
       end),
       Core:Subscribe(UPDATE_CONFIG, function (key)
         if key == "combatLogVisibility" then
@@ -294,6 +299,12 @@ function ChatDockMixin:Init(parent)
 
         if key == "chatFadeInDuration" or key == "chatFadeOutDuration" or key == "chatFadeEasing" then
           self:UpdateFadeSettings()
+        end
+
+        if key == "chatAlwaysVisible" then
+          if Core.db.profile.chatAlwaysVisible or not self.state.mouseOver then
+            self:UpdateAutomaticVisibility()
+          end
         end
 
         if key == "activeTabHighlightStrength" or key == "tabHoverHighlightStrength" then

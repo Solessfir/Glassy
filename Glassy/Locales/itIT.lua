@@ -30,7 +30,7 @@ Core:RegisterCompactTranslations("itIT", {
   MESSAGES="Messaggi", UNREAD_MESSAGE_SEPARATOR="Separatore messaggi non letti", UNREAD_MESSAGE_BACKGROUND="Sfondo messaggi non letti", WRAPPED_LINE_SPACING="Spaziatura righe a capo", MESSAGE_PADDING="Margine messaggi",
   INLINE_ICON_OFFSET="Scostamento icone", EMOJI_SHORTCODES="Codici emoji", VISIBILITY="Visibilità",
   FADE_OUT_DELAY="Ritardo dissolvenza", SHOW_ON_MOUSE_OVER="Mostra al passaggio del mouse", SHOW_WHILE_TYPING="Mostra durante la digitazione", FADING="Dissolvenza",
-  SHOW_WHILE_TYPING_DESC="Mostra di nuovo i messaggi sbiaditi finché la casella di chat è aperta.\nPredefinito: disattivato",
+  SHOW_WHILE_TYPING_DESC="Mostra di nuovo i messaggi sbiaditi finché la casella di chat è aperta.\nPredefinito: attivato",
   FADE_IN_DURATION="Durata comparsa", FADE_OUT_DURATION="Durata scomparsa", FADE_EASING="Animazione dissolvenza",
   MOVEMENT="Movimento", MOVEMENT_DURATION="Durata movimento", PREVIEW_ANIMATIONS="Anteprima animazioni",
   BEHAVIOR="Comportamento", INDENT_LINE_WRAP="Rientra righe a capo", MOUSE_OVER_TOOLTIPS="Descrizioni al passaggio del mouse",

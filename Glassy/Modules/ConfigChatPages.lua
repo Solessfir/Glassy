@@ -85,7 +85,7 @@ local function getGeneralOptions()
           },
           activeTabHighlightStrength = {
             name = "Active tab highlight",
-            desc = "Brightens the active chat tab. A value of 0 disables the highlight; 1 applies the strongest highlight.\nDefault: "..
+            desc = "Brightens the active chat tab or Combat Log filter. A value of 0 disables the highlight; 1 applies the strongest highlight.\nDefault: "..
               Core.defaults.profile.activeTabHighlightStrength.."\nMin: 0\nMax: "..MAX_ACTIVE_TAB_HIGHLIGHT,
             type = "range",
             order = 3.4,

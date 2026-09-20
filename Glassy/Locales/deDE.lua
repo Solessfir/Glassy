@@ -32,7 +32,7 @@ Core:RegisterCompactTranslations("deDE", {
   MESSAGES="Nachrichten", UNREAD_MESSAGE_SEPARATOR="Trennlinie für ungelesene Nachrichten", UNREAD_MESSAGE_BACKGROUND="Hintergrund ungelesener Nachrichten", WRAPPED_LINE_SPACING="Abstand umgebrochener Zeilen", MESSAGE_PADDING="Nachrichtenabstand",
   INLINE_ICON_OFFSET="Symbolversatz", EMOJI_SHORTCODES="Emoji-Kurzcodes", VISIBILITY="Sichtbarkeit",
   FADE_OUT_DELAY="Ausblendverzögerung", SHOW_ON_MOUSE_OVER="Bei Mausberührung anzeigen", SHOW_WHILE_TYPING="Beim Schreiben anzeigen", FADING="Überblenden",
-  SHOW_WHILE_TYPING_DESC="Verblasste Chatnachrichten anzeigen, solange das Chat-Eingabefeld geöffnet ist.\nStandard: deaktiviert",
+  SHOW_WHILE_TYPING_DESC="Verblasste Chatnachrichten anzeigen, solange das Chat-Eingabefeld geöffnet ist.\nStandard: aktiviert",
   FADE_IN_DURATION="Einblenddauer", FADE_OUT_DURATION="Ausblenddauer", FADE_EASING="Überblendanimation",
   MOVEMENT="Bewegung", MOVEMENT_DURATION="Bewegungsdauer", PREVIEW_ANIMATIONS="Animationen anzeigen",
   BEHAVIOR="Verhalten", INDENT_LINE_WRAP="Umgebrochene Zeilen einrücken", MOUSE_OVER_TOOLTIPS="Tooltips bei Mausberührung",

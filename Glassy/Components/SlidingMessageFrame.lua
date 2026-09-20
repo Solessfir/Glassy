@@ -185,6 +185,8 @@ function SlidingMessageFrameMixin:ScheduleMessageHides(messages)
           tonumber(Core.db.profile.chatSlideInDuration) or 0
         )
         message.glassyHideAt = now + animationDuration + 0.75
+      elseif Core.db.profile.chatAlwaysVisible then
+        message.glassyHideAt = nil
       else
         message.glassyHideAt = regularHideAt
       end
@@ -196,6 +198,17 @@ end
 function SlidingMessageFrameMixin:ScheduleVisibleMessageHides()
   self:CancelMessageHideTimer(true)
   self:ScheduleMessageHides(self.state.messages)
+end
+
+function SlidingMessageFrameMixin:UpdateAlwaysVisible()
+  if Core.db.profile.chatAlwaysVisible then
+    self:CancelMessageHideTimer(true)
+    for _, message in ipairs(self.state.messages) do
+      message:Show()
+    end
+  elseif not self.state.mouseOver and not self.state.typing then
+    self:ScheduleVisibleMessageHides()
+  end
 end
 
 function SlidingMessageFrameMixin:SetTyping(visible)

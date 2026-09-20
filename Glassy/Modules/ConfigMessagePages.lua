@@ -3,6 +3,7 @@ local C = Core:GetModule("Config")
 
 local SettingsValues = C.SettingsValues
 local MAX_COMBAT_LOG_BAR_OFFSET = SettingsValues.maxCombatLogBarOffset
+local MAX_COMBAT_LOG_HOVER_HIGHLIGHT = SettingsValues.maxTabHoverHighlight
 local UpdateConfig = Constants.ACTIONS.UpdateConfig
 
 local getTimestampFrameOptions = C.GetTimestampFrameOptions
@@ -177,12 +178,28 @@ local function getMessageOptions()
         inline = true,
         order = 2,
         args = {
+          chatAlwaysVisible = {
+            name = "Always visible",
+            desc = "Keep chat messages and headers visible instead of fading them out.\nDefault: off",
+            type = "toggle",
+            order = 2.1,
+            get = function ()
+              return Core.db.profile.chatAlwaysVisible
+            end,
+            set = function (_, input)
+              Core.db.profile.chatAlwaysVisible = input
+              Core:Dispatch(UpdateConfig("chatAlwaysVisible"))
+            end,
+          },
           chatHoldTime = {
             name = "Fade out delay",
             desc = "How many seconds Glassy waits after a message arrives before starting its fade out.\nDefault: "..
               Core.defaults.profile.chatHoldTime.." seconds\nMin: 1\nMax: 180",
             type = "range",
-            order = 2.1,
+            order = 2.2,
+            disabled = function ()
+              return Core.db.profile.chatAlwaysVisible
+            end,
             min = 1,
             max = 180,
             softMin = 1,
@@ -195,23 +212,14 @@ local function getMessageOptions()
               Core.db.profile.chatHoldTime = input
             end,
           },
-          chatShowOnMouseOver = {
-            name = "Show on mouse over",
-            desc = "Show faded chat messages again while the pointer is over the chat frame.\nDefault: on",
-            type = "toggle",
-            order = 2.2,
-            get = function ()
-              return Core.db.profile.chatShowOnMouseOver
-            end,
-            set = function (info, input)
-              Core.db.profile.chatShowOnMouseOver = input
-            end,
-          },
           chatShowWhileTyping = {
             name = "Show while typing",
-            desc = "Reveal faded chat messages while the chat input is open.\nDefault: off",
+            desc = "Reveal faded chat messages while the chat input is open.\nDefault: on",
             type = "toggle",
             order = 2.3,
+            disabled = function ()
+              return Core.db.profile.chatAlwaysVisible
+            end,
             get = function ()
               return Core.db.profile.chatShowWhileTyping
             end,
@@ -253,6 +261,9 @@ local function getMessageOptions()
               Core.defaults.profile.chatFadeOutDuration.." seconds\nMin: 0\nMax: 30",
             type = "range",
             order = 3.2,
+            disabled = function ()
+              return Core.db.profile.chatAlwaysVisible
+            end,
             min = 0,
             max = 30,
             softMin = 0,
@@ -621,6 +632,28 @@ local function getCombatLogOptions()
             set = function (_, input)
               Core.db.profile.combatLogBarYOffset = input
               Core:Dispatch(UpdateConfig("combatLogBarLayout"))
+            end,
+          },
+          combatLogHoverHighlightStrength = {
+            name = "Hover highlight",
+            desc = "Brightens Combat Log filters while the pointer is over them. A value of 0 uses the base highlight; 1 applies the strongest highlight.\nDefault: "..
+              Core.defaults.profile.combatLogHoverHighlightStrength,
+            type = "range",
+            order = 1.4,
+            min = 0,
+            max = MAX_COMBAT_LOG_HOVER_HIGHLIGHT,
+            softMin = 0,
+            softMax = MAX_COMBAT_LOG_HOVER_HIGHLIGHT,
+            step = 0.05,
+            disabled = function ()
+              return Core.db.profile.combatLogBarPosition == "HIDDEN"
+            end,
+            get = function ()
+              return Core.db.profile.combatLogHoverHighlightStrength
+            end,
+            set = function (_, input)
+              Core.db.profile.combatLogHoverHighlightStrength = input
+              Core:Dispatch(UpdateConfig("combatLogHoverHighlightStrength"))
             end,
           },
         },

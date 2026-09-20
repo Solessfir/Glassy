@@ -1,6 +1,9 @@
 -- Run from the repository root with Lua 5.1 and the bundled AceHook library.
 strmatch = string.match
 issecurevariable = function () return false end
+GetTime = function () return 100 end
+local function noop() end
+C_Timer = {NewTimer = function () return {Cancel = noop} end}
 local methodHooks = {}
 hooksecurefunc = function (object, method, callback)
   if type(object) == "string" then callback, method, object = method, object, _G end
@@ -20,7 +23,6 @@ end
 dofile("libs/LibStub/LibStub.lua")
 dofile("libs/AceHook-3.0/AceHook-3.0.lua")
 local AceHook = LibStub("AceHook-3.0")
-local function noop() end
 local queuedUpdates = 0
 local uiManager = {QueueFrameForUpdate = function () queuedUpdates = queuedUpdates + 1 end}
 local function frame(name)
@@ -39,6 +41,7 @@ local function frame(name)
     for _, callback in ipairs(self.postHooks[key] or {}) do callback(self, ...) end
   end
   function object:IsShown() return self.shown end
+  function object:IsVisible() return self.shown end
   function object:Show()
     if not self.shown then self.shown = true; self:Fire("OnShow") end
   end
@@ -50,6 +53,7 @@ local function frame(name)
   end
   object.ClearAllPoints, object.SetPoint, object.SetHeight = noop, noop, noop
   object.SetWidth, object.SetAlpha, object.SetNormalFontObject = noop, noop, noop
+  object.SetHighlightFontObject = noop
   object.RegisterForDrag, object.SetTextColor = noop, noop
   object.GetTextWidth = function () return 30 end
   function object:GetParent() return self.parent end
@@ -71,7 +75,7 @@ local constants = {ENV = "retail", ACTIONS = {}, EVENTS = {}, COLORS = {apache =
 local core = {
   Libs = {AceHook = AceHook, LibEasing = {}}, Components = {},
   GetModule = function (_, name) return name == "UIManager" and uiManager or {} end,
-  db = {profile = {dynamicEditBox = false, frameHeight = 230, frameWidth = 450, tabMessageSpacing = 0, textLeftPadding = 0}},
+  db = {profile = {activeTabHighlightStrength = 0.2, chatAlwaysVisible = false, chatHoldTime = 10, combatLogHoverHighlightStrength = 0.8, dynamicEditBox = false, frameHeight = 230, frameWidth = 450, tabMessageSpacing = 0, textLeftPadding = 0}},
   defaults = {profile = {frameHeight = 230, frameWidth = 450, tabMessageSpacing = 0, textLeftPadding = 0}}, Subscribe = noop,
 }
 local utils = {}
@@ -97,6 +101,17 @@ layout.SetVerticalScroll = noop
 layout.GetVerticalScrollRange = function () return 0 end
 layout:SetLayout(detachedContainer, 320, 200, false, detachedContainer)
 assert(layout.parent == detachedContainer and layout.config.width == 320 and layout.config.height == 176)
+local persistentMessage = frame("PersistentMessage")
+persistentMessage.shown = true
+layout.state.messages = {persistentMessage}
+core.db.profile.chatAlwaysVisible = true
+layout:ScheduleMessageHides(layout.state.messages)
+assert(persistentMessage.glassyHideAt == nil, "Always visible scheduled a message fade")
+core.db.profile.chatAlwaysVisible = false
+layout:ScheduleMessageHides(layout.state.messages)
+assert(persistentMessage.glassyHideAt == 110, "Normal message fading was not restored")
+layout:CancelMessageHideTimer(true)
+layout.state.messages = {}
 layout.chatFrame = {isDocked = false}
 assert(layout:GetNativeLayoutParent() == detachedContainer and layout:GetNativeLayoutWidth() == 320)
 local forwardedWidth
@@ -266,6 +281,7 @@ CombatLogQuickButtonFrame_Custom = frame("FilterBar")
 local barShow, barHookScript = CombatLogQuickButtonFrame_Custom.Show, CombatLogQuickButtonFrame_Custom.HookScript
 local styles = 0
 core.Components.GradientBackgroundMixin = {Init = function (object)
+  object.TestStyleButtons = object.StyleButtons
   object.StyleControls, object.UpdateLayout, object.RefreshButtons = noop, noop, noop
   object.StyleButtons = function () styles = styles + 1; assert(styles < 10, "Post-hook recursed") end
 end}
@@ -273,6 +289,32 @@ loadComponent("CombatLogBar")
 local bar = core.Components.CreateCombatLogBar({}, frame("GlassyLog"))
 assert(bar.Show == barShow, "Glassy replaced the filter bar's native Show method")
 assert(bar.HookScript == barHookScript, "Glassy overwrote the filter bar's native HookScript")
+local normalButton = frame("CombatLogQuickButtonFrameButton1")
+local activeButton = frame("CombatLogQuickButtonFrameButton2")
+local function configureFilterButton(button, id)
+  local text = frame(button.name.."Text")
+  text.GetStringWidth, text.SetJustifyH = function () return 30 end, noop
+  button.shown = true
+  button.GetID = function () return id end
+  button.GetFontString = function () return text end
+  button.SetHighlightFontObject = function (_, font) button.highlightFont = font end
+end
+configureFilterButton(normalButton, 1)
+configureFilterButton(activeButton, 2)
+_G.CombatLogQuickButtonFrameButton1 = normalButton
+_G.CombatLogQuickButtonFrameButton2 = activeButton
+_G.Blizzard_CombatLog_Filters = {currentFilter = 2}
+_G.Blizzard_CombatLog_CurrentSettings = {isTemp = false}
+bar:TestStyleButtons()
+assert(normalButton.highlightFont == "GlassyCombatLogHighlightFont")
+assert(activeButton.highlightFont == "GlassyCombatLogActiveFont")
+activeButton:Fire("OnEnter")
+assert(activeButton.highlightFont == "GlassyCombatLogHighlightFont", "Hover highlight did not override the weaker active highlight")
+activeButton:Fire("OnLeave")
+assert(activeButton.highlightFont == "GlassyCombatLogActiveFont", "Active highlight was not restored after hover")
+_G.Blizzard_CombatLog_CurrentSettings.isTemp = true
+bar:TestStyleButtons()
+assert(activeButton.highlightFont == "GlassyCombatLogHighlightFont", "Temporary filters remained highlighted")
 local detachedBarParent = frame("DetachedCombatLog")
 local detachedFadeParent = frame("DetachedCombatLogDock")
 bar:SetGlassyParent(detachedBarParent, true, detachedFadeParent)

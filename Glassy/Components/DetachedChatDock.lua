@@ -20,6 +20,14 @@ function DetachedChatDockMixin:UpdateFadeSettings()
   self:SetFadeEasing(Core.db.profile.chatFadeEasing)
 end
 
+function DetachedChatDockMixin:UpdateAutomaticVisibility()
+  if Core.db.profile.chatAlwaysVisible then
+    self:QuickShow()
+  else
+    self:HideDelay(Core.db.profile.chatHoldTime)
+  end
+end
+
 function DetachedChatDockMixin:UpdateStyle()
   local backgroundColor = Core.db.profile.headerBackgroundColor
   self:SetGradientBackground(backgroundColor, backgroundColor.a)
@@ -41,6 +49,7 @@ function DetachedChatDockMixin:SetTab(tab)
 end
 
 function DetachedChatDockMixin:Init(parent)
+  self.mouseOver = false
   self:SetHeight(Constants.DOCK_HEIGHT)
   self:SetPoint("TOPLEFT", parent, "TOPLEFT")
   self:SetPoint("TOPRIGHT", parent, "TOPRIGHT")
@@ -53,24 +62,30 @@ function DetachedChatDockMixin:Init(parent)
   self:SetScript("OnSizeChanged", function () self:UpdateStyle() end)
 
   self.subscriptions = {
-    Core:Subscribe(MOUSE_ENTER, function () self:Show() end),
+    Core:Subscribe(MOUSE_ENTER, function ()
+      self.mouseOver = true
+      self:Show()
+    end),
     Core:Subscribe(MOUSE_LEAVE, function ()
-      if Core.db.profile.chatShowOnMouseOver then
-        self:HideDelay(Core.db.profile.chatHoldTime)
-      else
-        self:Hide()
-      end
+      self.mouseOver = false
+      self:UpdateAutomaticVisibility()
     end),
     Core:Subscribe(UPDATE_CONFIG, function (key)
       if key == "headerBackgroundColor" or key == "tabMessageSeparatorColor" or key == "backgroundFade" then
         self:UpdateStyle()
       elseif key == "chatFadeInDuration" or key == "chatFadeOutDuration" or key == "chatFadeEasing" then
         self:UpdateFadeSettings()
+      elseif key == "chatAlwaysVisible" and (Core.db.profile.chatAlwaysVisible or not self.mouseOver) then
+        self:UpdateAutomaticVisibility()
       end
     end),
   }
 
-  self:QuickHide()
+  if Core.db.profile.chatAlwaysVisible then
+    self:QuickShow()
+  else
+    self:QuickHide()
+  end
 end
 
 Core.Components.CreateDetachedChatDock = function (parent, tab)

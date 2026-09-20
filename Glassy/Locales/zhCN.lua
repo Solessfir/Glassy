@@ -21,7 +21,7 @@ Core:RegisterCompactTranslations("zhCN", {
   INSERT_LINK="聊天输入时插入链接。", COPY_TAB="打开此标签的聊天记录。按 Ctrl+C 复制。", MESSAGES="消息", UNREAD_MESSAGE_SEPARATOR="未读消息分隔线", UNREAD_MESSAGE_BACKGROUND="未读消息背景",
   WRAPPED_LINE_SPACING="换行间距", MESSAGE_PADDING="消息边距", INLINE_ICON_OFFSET="行内图标偏移",
   EMOJI_SHORTCODES="表情短代码", VISIBILITY="可见性", FADE_OUT_DELAY="淡出延迟", SHOW_ON_MOUSE_OVER="鼠标悬停时显示", SHOW_WHILE_TYPING="输入时显示",
-  SHOW_WHILE_TYPING_DESC="聊天输入框打开时重新显示已淡出的聊天消息。\n默认：关闭",
+  SHOW_WHILE_TYPING_DESC="聊天输入框打开时重新显示已淡出的聊天消息。\n默认：开启",
   FADING="淡入淡出", FADE_IN_DURATION="淡入时间", FADE_OUT_DURATION="淡出时间", FADE_EASING="淡入淡出动画",
   MOVEMENT="移动", MOVEMENT_DURATION="移动时间", PREVIEW_ANIMATIONS="预览动画", BEHAVIOR="行为",
   INDENT_LINE_WRAP="换行缩进", MOUSE_OVER_TOOLTIPS="鼠标悬停提示", HISTORY="历史记录", SCROLLBACK_LINES="历史行数",

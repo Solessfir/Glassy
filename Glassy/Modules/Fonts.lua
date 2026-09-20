@@ -30,6 +30,17 @@ local function setFont(fontObject, size)
   end
 end
 
+local function setCombatLogHighlightColor(fontObject, setting)
+  local strength = math.max(0, math.min(1, tonumber(Core.db.profile[setting]) or 0))
+  local brightness = 1 + strength
+  local color = Constants.COLORS.apache
+  fontObject:SetTextColor(
+    math.min(1, color.r * brightness),
+    math.min(1, color.g * brightness),
+    math.min(1, color.b * brightness)
+  )
+end
+
 function Fonts:OnInitialize()
   self.fonts = {}
 end
@@ -63,14 +74,17 @@ function Fonts:OnEnable()
 
   self.fonts.GlassyCombatLogHighlightFont = CreateFont("GlassyCombatLogHighlightFont")
   setFont(self.fonts.GlassyCombatLogHighlightFont, 12)
-  self.fonts.GlassyCombatLogHighlightFont:SetTextColor(
-    Constants.COLORS.apache.r,
-    Constants.COLORS.apache.g,
-    Constants.COLORS.apache.b
-  )
+  setCombatLogHighlightColor(self.fonts.GlassyCombatLogHighlightFont, "combatLogHoverHighlightStrength")
   self.fonts.GlassyCombatLogHighlightFont:SetShadowColor(0, 0, 0, 0)
   self.fonts.GlassyCombatLogHighlightFont:SetJustifyH("LEFT")
   self.fonts.GlassyCombatLogHighlightFont:SetJustifyV("MIDDLE")
+
+  self.fonts.GlassyCombatLogActiveFont = CreateFont("GlassyCombatLogActiveFont")
+  setFont(self.fonts.GlassyCombatLogActiveFont, 12)
+  setCombatLogHighlightColor(self.fonts.GlassyCombatLogActiveFont, "activeTabHighlightStrength")
+  self.fonts.GlassyCombatLogActiveFont:SetShadowColor(0, 0, 0, 0)
+  self.fonts.GlassyCombatLogActiveFont:SetJustifyH("LEFT")
+  self.fonts.GlassyCombatLogActiveFont:SetJustifyV("MIDDLE")
 
   -- GlassyEditBoxFont
   self.fonts.GlassyEditBoxFont = CreateFont("GlassyEditBoxFont")
@@ -94,6 +108,15 @@ function Fonts:OnEnable()
       setFont(self.fonts.GlassyChatDockFont, 12)
       setFont(self.fonts.GlassyCombatLogNormalFont, 12)
       setFont(self.fonts.GlassyCombatLogHighlightFont, 12)
+      setFont(self.fonts.GlassyCombatLogActiveFont, 12)
+    end
+
+    if key == "activeTabHighlightStrength" then
+      setCombatLogHighlightColor(self.fonts.GlassyCombatLogActiveFont, "activeTabHighlightStrength")
+    end
+
+    if key == "combatLogHoverHighlightStrength" then
+      setCombatLogHighlightColor(self.fonts.GlassyCombatLogHighlightFont, "combatLogHoverHighlightStrength")
     end
 
     if key == "font" or key == "editBoxFontSize" then

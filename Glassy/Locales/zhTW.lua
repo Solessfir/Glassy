@@ -21,7 +21,7 @@ Core:RegisterCompactTranslations("zhTW", {
   INSERT_LINK="聊天輸入時插入連結。", COPY_TAB="開啟此分頁的聊天記錄。按 Ctrl+C 複製。", MESSAGES="訊息", UNREAD_MESSAGE_SEPARATOR="未讀訊息分隔線", UNREAD_MESSAGE_BACKGROUND="未讀訊息背景",
   WRAPPED_LINE_SPACING="換行間距", MESSAGE_PADDING="訊息間距", INLINE_ICON_OFFSET="行內圖示偏移",
   EMOJI_SHORTCODES="表情符號短碼", VISIBILITY="顯示", FADE_OUT_DELAY="淡出延遲", SHOW_ON_MOUSE_OVER="滑鼠指向時顯示", SHOW_WHILE_TYPING="輸入時顯示",
-  SHOW_WHILE_TYPING_DESC="聊天輸入框開啟時重新顯示已淡出的聊天訊息。\n預設：關閉",
+  SHOW_WHILE_TYPING_DESC="聊天輸入框開啟時重新顯示已淡出的聊天訊息。\n預設：開啟",
   FADING="淡入淡出", FADE_IN_DURATION="淡入時間", FADE_OUT_DURATION="淡出時間", FADE_EASING="淡入淡出動畫",
   MOVEMENT="移動", MOVEMENT_DURATION="移動時間", PREVIEW_ANIMATIONS="預覽動畫", BEHAVIOR="行為",
   INDENT_LINE_WRAP="換行縮排", MOUSE_OVER_TOOLTIPS="滑鼠指向提示", HISTORY="歷史記錄", SCROLLBACK_LINES="歷史行數",

@@ -29,7 +29,7 @@ Core:RegisterCompactTranslations("frFR", {
   MESSAGES="Messages", UNREAD_MESSAGE_SEPARATOR="Séparateur des messages non lus", UNREAD_MESSAGE_BACKGROUND="Arrière-plan des messages non lus", WRAPPED_LINE_SPACING="Espacement des lignes renvoyées", MESSAGE_PADDING="Marge des messages",
   INLINE_ICON_OFFSET="Décalage des icônes", EMOJI_SHORTCODES="Codes courts d’emoji", VISIBILITY="Visibilité",
   FADE_OUT_DELAY="Délai de disparition", SHOW_ON_MOUSE_OVER="Afficher au survol", SHOW_WHILE_TYPING="Afficher pendant la saisie", FADING="Fondu",
-  SHOW_WHILE_TYPING_DESC="Réaffiche les messages estompés tant que le champ de saisie du chat est ouvert.\nPar défaut : désactivé",
+  SHOW_WHILE_TYPING_DESC="Réaffiche les messages estompés tant que le champ de saisie du chat est ouvert.\nPar défaut : activé",
   FADE_IN_DURATION="Durée d’apparition", FADE_OUT_DURATION="Durée de disparition", FADE_EASING="Animation du fondu",
   MOVEMENT="Mouvement", MOVEMENT_DURATION="Durée du mouvement", PREVIEW_ANIMATIONS="Aperçu des animations",
   BEHAVIOR="Comportement", INDENT_LINE_WRAP="Indenter les lignes renvoyées", MOUSE_OVER_TOOLTIPS="Infobulles au survol",

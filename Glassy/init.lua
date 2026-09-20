@@ -75,6 +75,7 @@ Core.defaults = {
     combatLogBarPosition = "BELOW",
     combatLogBarXOffset = 0,
     combatLogBarYOffset = 0,
+    combatLogHoverHighlightStrength = 0.65,
     selectedTab = "",
     tabOrder = {},
 
@@ -141,8 +142,8 @@ Core.defaults = {
     },
 
     chatHoldTime = 10,
-    chatShowOnMouseOver = true,
-    chatShowWhileTyping = false,
+    chatAlwaysVisible = false,
+    chatShowWhileTyping = true,
     chatFadeInDuration = 0.6,
     chatFadeOutDuration = 0.6,
     chatFadeEasing = "OutCubic",

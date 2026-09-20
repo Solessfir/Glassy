@@ -26,6 +26,24 @@ local function getLeftTextPadding()
   return math.max(0, tonumber(Core.db.profile.textLeftPadding) or Core.defaults.profile.textLeftPadding)
 end
 
+local function isSelectedFilterButton(button)
+  local filters = _G.Blizzard_CombatLog_Filters
+  local settings = _G.Blizzard_CombatLog_CurrentSettings
+  return filters and settings and filters.currentFilter == button:GetID() and not settings.isTemp
+end
+
+function CombatLogBarMixin:UpdateButtonHighlightFont(button)
+  local font = "GlassyCombatLogHighlightFont"
+  if isSelectedFilterButton(button) then
+    local activeStrength = tonumber(Core.db.profile.activeTabHighlightStrength) or 0
+    local hoverStrength = tonumber(Core.db.profile.combatLogHoverHighlightStrength) or 0
+    if not button.glassyHovered or activeStrength >= hoverStrength then
+      font = "GlassyCombatLogActiveFont"
+    end
+  end
+  button:SetHighlightFontObject(font)
+end
+
 function CombatLogBarMixin:IsCombatLogVisible()
   local dock = _G.GENERAL_CHAT_DOCK
   if dock and _G.ChatFrame2.isDocked then
@@ -88,7 +106,19 @@ function CombatLogBarMixin:StyleButtons()
     end
 
     button:SetNormalFontObject("GlassyCombatLogNormalFont")
-    button:SetHighlightFontObject("GlassyCombatLogHighlightFont")
+    self:UpdateButtonHighlightFont(button)
+
+    if not button.glassyHoverHooked then
+      button.glassyHoverHooked = true
+      button:HookScript("OnEnter", function ()
+        button.glassyHovered = true
+        self:UpdateButtonHighlightFont(button)
+      end)
+      button:HookScript("OnLeave", function ()
+        button.glassyHovered = false
+        self:UpdateButtonHighlightFont(button)
+      end)
+    end
 
     local text = button:GetFontString()
     if text then
@@ -151,6 +181,11 @@ function CombatLogBarMixin:StyleControls()
       filterButton.glassyText = filterButton:CreateFontString(nil, "OVERLAY", "GlassyCombatLogHighlightFont")
       filterButton.glassyText:SetPoint("CENTER", 0, 2)
       filterButton.glassyText:SetText("...")
+      filterButton.glassyText:SetTextColor(
+        Constants.COLORS.apache.r,
+        Constants.COLORS.apache.g,
+        Constants.COLORS.apache.b
+      )
     end
   end
 end
@@ -231,6 +266,10 @@ function CombatLogBarMixin:Init(parent, slidingMessageFrame)
         end
 
         if key == "font" or key == "textLeftPadding" then
+          self:RefreshButtons()
+        end
+
+        if key == "activeTabHighlightStrength" or key == "combatLogHoverHighlightStrength" then
           self:RefreshButtons()
         end
 

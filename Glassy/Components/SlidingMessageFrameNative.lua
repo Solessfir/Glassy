@@ -405,9 +405,7 @@ function SlidingMessageFrameMixin:SubscribeToEvents()
         end
 
         for _, message in ipairs(self.state.messages) do
-          if Core.db.profile.chatShowOnMouseOver then
-            message:Show()
-          end
+          message:Show()
         end
       end),
       Core:Subscribe(MOUSE_LEAVE, function ()
@@ -436,6 +434,10 @@ function SlidingMessageFrameMixin:SubscribeToEvents()
         if key == "chatShowWhileTyping" then
           local editBox = self.layoutEditBox == false and nil or self.layoutEditBox or _G.ChatFrame1EditBox
           self:SetTyping(editBox and editBox.glassyEntryVisible)
+        end
+
+        if key == "chatAlwaysVisible" then
+          self:UpdateAlwaysVisible()
         end
 
         if key == "messageBlacklist" then
@@ -488,4 +490,3 @@ function SlidingMessageFrameMixin:Init(chatFrame)
   self:LoadInitialMessages(chatFrame)
   self:SubscribeToEvents()
 end
-

@@ -71,6 +71,7 @@ C.Pages = {}
 
 local MAX_ACTIVE_TAB_HIGHLIGHT = SettingsValues.maxActiveTabHighlight
 local MAX_TAB_HOVER_HIGHLIGHT = SettingsValues.maxTabHoverHighlight
+local MAX_COMBAT_LOG_HOVER_HIGHLIGHT = SettingsValues.maxTabHoverHighlight
 local MAX_TAB_MESSAGE_OFFSET = SettingsValues.maxTabMessageOffset
 local MAX_COMBAT_LOG_BAR_OFFSET = SettingsValues.maxCombatLogBarOffset
 local MIN_FRAME_HEIGHT = SettingsValues.minFrameHeight
@@ -227,6 +228,15 @@ local function normalizeTabHoverHighlight()
   Core.db.profile.tabHoverHighlightStrength = math.max(0, math.min(MAX_TAB_HOVER_HIGHLIGHT, strength))
 end
 
+local function normalizeCombatLogHoverHighlight()
+  local strength = tonumber(Core.db.profile.combatLogHoverHighlightStrength) or
+    Core.defaults.profile.combatLogHoverHighlightStrength
+  Core.db.profile.combatLogHoverHighlightStrength = math.max(
+    0,
+    math.min(MAX_COMBAT_LOG_HOVER_HIGHLIGHT, strength)
+  )
+end
+
 local function normalizeEditBox()
   Core.db.profile.dynamicEditBox = Core.db.profile.dynamicEditBox ~= false
   local padding = tonumber(Core.db.profile.editBoxVerticalPadding) or
@@ -321,6 +331,7 @@ local function normalizeSettings()
   normalizeTextLeftPadding()
   normalizeActiveTabHighlight()
   normalizeTabHoverHighlight()
+  normalizeCombatLogHoverHighlight()
   normalizeEditBox()
   normalizeCombatLogBar()
   normalizeTimestamps()
@@ -545,6 +556,7 @@ function C:RefreshConfig()
   Core:Dispatch(UpdateConfig("backgroundFade"))
   Core:Dispatch(UpdateConfig("combatLogVisibility"))
   Core:Dispatch(UpdateConfig("combatLogBarLayout"))
+  Core:Dispatch(UpdateConfig("combatLogHoverHighlightStrength"))
 
   -- Edit box
   Core:Dispatch(UpdateConfig("editBoxFontSize"))
@@ -567,6 +579,7 @@ function C:RefreshConfig()
   Core:Dispatch(UpdateConfig("unreadMessageSeparatorColor"))
   Core:Dispatch(UpdateConfig("unreadMessageBackgroundColor"))
   Core:Dispatch(UpdateConfig("timestampDisplay"))
+  Core:Dispatch(UpdateConfig("chatAlwaysVisible"))
   Core:Dispatch(UpdateConfig("chatFadeInDuration"))
   Core:Dispatch(UpdateConfig("chatFadeOutDuration"))
   Core:Dispatch(UpdateConfig("scrollbackLines"))
