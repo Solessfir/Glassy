@@ -6,6 +6,8 @@ local values = {
   SHADOW_THICK = "Sombra con contorno grueso",
   TAB_TEXT_COLOR = "Color de las etiquetas",
   TAB_HIGHLIGHT_TEXT_COLOR = "Color de etiquetas al pasar el cursor",
+  TABS = "Pestañas",
+  TOOLTIPS = "Ayudas",
   GENERAL="General", ABOUT="Acerca de", INFO="Información", VERSION="Versión:", WHATS_NEW="Novedades", OPEN_CONFIG="Abrir configuración",
   TOGGLE_MOVER="Mostrar u ocultar el marco de movimiento", OPEN_DEBUG="Abrir informe de diseño copiable", OPEN_NEWS_COMMAND="Abrir historial de versiones", COMMANDS="Comandos", REPORT_ISSUE="Informar de un problema",
   LOCK_FRAME="Bloquear marco", UNLOCK_FRAME="Desbloquear marco", APPEARANCE="Apariencia", FONT="Fuente",

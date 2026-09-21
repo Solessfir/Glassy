@@ -6,6 +6,8 @@ Core:RegisterTranslations("ruRU", {
   SHADOW_THICK = "Тень и толстый контур",
   TAB_TEXT_COLOR = "Цвет подписей",
   TAB_HIGHLIGHT_TEXT_COLOR = "Цвет подписей при наведении",
+  TABS = "Вкладки",
+  TOOLTIPS = "Подсказки",
   GENERAL = "Общие",
   ABOUT = "О дополнении",
   INFO = "Информация",

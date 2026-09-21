@@ -37,7 +37,7 @@ local function formatList(items)
 end
 
 local function getPratUiModuleGuidance()
-  return "Glassy replaces the native-frame behavior of these modules. Keep them disabled:\n"..
+  return L("Glassy replaces the native-frame behavior of these modules. Keep them disabled:").."\n"..
     formatList(PRAT_UI_MODULES)
 end
 
@@ -75,7 +75,7 @@ end
 
 local function getEnabledPratUiModules()
   if _G.Prat == nil then
-    return "No compatibility warnings."
+    return L("No compatibility warnings.")
   end
 
   local enabled = {}
@@ -86,9 +86,9 @@ local function getEnabledPratUiModules()
   end
 
   if #enabled == 0 then
-    return "|cff80ff80No conflicting Prat UI modules are enabled.|r"
+    return L("|cff80ff80No conflicting Prat UI modules are enabled.|r")
   end
-  return "|cffff8080Enabled Prat UI modules that Glassy replaces:|r\n"..formatList(enabled)
+  return L("|cffff8080Enabled Prat UI modules that Glassy replaces:|r").."\n"..formatList(enabled)
 end
 
 local function getPratTimestampStatus()
@@ -244,11 +244,13 @@ local function getCompatibilityOptions()
         args = {
           current = {
             name = getEnabledPratUiModules,
+            nameLocalized = true,
             type = "description",
             order = 1,
           },
           details = {
             name = getPratUiModuleGuidance,
+            nameLocalized = true,
             type = "description",
             order = 2,
           },

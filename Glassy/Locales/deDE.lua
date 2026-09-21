@@ -6,6 +6,8 @@ Core:RegisterCompactTranslations("deDE", {
   SHADOW_THICK = "Schatten mit dicker Kontur",
   TAB_TEXT_COLOR = "Beschriftungsfarbe",
   TAB_HIGHLIGHT_TEXT_COLOR = "Beschriftungsfarbe bei Mausberührung",
+  TABS = "Tabs",
+  TOOLTIPS = "Tooltips",
   GENERAL="Allgemein", ABOUT="Über", INFO="Info", VERSION="Version:", WHATS_NEW="Was ist neu?",
   OPEN_CONFIG="Einstellungen öffnen", TOGGLE_MOVER="Glassy-Verschieber ein-/ausblenden",
   OPEN_DEBUG="Kopierbaren Layoutbericht öffnen", OPEN_NEWS_COMMAND="Versionsverlauf öffnen", COMMANDS="Befehle", REPORT_ISSUE="Problem melden", LOCK_FRAME="Fenster sperren", UNLOCK_FRAME="Fenster entsperren",

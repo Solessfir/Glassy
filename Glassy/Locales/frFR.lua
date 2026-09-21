@@ -6,6 +6,8 @@ Core:RegisterCompactTranslations("frFR", {
   SHADOW_THICK = "Ombre avec contour épais",
   TAB_TEXT_COLOR = "Couleur des libellés",
   TAB_HIGHLIGHT_TEXT_COLOR = "Couleur des libellés au survol",
+  TABS = "Onglets",
+  TOOLTIPS = "Infobulles",
   GENERAL="Général", ABOUT="À propos", INFO="Informations", VERSION="Version :", WHATS_NEW="Nouveautés", OPEN_CONFIG="Ouvrir les options",
   TOGGLE_MOVER="Afficher ou masquer le cadre de déplacement", OPEN_DEBUG="Ouvrir le rapport de disposition copiable", OPEN_NEWS_COMMAND="Ouvrir l’historique des versions", COMMANDS="Commandes", REPORT_ISSUE="Signaler un problème",
   LOCK_FRAME="Verrouiller le cadre", UNLOCK_FRAME="Déverrouiller le cadre", APPEARANCE="Apparence", FONT="Police",

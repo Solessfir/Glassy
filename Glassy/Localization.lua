@@ -10,6 +10,8 @@ local english = {
   SHADOW_THICK = "Shadow Thick",
   TAB_TEXT_COLOR = "Label color",
   TAB_HIGHLIGHT_TEXT_COLOR = "Hover label color",
+  TABS = "Tabs",
+  TOOLTIPS = "Tooltips",
   GENERAL = "General",
   ABOUT = "About",
   INFO = "Info",
@@ -353,7 +355,10 @@ function Core:LocalizeOptions(options)
 
     for _, field in ipairs({"name", "desc"}) do
       local value = node[field]
-      if type(value) == "string" then
+      if node[field.."Localized"] then
+        -- Consume the internal marker before AceConfig validates the option table.
+        node[field.."Localized"] = nil
+      elseif type(value) == "string" then
         node[field] = Core:Localize(value)
       elseif type(value) == "function" then
         node[field] = localizeFunction(value)

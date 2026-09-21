@@ -6,6 +6,8 @@ Core:RegisterCompactTranslations("itIT", {
   SHADOW_THICK = "Ombra con contorno spesso",
   TAB_TEXT_COLOR = "Colore delle etichette",
   TAB_HIGHLIGHT_TEXT_COLOR = "Colore delle etichette al passaggio del mouse",
+  TABS = "Schede",
+  TOOLTIPS = "Suggerimenti",
   GENERAL="Generale", ABOUT="Informazioni su", INFO="Informazioni", VERSION="Versione:", WHATS_NEW="Novità", OPEN_CONFIG="Apri configurazione",
   TOGGLE_MOVER="Mostra o nascondi il riquadro di spostamento", OPEN_DEBUG="Apri rapporto layout copiabile", OPEN_NEWS_COMMAND="Apri cronologia versioni", COMMANDS="Comandi", REPORT_ISSUE="Segnala un problema",
   LOCK_FRAME="Blocca riquadro", UNLOCK_FRAME="Sblocca riquadro", APPEARANCE="Aspetto", FONT="Carattere",

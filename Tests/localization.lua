@@ -46,6 +46,10 @@ local options = {
   desc = function() return "Open settings" end,
   args = {
     child = {name = "Font", desc = "Font outline"},
+    prat = {
+      name = function() return russian:Localize("Fading")..": Fading, Font, Frames" end,
+      nameLocalized = true,
+    },
   },
 }
 russian:LocalizeOptions(options)
@@ -53,5 +57,7 @@ assert(options.name == "Общие")
 assert(options.desc() == "Открыть настройки")
 assert(options.args.child.name == "Шрифт")
 assert(options.args.child.desc == "Контур шрифта")
+assert(options.args.prat.name() == "Затухание: Fading, Font, Frames")
+assert(options.args.prat.nameLocalized == nil, "Internal localization markers must not reach AceConfig")
 
 print("PASS: fallback, complete locale catalogs, dynamic options, and formatted text")

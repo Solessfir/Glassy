@@ -6,6 +6,8 @@ Core:RegisterCompactTranslations("zhTW", {
   SHADOW_THICK = "陰影粗描邊",
   TAB_TEXT_COLOR = "標籤文字顏色",
   TAB_HIGHLIGHT_TEXT_COLOR = "滑鼠懸停標籤文字顏色",
+  TABS = "分頁",
+  TOOLTIPS = "提示",
   GENERAL="一般", ABOUT="關於", INFO="資訊", VERSION="版本：", WHATS_NEW="更新內容", OPEN_CONFIG="開啟設定",
   TOGGLE_MOVER="顯示或隱藏 Glassy 移動框", OPEN_DEBUG="開啟可複製的版面報告", OPEN_NEWS_COMMAND="開啟版本歷史", COMMANDS="指令", REPORT_ISSUE="回報問題", LOCK_FRAME="鎖定框架",
   UNLOCK_FRAME="解鎖框架", APPEARANCE="外觀", FONT="字型", FONT_OUTLINE="字型外框", LEFT_TEXT_PADDING="文字左側間距",

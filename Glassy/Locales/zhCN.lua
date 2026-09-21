@@ -6,6 +6,8 @@ Core:RegisterCompactTranslations("zhCN", {
   SHADOW_THICK = "阴影粗描边",
   TAB_TEXT_COLOR = "标签文字颜色",
   TAB_HIGHLIGHT_TEXT_COLOR = "悬停标签文字颜色",
+  TABS = "标签页",
+  TOOLTIPS = "提示",
   GENERAL="常规", ABOUT="关于", INFO="信息", VERSION="版本：", WHATS_NEW="更新内容", OPEN_CONFIG="打开设置",
   TOGGLE_MOVER="显示或隐藏 Glassy 移动框", OPEN_DEBUG="打开可复制的布局报告", OPEN_NEWS_COMMAND="打开版本历史", COMMANDS="命令", REPORT_ISSUE="报告问题", LOCK_FRAME="锁定框体",
   UNLOCK_FRAME="解锁框体", APPEARANCE="外观", FONT="字体", FONT_OUTLINE="字体描边", LEFT_TEXT_PADDING="文字左边距",

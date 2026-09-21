@@ -6,6 +6,8 @@ Core:RegisterCompactTranslations("ptBR", {
   SHADOW_THICK = "Sombra com contorno grosso",
   TAB_TEXT_COLOR = "Cor dos rótulos",
   TAB_HIGHLIGHT_TEXT_COLOR = "Cor dos rótulos ao passar o mouse",
+  TABS = "Abas",
+  TOOLTIPS = "Dicas",
   GENERAL="Geral", ABOUT="Sobre", INFO="Informações", VERSION="Versão:", WHATS_NEW="Novidades", OPEN_CONFIG="Abrir configurações",
   TOGGLE_MOVER="Mostrar ou ocultar o quadro de movimento", OPEN_DEBUG="Abrir relatório de layout copiável", OPEN_NEWS_COMMAND="Abrir histórico de versões", COMMANDS="Comandos", REPORT_ISSUE="Relatar um problema",
   LOCK_FRAME="Bloquear quadro", UNLOCK_FRAME="Desbloquear quadro", APPEARANCE="Aparência", FONT="Fonte",
