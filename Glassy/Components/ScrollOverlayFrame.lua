@@ -55,6 +55,7 @@ function ScrollOverlayFrame:UpdateUnreadBackground()
     local parent = self:GetParent()
     local editBox = parent and parent.layoutEditBox
     local anchor = Core.db.profile.editBoxAnchor
+    ---@type GlassyGradientBackground
     local background = self.snapToBottomFrame
     background:SetGradientBackground(color, color.a)
     if editBox and editBox.glassyEntryVisible and anchor and anchor.position == "BELOW"

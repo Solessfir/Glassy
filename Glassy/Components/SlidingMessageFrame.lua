@@ -98,6 +98,10 @@ local function keepCombatLogTracking()
   end
 end
 
+---@class GlassyChatEditBox: FloatingChatFrameTemplate_EditBox
+---@field GetReusableMessageHeight? fun(self: GlassyChatEditBox): number
+---@field glassyEntryVisible? boolean
+
 local function getMessageFrameHeight(isCombatLog, frameHeight, editBox)
   frameHeight = tonumber(frameHeight) or tonumber(Core.db.profile.frameHeight) or Core.defaults.profile.frameHeight
   if editBox == nil then
@@ -105,6 +109,7 @@ local function getMessageFrameHeight(isCombatLog, frameHeight, editBox)
   elseif editBox == false then
     editBox = nil
   end
+  ---@cast editBox GlassyChatEditBox?
   local reusableHeight = 0
   if Core.db.profile.editBoxAnchor.position == "BELOW" and editBox then
     if type(editBox.GetReusableMessageHeight) == "function" then

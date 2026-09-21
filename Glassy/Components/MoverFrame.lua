@@ -6,6 +6,7 @@ local LOCK_MOVER = Constants.EVENTS.LOCK_MOVER
 local UNLOCK_MOVER = Constants.EVENTS.UNLOCK_MOVER
 local UPDATE_CONFIG = Constants.EVENTS.UPDATE_CONFIG
 
+---@class GlassyMoverFrame: Frame
 local MoverFrameMixin = {}
 
 local EDIT_MODE_BLUE_R = 0.22

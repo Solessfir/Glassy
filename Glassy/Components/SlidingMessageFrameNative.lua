@@ -447,6 +447,7 @@ function SlidingMessageFrameMixin:SubscribeToEvents()
         end
 
         if key == "chatShowWhileTyping" then
+          ---@type GlassyChatEditBox?
           local editBox = self.layoutEditBox == false and nil or self.layoutEditBox or _G.ChatFrame1EditBox
           self:SetTyping(editBox and editBox.glassyEntryVisible)
         end

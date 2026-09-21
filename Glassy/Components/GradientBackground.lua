@@ -7,6 +7,10 @@ local GetPhysicalScreenSize = GetPhysicalScreenSize
 local Mixin = Mixin
 -- luacheck: pop
 
+---@class GlassyGradientBackground: Frame
+---@field leftBg Texture
+---@field rightBg Texture
+---@field centerBg Texture
 local GradientBackgroundMixin = {}
 
 local function getPhysicalPixelHeight(region)

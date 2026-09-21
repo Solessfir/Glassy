@@ -50,6 +50,10 @@ local tabTexs = {
 
 local retailTabTexs = {"Left", "Middle", "Right", "ActiveLeft", "ActiveMiddle", "ActiveRight", "HighlightLeft", "HighlightMiddle", "HighlightRight"}
 
+---@class GlassyChatTab: Button
+---@field Text FontString
+---@field glow Texture
+---@field glassyHooks AceHook-3.0
 local ChatTabMixin = {}
 
 if Menu and Menu.ModifyMenu and MenuUtil and ToggleChannelFrame then

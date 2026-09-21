@@ -113,7 +113,7 @@ local function textureProcessor(text)
 end
 
 local function emojiProcessor(text)
-  local elvui = _G.ElvUI
+  local elvui = rawget(_G, "ElvUI")
   local engine = type(elvui) == "table" and elvui[1]
   local media = engine and engine.Media
   local emojis = media and media.ChatEmojis
