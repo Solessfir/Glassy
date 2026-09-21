@@ -2,6 +2,7 @@
 
 ## What's new
 
+- Glassy settings are now available under Options → AddOns → Glassy, with the same controls as `/gl`.
 - Escape now closes the What's new window.
 - Added Shadow, Shadow Outline, and Shadow Thick choices to each section's font-outline dropdown.
 - Font outlines default to None in every section, without legacy outline inheritance or automatic message shadows.

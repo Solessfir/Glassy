@@ -359,6 +359,27 @@ local function getOptions()
   }
 end
 
+function C:RegisterBlizzardOptions()
+  if self.blizzardOptions then return end
+
+  if Settings and Settings.RegisterCanvasLayoutCategory then
+    local panel = AceGUI:Create("BlizOptionsGroup")
+    panel:SetName("Glassy")
+    panel:SetTitle("Glassy")
+    panel:SetUserData("appName", "Glassy")
+    panel:SetCallback("OnShow", function () AceConfigDialog:Open("Glassy", panel) end)
+    panel:SetCallback("OnHide", function () panel:ReleaseChildren() end)
+    -- AceConfig uses this registry to refresh embedded settings after profile changes.
+    AceConfigDialog.BlizOptions.Glassy = AceConfigDialog.BlizOptions.Glassy or {}
+    AceConfigDialog.BlizOptions.Glassy.Glassy = panel
+    local category = Settings.RegisterCanvasLayoutCategory(panel.frame, "Glassy")
+    Settings.RegisterAddOnCategory(category)
+    self.blizzardOptions = panel.frame
+  else
+    self.blizzardOptions = AceConfigDialog:AddToBlizOptions("Glassy", "Glassy")
+  end
+end
+
 function C:OnEnable()
   normalizeSettings()
   local options = getOptions()
@@ -366,6 +387,7 @@ function C:OnEnable()
 
   AceConfig:RegisterOptionsTable("Glassy", options)
   AceConfigDialog:SetDefaultSize("Glassy", 900, 650)
+  self:RegisterBlizzardOptions()
 
   self:RegisterChatCommand("gl", "OnSlashCommand")
   self:RegisterChatCommand("glassy", "OnSlashCommand")

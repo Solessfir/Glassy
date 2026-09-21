@@ -103,4 +103,45 @@ assert(type(config.GetTimestampFrameOptions) == "function")
 assert(type(config.DisableBuiltinTimestamps) == "function")
 assert(type(config.ShowCopyableText) == "function")
 
+local callbacks, registrations, opens, releases = {}, 0, 0, 0
+local panel = {frame = {}, SetName = function () end, SetTitle = function () end,
+  SetUserData = function () end,
+  SetCallback = function (_, event, callback) callbacks[event] = callback end,
+  ReleaseChildren = function () releases = releases + 1 end}
+core.Libs.AceGUI.Create = function (_, kind)
+  assert(kind == "BlizOptionsGroup")
+  return panel
+end
+core.Libs.AceConfigDialog.BlizOptions = {}
+core.Libs.AceConfigDialog.Open = function (_, app, container)
+  assert(app == "Glassy" and container == panel, "Embedded settings must use the slash-command options table")
+  opens = opens + 1
+end
+_G.Settings = {
+  RegisterCanvasLayoutCategory = function (frame, name)
+    assert(frame == panel.frame and name == "Glassy")
+    return {name = name}
+  end,
+  RegisterAddOnCategory = function (category)
+    assert(category.name == "Glassy")
+    registrations = registrations + 1
+  end,
+}
+config:RegisterBlizzardOptions()
+config:RegisterBlizzardOptions()
+assert(registrations == 1, "Settings category must only be registered once")
+callbacks.OnShow()
+callbacks.OnHide()
+callbacks.OnShow()
+assert(opens == 2 and releases == 1, "Embedded settings must reopen after releasing their controls")
+assert(core.Libs.AceConfigDialog.BlizOptions.Glassy.Glassy == panel, "Profile refresh must include the embedded panel")
+_G.Settings = nil
+config.blizzardOptions = nil
+core.Libs.AceConfigDialog.AddToBlizOptions = function (_, app, name)
+  assert(app == "Glassy" and name == "Glassy")
+  return panel.frame
+end
+config:RegisterBlizzardOptions()
+assert(config.blizzardOptions == panel.frame, "Legacy clients must register through AceConfig")
+
 print("PASS: config core and page modules load in TOC order and register every settings page")

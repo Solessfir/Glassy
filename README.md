@@ -42,7 +42,7 @@ Close WoW before migrating. Install Glassy, then copy `WTF/Account/<account>/Sav
 
 ## Commands
 
-Use `/gl` to open Glassy. `/glassy` and `/glass` work as aliases for all commands.
+Open Glassy through `/gl` or **Options → AddOns → Glassy**. Both show the same settings. `/glassy` and `/glass` work as aliases for all commands.
 
 | Command | Action |
 | --- | --- |
