@@ -265,14 +265,14 @@ local function getMessageOptions()
           chatHoldTime = {
             name = "Fade out delay",
             desc = "How many seconds Glassy waits after a message arrives before starting its fade out.\nDefault: "..
-              Core.defaults.profile.chatHoldTime.." seconds\nMin: 1\nMax: 180",
+              Core.defaults.profile.chatHoldTime.." seconds\nMin: 1\nMax: 60",
             type = "range",
             order = 2.2,
             disabled = function ()
               return Core.db.profile.chatAlwaysVisible
             end,
             min = 1,
-            max = 180,
+            max = 60,
             softMin = 1,
             softMax = 20,
             step = 1,

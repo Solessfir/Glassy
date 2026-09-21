@@ -67,6 +67,36 @@ local function getGeneralOptions()
         inline = true,
         order = 3,
         args = {
+          tabHighlightTextColor = {
+            name = "Hover label color",
+            desc = L("Tabs")..", "..L("Combat Log")..", "..L("Unread messages")..", "..L("Jump to latest"),
+            type = "color",
+            hasAlpha = true,
+            order = 2,
+            get = function ()
+              local color = Core.db.profile.tabHighlightTextColor
+              return color.r, color.g, color.b, color.a
+            end,
+            set = function (_, r, g, b, a)
+              Core.db.profile.tabHighlightTextColor = {r = r, g = g, b = b, a = a}
+              Core:Dispatch(UpdateConfig("tabHighlightTextColor"))
+            end,
+          },
+          tabTextColor = {
+            name = "Label color",
+            desc = L("Tabs")..", "..L("Combat Log")..", "..L("Unread messages")..", "..L("Jump to latest"),
+            type = "color",
+            hasAlpha = true,
+            order = 1,
+            get = function ()
+              local color = Core.db.profile.tabTextColor
+              return color.r, color.g, color.b, color.a
+            end,
+            set = function (_, r, g, b, a)
+              Core.db.profile.tabTextColor = {r = r, g = g, b = b, a = a}
+              Core:Dispatch(UpdateConfig("tabTextColor"))
+            end,
+          },
           textLeftPadding = {
             name = "Left text padding",
             desc = "Sets the space, in pixels, between the left edge and Glassy text. Applies to chat messages, tabs, Combat Log filters, and the edit box.\nDefault: "..
@@ -288,34 +318,6 @@ local function getTabOptions()
           },
           tabFont = C.CreateFontOption("tabFont", 1),
           tabFontFlags = C.CreateFontOutlineOption("tabFontFlags", 1.002),
-          tabTextColor = {
-            name = "Tab text color",
-            type = "color",
-            hasAlpha = true,
-            order = 1.03,
-            get = function ()
-              local color = Core.db.profile.tabTextColor
-              return color.r, color.g, color.b, color.a
-            end,
-            set = function (_, r, g, b, a)
-              Core.db.profile.tabTextColor = {r = r, g = g, b = b, a = a}
-              Core:Dispatch(UpdateConfig("tabTextColor"))
-            end,
-          },
-          tabHighlightTextColor = {
-            name = "Active/hover text color",
-            type = "color",
-            hasAlpha = true,
-            order = 1.01,
-            get = function ()
-              local color = Core.db.profile.tabHighlightTextColor
-              return color.r, color.g, color.b, color.a
-            end,
-            set = function (_, r, g, b, a)
-              Core.db.profile.tabHighlightTextColor = {r = r, g = g, b = b, a = a}
-              Core:Dispatch(UpdateConfig("tabHighlightTextColor"))
-            end,
-          },
           chatTabTooltips = {
             name = "Tooltips",
             desc = "Show interaction hints when hovering over chat tabs.\nDefault: off",

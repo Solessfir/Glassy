@@ -53,6 +53,7 @@ for _, page in ipairs({
   "editBox",
   "messages",
   "combatLog",
+  "commands",
   "compatibility",
   "shortcuts",
   "profile",
@@ -67,6 +68,7 @@ local configSource = configFile:read("*a")
 configFile:close()
 assert(configSource:find("tabs%s*=%s*C%.Pages%.tabs%(%s*%)"), "Tabs page is not included in the main config")
 assert(configSource:find("combatLog%.inline%s*=%s*true"), "Combat Log is not an inline Tabs section")
+assert(configSource:find("commands%.inline%s*=%s*true"), "Commands is not an inline About section")
 assert(configSource:find("shortcuts%.inline%s*=%s*true"), "Shortcuts is not an inline About section")
 assert(configSource:find("compatibility%.inline%s*=%s*true"), "Compatibility is not an inline About section")
 assert(config.Pages.timestamps == nil, "Timestamps should not be a separate config page")
@@ -83,6 +85,8 @@ local chatPagesSource = chatPagesFile:read("*a")
 chatPagesFile:close()
 assert(not chatPagesSource:find("dynamicEditBox", 1, true), "Dynamic message area is still configurable")
 assert(not chatPagesSource:find("hoverHighlightStrength", 1, true), "Obsolete hover brightness is still configurable")
+assert(config.Pages.shortcuts().args.commands == nil, "Commands are still nested inside Shortcuts")
+assert(config.Pages.commands().args.commandOpen ~= nil, "Commands section is empty")
 assert(not messagePagesSource:find("combatLogHoverHighlightStrength", 1, true), "Combat Log still has a separate hover highlight")
 
 ---@diagnostic disable-next-line: undefined-global

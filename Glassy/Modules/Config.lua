@@ -332,13 +332,17 @@ local function getOptions()
   combatLog.order = 2
   tabs.args.combatLog = combatLog
   local about = C.Pages.about()
+  local commands = C.Pages.commands()
+  commands.inline = true
+  commands.order = 2
+  about.args.commands = commands
   local shortcuts = C.Pages.shortcuts()
   shortcuts.inline = true
-  shortcuts.order = 2
+  shortcuts.order = 3
   about.args.shortcuts = shortcuts
   local compatibility = C.Pages.compatibility()
   compatibility.inline = true
-  compatibility.order = 3
+  compatibility.order = 4
   about.args.compatibility = compatibility
   return {
     name = "Glassy",

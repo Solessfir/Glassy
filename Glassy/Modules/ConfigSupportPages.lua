@@ -134,7 +134,7 @@ local function getShortcutOptions()
         name = "Sent-message history",
         type = "group",
         inline = true,
-        order = 2,
+        order = 1,
         args = {
           reference = {
             type = "description",
@@ -176,18 +176,19 @@ local function getShortcutOptions()
           },
         },
       },
-      commands = {
-        name = "Commands",
-        type = "group",
-        inline = true,
-        order = 5,
-        args = {
-          commandOpen = commandRow(1, "/gl", "Open settings"),
-          commandMover = commandRow(2, "/gl lock", "Toggle the Glassy frame mover"),
-          commandDebug = commandRow(3, "/gl debug", "Open a copyable layout debug report"),
-          commandNews = commandRow(4, "/gl news", "Open version history"),
-        },
-      },
+    },
+  }
+end
+
+local function getCommandOptions()
+  return {
+    name = "Commands",
+    type = "group",
+    args = {
+      commandOpen = commandRow(1, "/gl", "Open settings"),
+      commandMover = commandRow(2, "/gl lock", "Toggle the Glassy frame mover"),
+      commandDebug = commandRow(3, "/gl debug", "Open a copyable layout debug report"),
+      commandNews = commandRow(4, "/gl news", "Open version history"),
     },
   }
 end
@@ -310,7 +311,7 @@ local function getAboutOptions()
         name = "",
         type = "group",
         inline = true,
-        order = 1,
+        order = 2,
         args = {
           version = {
             name = " |cffffd100Version:|r  "..Core.Version,
@@ -342,5 +343,6 @@ end
 
 
 C.Pages.shortcuts = getShortcutOptions
+C.Pages.commands = getCommandOptions
 C.Pages.compatibility = getCompatibilityOptions
 C.Pages.about = getAboutOptions
