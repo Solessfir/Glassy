@@ -81,8 +81,10 @@ listeners[1]("tabHighlightTextColor")
 equals(fonts.fonts.GlassyCombatLogActiveFont.color, {0, 0.1, 0.2, 1})
 equals(fonts.fonts.GlassyCombatLogHighlightFont.color, {0, 0.1, 0.2, 1})
 
-function Mixin(frame, mixin)
-  for key, value in pairs(mixin) do if key ~= "Init" then frame[key] = value end end
+function Mixin(frame, ...)
+  for index = 1, select("#", ...) do
+    for key, value in pairs(select(index, ...)) do if key ~= "Init" then frame[key] = value end end
+  end
   return frame
 end
 local text = {SetAlpha = function (self, alpha) self.alpha = alpha end}
@@ -101,4 +103,33 @@ tab.glassyHovered = true
 tab:UpdateVisualState()
 equals(text.color, {0, 0.1, 0.2, 1})
 assert(text.alpha == 0.3)
+
+local alertText = {
+  ClearAllPoints = noop, SetPoint = noop, GetLineHeight = function () return 13 end,
+  SetText = function (self, value) self.value = value end,
+  SetTextColor = function (self, ...) self.color = {...} end,
+  SetAlpha = function (self, alpha) self.alpha = alpha end,
+}
+local alertParent = {
+  icon = {SetVertexColor = noop, SetAlpha = noop},
+  SetUnreadRowHeight = noop,
+}
+CreateFrame = function (_, _, parent)
+  return {parent = parent, SetPoint = noop, SetHeight = noop,
+    GetParent = function (self) return self.parent end,
+    CreateFontString = function () return alertText end}
+end
+core.Localize = function (_, value) return value end
+core.Components.CreateSeparatorFrame = function () return {SetPoint = noop, SetSeparatorColor = noop} end
+core.Components.FadingFrameMixin = {
+  Init = noop, SetFadeInDuration = noop, SetFadeOutDuration = noop,
+  Show = function (self) self.shown = true end,
+}
+profile.messageFontSize = 13
+profile.unreadMessageSeparatorColor = {}
+assert(loadfile("Glassy/Components/NewMessageAlertFrame.lua"))("Glassy", {core, constants})
+local alert = core.Components.CreateNewMessageAlertFrame(alertParent)
+assert(alertText.value == "Jump to latest")
+alert:SetUnread(true)
+assert(alertText.value == "Unread messages")
 print("PASS: tab and Combat Log text colors preserve opacity, highlight strength, and live updates")

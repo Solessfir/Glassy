@@ -34,6 +34,11 @@ function NewMessageAlertFrameMixin:SetHighlighted(highlighted)
     end
 end
 
+function NewMessageAlertFrameMixin:SetUnread(unread)
+    self.unread = unread
+    self.text:SetText(L(unread and "Unread messages" or "Jump to latest"))
+end
+
 function NewMessageAlertFrameMixin:Init()
     self:SetPoint("BOTTOMLEFT")
     self:SetPoint("BOTTOMRIGHT")
@@ -45,8 +50,8 @@ function NewMessageAlertFrameMixin:Init()
       self.text = self:CreateFontString(nil, "ARTWORK", "GlassyMessageFont")
     end
     self.text:ClearAllPoints()
-    self.text:SetPoint("LEFT", self:GetParent().icon, "RIGHT", 5, 0)
-    self.text:SetText(L("Unread messages"))
+    self.text:SetPoint("BOTTOMLEFT", self:GetParent().icon, "BOTTOMRIGHT", 5, -2)
+    self:SetUnread(false)
     self:SetHighlighted(false)
     self:UpdateLayout()
 

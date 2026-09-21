@@ -1,15 +1,12 @@
 local Core, Constants, Utils = unpack(select(2, ...))
 
 local CreateNewMessageAlertFrame = Core.Components.CreateNewMessageAlertFrame
-local L = function(text) return Core:Localize(text) end
-
 local super = Utils.super
 local UPDATE_CONFIG = Constants.EVENTS.UPDATE_CONFIG
 
 -- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
 -- luacheck: push ignore 113
 local CreateFrame = CreateFrame
-local GameTooltip = GameTooltip
 local Mixin = Mixin
 -- luacheck: pop
 
@@ -94,8 +91,8 @@ function ScrollOverlayFrame:Init()
       self.icon = self:CreateTexture(nil, "ARTWORK")
     end
     self.icon:SetTexture("Interface\\Addons\\Glassy\\Glassy\\Assets\\snapToBottomIcon")
-    self.icon:SetTexCoord(2 / 16, 10 / 16, 1 / 16, 11 / 16)
-    self.icon:SetSize(8, 10)
+    self.icon:SetTexCoord(0, 1, 0, 1)
+    self.icon:SetSize(10, 10)
 
     -- See new messages click area
     if self.snapToBottomFrame == nil then
@@ -116,19 +113,13 @@ function ScrollOverlayFrame:Init()
       self.newMessageAlertFrame = CreateNewMessageAlertFrame(self)
     end
 
-    self.newMessageAlertFrame:QuickHide()
+    self.newMessageAlertFrame:QuickShow()
 
     self.snapToBottomFrame:SetScript("OnEnter", function ()
       self.newMessageAlertFrame:SetHighlighted(true)
-      GameTooltip:SetOwner(self.snapToBottomFrame, "ANCHOR_TOPLEFT")
-      GameTooltip:SetText(L("Jump to latest message"), 1, 1, 1)
-      GameTooltip:Show()
     end)
     self.snapToBottomFrame:SetScript("OnLeave", function ()
       self.newMessageAlertFrame:SetHighlighted(false)
-      if GameTooltip:IsOwned(self.snapToBottomFrame) then
-        GameTooltip:Hide()
-      end
     end)
 
     if self.subscriptions == nil then
@@ -154,11 +145,7 @@ function ScrollOverlayFrame:SetScript(name, callback)
   if name == "OnClickSnapFrame" then
     self.snapToBottomFrame:SetScript("OnMouseUp", function (_, button)
       if button == "LeftButton" then
-        self.icon:SetAlpha(0.85)
         self.newMessageAlertFrame:SetHighlighted(false)
-        if GameTooltip:IsOwned(self.snapToBottomFrame) then
-          GameTooltip:Hide()
-        end
         callback()
       end
     end)
@@ -169,11 +156,13 @@ function ScrollOverlayFrame:SetScript(name, callback)
 end
 
 function ScrollOverlayFrame:ShowNewMessageAlert()
+  self.newMessageAlertFrame:SetUnread(true)
   self.newMessageAlertFrame:Show()
 end
 
 function ScrollOverlayFrame:HideNewMessageAlert()
-  self.newMessageAlertFrame:Hide()
+  self.newMessageAlertFrame:SetUnread(false)
+  self.newMessageAlertFrame:Show()
 end
 
 local function CreateScrollOverlayFrame(parent)
