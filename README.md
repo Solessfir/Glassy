@@ -3,7 +3,11 @@
 An immersive, minimal chat UI for all World of Warcraft versions.<br>
 It continues the original [Glass](https://www.curseforge.com/wow/addons/glass) design with Classic compatibility fixes, more customization, and new chat tools.
 
-![Glassy Preview](https://i.imgur.com/FjysGWP.gif)
+_Classic twist_
+![Glassy Preview](https://i.imgur.com/rtOyJeW.gif)
+
+_Same, but different…_
+![Glassy Preview Two](https://i.imgur.com/sPsDhPV.gif)
 
 ## Required addons for the full experience
 
