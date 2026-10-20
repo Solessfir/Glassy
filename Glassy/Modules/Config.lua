@@ -413,6 +413,9 @@ function C:OnSlashCommand(input)
     C_Timer.After(3, function () self:OnDebugCommand() end)
   elseif input == "news" then
     Core:Dispatch(OpenNews())
+  elseif input == "demo" then
+    local demo = Core:GetModule("Demo")
+    demo:SetActive(not demo:IsActive())
   else
     AceConfigDialog:Open("Glassy")
   end

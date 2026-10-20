@@ -10,7 +10,7 @@ Core:RegisterCompactTranslations("deDE", {
   TOOLTIPS = "Tooltips",
   GENERAL="Allgemein", ABOUT="Über", INFO="Info", VERSION="Version:", WHATS_NEW="Was ist neu?",
   OPEN_CONFIG="Einstellungen öffnen", TOGGLE_MOVER="Glassy-Verschieber ein-/ausblenden",
-  OPEN_DEBUG="Kopierbaren Layoutbericht öffnen", OPEN_NEWS_COMMAND="Versionsverlauf öffnen", COMMANDS="Befehle", REPORT_ISSUE="Problem melden", LOCK_FRAME="Fenster sperren", UNLOCK_FRAME="Fenster entsperren",
+  OPEN_DEBUG="Kopierbaren Layoutbericht öffnen", OPEN_NEWS_COMMAND="Versionsverlauf öffnen", TOGGLE_DEMO="Demomodus umschalten", DEMO_MODE="Demomodus", DEMO_MODE_DESC="Füllt den Chat mit Beispielnachrichten, um Stile und Animationen zu testen. Echte Nachrichten werden weiter aufgezeichnet und erscheinen wieder, wenn der Demomodus endet oder die Oberfläche neu geladen wird.", COMMANDS="Befehle", REPORT_ISSUE="Problem melden", LOCK_FRAME="Fenster sperren", UNLOCK_FRAME="Fenster entsperren",
   APPEARANCE="Aussehen", FONT="Schriftart", FONT_OUTLINE="Schriftkontur", LEFT_TEXT_PADDING="Linker Textabstand",
   CHAT_TAB_TOOLTIPS="Chat-Tab-Tooltips", TAB_MESSAGE_SEPARATOR="Trennlinie", TAB_MESSAGE_SPACING="Vertikaler Versatz",
   HEADER_BACKGROUND="Kopfzeilenhintergrund", LEFT_FADE_DISTANCE="Linke Ausblendstrecke",

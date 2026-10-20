@@ -81,6 +81,37 @@ listeners[1]("tabHighlightTextColor")
 equals(fonts.fonts.GlassyCombatLogActiveFont.color, {0, 0.1, 0.2, 1})
 equals(fonts.fonts.GlassyCombatLogHighlightFont.color, {0, 0.1, 0.2, 1})
 
+local function createFamily(members)
+  local family = CreateFont()
+  family.members = {}
+  for _, info in ipairs(members) do
+    family.members[info.alphabet] = CreateFont()
+    family.members[info.alphabet].path = info.file
+  end
+  family.GetFontObjectForAlphabet = function (self, alphabet) return self.members[alphabet] end
+  return family
+end
+ChatFontNormal = createFamily({})
+for _, alphabet in ipairs({"roman", "korean", "simplifiedchinese", "traditionalchinese", "russian"}) do
+  ChatFontNormal.members[alphabet] = {GetFont = function () return alphabet .. ".ttf", 14, "" end}
+end
+CreateFontFamily = function (_, members) return createFamily(members) end
+local familyListeners = {}
+core.Subscribe = function (_, _, callback) familyListeners[#familyListeners + 1] = callback end
+fonts = {}
+profile.messageFontSize = 15
+assert(loadfile("Glassy/Modules/Fonts.lua"))("Glassy", {core, constants})
+fonts:OnInitialize()
+fonts:OnEnable()
+local messageFamily = fonts.fonts.GlassyMessageFont.members
+assert(messageFamily.roman.path == "inherited.ttf", "Custom fonts apply to Latin text")
+for _, alphabet in ipairs({"korean", "simplifiedchinese", "traditionalchinese", "russian"}) do
+  assert(messageFamily[alphabet].path == alphabet .. ".ttf", "Other alphabets keep native chat fonts")
+  assert(messageFamily[alphabet].size == profile.messageFontSize)
+end
+equals(fonts.fonts.GlassyCombatLogNormalFont.members.russian.color, {1, 0, 0, 1})
+ChatFontNormal, CreateFontFamily = nil, nil
+
 function Mixin(frame, ...)
   for index = 1, select("#", ...) do
     for key, value in pairs(select(index, ...)) do if key ~= "Init" then frame[key] = value end end

@@ -9,7 +9,7 @@ Core:RegisterCompactTranslations("ptBR", {
   TABS = "Abas",
   TOOLTIPS = "Dicas",
   GENERAL="Geral", ABOUT="Sobre", INFO="Informações", VERSION="Versão:", WHATS_NEW="Novidades", OPEN_CONFIG="Abrir configurações",
-  TOGGLE_MOVER="Mostrar ou ocultar o quadro de movimento", OPEN_DEBUG="Abrir relatório de layout copiável", OPEN_NEWS_COMMAND="Abrir histórico de versões", COMMANDS="Comandos", REPORT_ISSUE="Relatar um problema",
+  TOGGLE_MOVER="Mostrar ou ocultar o quadro de movimento", OPEN_DEBUG="Abrir relatório de layout copiável", OPEN_NEWS_COMMAND="Abrir histórico de versões", TOGGLE_DEMO="Ativar ou desativar o modo de demonstração", DEMO_MODE="Modo de demonstração", DEMO_MODE_DESC="Preenche o bate-papo com mensagens de exemplo para visualizar estilos e animações. O bate-papo real continua sendo registrado e volta quando o modo de demonstração termina ou a interface é recarregada.", COMMANDS="Comandos", REPORT_ISSUE="Relatar um problema",
   LOCK_FRAME="Bloquear quadro", UNLOCK_FRAME="Desbloquear quadro", APPEARANCE="Aparência", FONT="Fonte",
   FONT_OUTLINE="Contorno da fonte", LEFT_TEXT_PADDING="Margem esquerda do texto", HOVER_HIGHLIGHT="Realce ao passar o mouse",
   CHAT_TAB_TOOLTIPS="Dicas das abas", TAB_MESSAGE_SEPARATOR="Separador", TAB_MESSAGE_SPACING="Deslocamento vertical", HEADER_BACKGROUND="Fundo do cabeçalho", LEFT_FADE_DISTANCE="Distância de fade à esquerda",

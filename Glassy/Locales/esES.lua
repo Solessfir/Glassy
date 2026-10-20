@@ -9,7 +9,7 @@ local values = {
   TABS = "Pestañas",
   TOOLTIPS = "Ayudas",
   GENERAL="General", ABOUT="Acerca de", INFO="Información", VERSION="Versión:", WHATS_NEW="Novedades", OPEN_CONFIG="Abrir configuración",
-  TOGGLE_MOVER="Mostrar u ocultar el marco de movimiento", OPEN_DEBUG="Abrir informe de diseño copiable", OPEN_NEWS_COMMAND="Abrir historial de versiones", COMMANDS="Comandos", REPORT_ISSUE="Informar de un problema",
+  TOGGLE_MOVER="Mostrar u ocultar el marco de movimiento", OPEN_DEBUG="Abrir informe de diseño copiable", OPEN_NEWS_COMMAND="Abrir historial de versiones", TOGGLE_DEMO="Activar o desactivar el modo demostración", DEMO_MODE="Modo demostración", DEMO_MODE_DESC="Llena el chat con mensajes de ejemplo para previsualizar estilos y animaciones. El chat real se sigue registrando y vuelve al terminar el modo demostración o al recargar la interfaz.", COMMANDS="Comandos", REPORT_ISSUE="Informar de un problema",
   LOCK_FRAME="Bloquear marco", UNLOCK_FRAME="Desbloquear marco", APPEARANCE="Apariencia", FONT="Fuente",
   FONT_OUTLINE="Contorno de fuente", LEFT_TEXT_PADDING="Margen izquierdo del texto",
   CHAT_TAB_TOOLTIPS="Ayudas de pestañas", TAB_MESSAGE_SEPARATOR="Separador", TAB_MESSAGE_SPACING="Desplazamiento vertical",

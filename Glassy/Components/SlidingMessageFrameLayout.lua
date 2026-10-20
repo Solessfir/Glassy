@@ -231,10 +231,10 @@ function SlidingMessageFrameMixin:RefreshLayout(reprocessText)
   for _, message in ipairs(self.state.messages) do
     if reprocessText and message.sourceText then
       local processedText = TP:ProcessText(message.sourceText, message.sourceFrame, message.receivedAt)
-      message.text:SetText(processedText)
+      message:SetDisplayText(processedText)
     end
     message:UpdateFrame()
-    contentHeight = contentHeight + message:GetHeight()
+    contentHeight = contentHeight + message.glassyHeight
   end
 
   self.slider:SetHeight(self.config.height + self.config.overflowHeight + contentHeight)

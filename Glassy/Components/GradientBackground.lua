@@ -42,7 +42,8 @@ function GradientBackgroundMixin:SetGradientBackground(color, opacity, horizonta
   local alpha = clampColorChannel(opacity, clampColorChannel(color and color.a, 1))
   horizontalInset = horizontalInset or 0
   bottomInset = bottomInset or 0
-  local availableWidth = math.max(1, self:GetWidth() + horizontalInset * 2)
+  -- Message rows provide their configured width because their own bounds can be secret.
+  local availableWidth = math.max(1, (self.glassyLayoutWidth or self:GetWidth()) + horizontalInset * 2)
   local leftWidth = availableWidth * math.max(0, math.min(100, tonumber(Core.db.profile.backgroundFadeLeftPercent) or 0)) / 100
   local rightWidth = availableWidth * math.max(0, math.min(100, tonumber(Core.db.profile.backgroundFadeRightPercent) or 0)) / 100
   local totalWidth = leftWidth + rightWidth

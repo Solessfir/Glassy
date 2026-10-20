@@ -248,7 +248,6 @@ function SlidingMessageFrameMixin:CreateMessageFrame(messageArgs)
   blue = blue or 1
 
   local message = self.messageFramePool:Acquire()
-  -- Match Blizzard's pooled FontString reset so protected text aspects do not leak into later lines.
   message.text:ClearText()
   message.text:SetFontObject("GlassyMessageFont")
   local processedText, sourceText = TP:ProcessText(text, frame, messageArgs.receivedAt)
@@ -257,7 +256,7 @@ function SlidingMessageFrameMixin:CreateMessageFrame(messageArgs)
   message.receivedAt = messageArgs.receivedAt
   message.glassyPreview = messageArgs.glassyPreview
   message.text:SetTextColor(red, green, blue, 1)
-  message.text:SetText(processedText)
+  message:SetDisplayText(processedText)
 
   -- Adjust height to contain text
   message:UpdateFrame()
@@ -276,7 +275,7 @@ function SlidingMessageFrameMixin:RemovePreviewMessages()
 
   for _, message in ipairs(messages) do
     if message.glassyPreview then
-      removedHeight = removedHeight + message:GetHeight()
+      removedHeight = removedHeight + message.glassyHeight
       self.messageFramePool:Release(message)
     else
       retained[#retained + 1] = message
@@ -291,11 +290,10 @@ function SlidingMessageFrameMixin:RemovePreviewMessages()
   end
 
   for index, message in ipairs(retained) do
-    message:ClearAllPoints()
     if index == #retained then
-      message:SetPoint("BOTTOMLEFT")
+      message:SetChainAnchor(nil)
     else
-      message:SetPoint("BOTTOMLEFT", retained[index + 1], "TOPLEFT")
+      message:SetChainAnchor(retained[index + 1], "TOPLEFT")
     end
   end
 
@@ -350,8 +348,25 @@ function SlidingMessageFrameMixin:PreviewAnimations()
   end)
 end
 
+-- Demo mode replaces the rendered chat; ReloadMessagesFromChatFrame restores real history afterwards.
+function SlidingMessageFrameMixin:SetDemoMode(active)
+  self.state.demo = active or nil
+  if active then
+    self:ClearMessages()
+  else
+    self:ReloadMessagesFromChatFrame()
+  end
+end
+
+function SlidingMessageFrameMixin:AddDemoMessage(text, red, green, blue)
+  local args = {self.chatFrame, text, red, green, blue}
+  args.receivedAt = GetServerTime()
+  table.insert(self.state.incomingMessages, args)
+  UIManager:QueueFrameForUpdate(self)
+end
+
 function SlidingMessageFrameMixin:AddMessageAt(receivedAt, ...)
-  if self.state.isCombatLog and isCombatLogHidden() then
+  if self.state.demo or (self.state.isCombatLog and isCombatLogHidden()) then
     return
   end
   if TP:IsMessageBlacklisted(select(2, ...)) then
@@ -370,7 +385,7 @@ function SlidingMessageFrameMixin:BackFillMessage(...)
 end
 
 function SlidingMessageFrameMixin:BackFillMessageAt(receivedAt, ...)
-  if self.state.isCombatLog and isCombatLogHidden() then
+  if self.state.demo or (self.state.isCombatLog and isCombatLogHidden()) then
     return
   end
   if TP:IsMessageBlacklisted(select(2, ...)) then
@@ -478,7 +493,7 @@ function SlidingMessageFrameMixin:ReleaseOldestMessages(removeCount)
   local messageCount = #messages
   for index = 1, removeCount do
     local message = messages[index]
-    removedHeight = removedHeight + message:GetHeight()
+    removedHeight = removedHeight + message.glassyHeight
     self.messageFramePool:Release(message)
   end
 
@@ -563,18 +578,14 @@ function SlidingMessageFrameMixin:Update(incoming, reverse)
   for incomingIndex = firstIncoming, lastIncoming do
     local message = incoming[incomingIndex]
     local messageFrame = self:CreateMessageFrame(message)
-    messageFrame:SetPoint("BOTTOMLEFT")
 
     -- Attach previous messageFrame to this one
-    if reverse then
-      if self.state.tail then
-        messageFrame:ClearAllPoints()
-        messageFrame:SetPoint("BOTTOMLEFT", self.state.tail, "TOPLEFT")
-      end
+    if reverse and self.state.tail then
+      messageFrame:SetChainAnchor(self.state.tail, "TOPLEFT")
     else
-      if self.state.head then
-        self.state.head:ClearAllPoints()
-        self.state.head:SetPoint("BOTTOMLEFT", messageFrame, "TOPLEFT")
+      messageFrame:SetChainAnchor(nil)
+      if not reverse and self.state.head then
+        self.state.head:SetChainAnchor(messageFrame, "TOPLEFT")
       end
     end
 
@@ -593,7 +604,7 @@ function SlidingMessageFrameMixin:Update(incoming, reverse)
     end
 
     table.insert(newMessages, messageFrame)
-    newMessagesHeight = newMessagesHeight + messageFrame:GetHeight()
+    newMessagesHeight = newMessagesHeight + messageFrame.glassyHeight
   end
 
   if reverse then

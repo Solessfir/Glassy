@@ -9,7 +9,7 @@ Core:RegisterCompactTranslations("koKR", {
   TABS = "탭",
   TOOLTIPS = "툴팁",
   GENERAL="일반", ABOUT="정보", INFO="정보", VERSION="버전:", WHATS_NEW="새로운 기능", OPEN_CONFIG="설정 열기",
-  TOGGLE_MOVER="Glassy 이동 프레임 표시/숨기기", OPEN_DEBUG="복사 가능한 배치 보고서 열기", OPEN_NEWS_COMMAND="버전 기록 열기", COMMANDS="명령어", REPORT_ISSUE="문제 신고",
+  TOGGLE_MOVER="Glassy 이동 프레임 표시/숨기기", OPEN_DEBUG="복사 가능한 배치 보고서 열기", OPEN_NEWS_COMMAND="버전 기록 열기", TOGGLE_DEMO="데모 모드 켜기/끄기", DEMO_MODE="데모 모드", DEMO_MODE_DESC="예시 메시지로 대화창을 채워 스타일과 애니메이션을 미리 봅니다. 실제 대화는 계속 기록되며 데모 모드를 끄거나 UI를 다시 불러오면 돌아옵니다.", COMMANDS="명령어", REPORT_ISSUE="문제 신고",
   LOCK_FRAME="프레임 잠금", UNLOCK_FRAME="프레임 잠금 해제", APPEARANCE="외형", FONT="글꼴",
   FONT_OUTLINE="글꼴 외곽선", LEFT_TEXT_PADDING="왼쪽 텍스트 여백", HOVER_HIGHLIGHT="마우스오버 강조",
   CHAT_TAB_TOOLTIPS="채팅 탭 도움말", TAB_MESSAGE_SEPARATOR="구분선", TAB_MESSAGE_SPACING="세로 위치", HEADER_BACKGROUND="머리글 배경", LEFT_FADE_DISTANCE="왼쪽 흐림 거리",

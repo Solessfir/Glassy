@@ -84,6 +84,7 @@ Glassy\Components\SlidingMessageFrameNative.lua
 
 # Modules
 Glassy\Modules\ChatCopy.lua
+Glassy\Modules\Demo.lua
 Glassy\Modules\ProfileTransfer.lua
 Glassy\Modules\Config.lua
 Glassy\Modules\ConfigProfiles.lua

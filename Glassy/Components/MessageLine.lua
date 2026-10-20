@@ -9,6 +9,8 @@ local HyperlinkLeave = Constants.ACTIONS.HyperlinkLeave
 local CreateFrame = CreateFrame
 local CreateObjectPool = CreateObjectPool
 local Mixin = Mixin
+local UIParent = UIParent
+local canaccessvalue = canaccessvalue
 -- luacheck: pop
 
 local MessageLineMixin = {}
@@ -17,18 +19,37 @@ local function getLeftTextPadding()
   return math.max(0, tonumber(Core.db.profile.textLeftPadding) or Core.defaults.profile.textLeftPadding)
 end
 
-local function updateTextLayout(self)
-  local leftPadding = getLeftTextPadding()
-  local textWidth = Core.db.profile.frameWidth - leftPadding - Constants.TEXT_RIGHT_PADDING
+local function isAccessible(value)
+  return not canaccessvalue or canaccessvalue(value)
+end
 
-  self.text:ClearAllPoints()
-  self.text:SetPoint("LEFT", leftPadding, 0)
-  self.text:SetWidth(math.max(1, textWidth))
+-- Rows chained above secret text inherit secret geometry, so heights are measured on a detached FontString.
+local measureText
+local function measureTextHeight(text, width)
+  if measureText == nil then
+    measureText = UIParent:CreateFontString(nil, "BACKGROUND", "GlassyMessageFont")
+    measureText:SetPoint("TOPLEFT", UIParent, "TOPLEFT")
+    measureText:Hide()
+  end
+  measureText:SetFontObject("GlassyMessageFont")
+  measureText:SetWidth(width)
+  measureText:SetIndentedWordWrap(Core.db.profile.indentWordWrap)
+  local lineHeight = measureText:GetLineHeight()
+  if not isAccessible(text) then
+    return nil, lineHeight
+  end
+  measureText:SetText(text)
+  local height = measureText:GetStringHeight()
+  measureText:ClearText()
+  if not isAccessible(height) then
+    return nil, lineHeight
+  end
+  return height, lineHeight
 end
 
 local function updateBackground(self)
   local color = Core.db.profile.chatBackgroundColor
-  local frameWidth = self:GetWidth()
+  local frameWidth = Core.db.profile.frameWidth
   local leftFadeWidth = tonumber(Core.db.profile.backgroundFadeLeftPercent) or 0
   local rightFadeWidth = tonumber(Core.db.profile.backgroundFadeRightPercent) or 0
   if (
@@ -104,7 +125,6 @@ function MessageLineMixin:Init()
   if self.text == nil then
     self.text = self:CreateFontString(nil, "ARTWORK", "GlassyMessageFont")
   end
-  updateTextLayout(self)
   self.text:SetIndentedWordWrap(Core.db.profile.indentWordWrap)
 
   -- Hyperlink handling
@@ -115,7 +135,7 @@ function MessageLineMixin:Init()
   end)
 
   self:SetScript("OnHyperlinkEnter", function (_, link, text)
-    if Core.db.profile.mouseOverTooltips then
+    if Core.db.profile.mouseOverTooltips and isAccessible(link) then
       Core:Dispatch(HyperlinkEnter({link, text}))
     end
   end)
@@ -126,17 +146,63 @@ function MessageLineMixin:Init()
 
 end
 
+function MessageLineMixin:SetDisplayText(text)
+  -- Match Blizzard's pooled FontString reset so protected text aspects do not leak into later lines.
+  self.text:ClearText()
+  self.glassyDisplayText = text
+  self.glassySecretText = not isAccessible(text)
+  self.text:SetText(text)
+end
+
+-- Secret text must be cleared while its FontString is re-anchored, then restored.
+function MessageLineMixin:WithTextDetached(callback)
+  if self.glassySecretText then self.text:ClearText() end
+  callback()
+  if self.glassySecretText then self.text:SetText(self.glassyDisplayText) end
+end
+
 ---
--- Update height based on text height
+-- Chains this row above relativeTo, or to the bottom of its parent when relativeTo is nil.
+-- The text is the chain link and the row sizes itself around it, so Lua never reads secret bounds.
+function MessageLineMixin:SetChainAnchor(relativeTo, relativePoint)
+  self.glassyChainTarget = relativeTo
+  self.glassyChainPoint = relativePoint
+  self:WithTextDetached(function ()
+    self.text:ClearAllPoints()
+    self.text:SetPoint(
+      "BOTTOMLEFT",
+      relativeTo or self:GetParent(),
+      relativeTo and relativePoint or "BOTTOMLEFT",
+      getLeftTextPadding(),
+      self.glassyTextPadding or 0
+    )
+  end)
+end
+
+---
+-- Update layout and the numeric height used for scroll accounting
 function MessageLineMixin:UpdateFrame()
-  self:SetWidth(Core.db.profile.frameWidth)
+  local frameWidth = Core.db.profile.frameWidth
+  local leftPadding = getLeftTextPadding()
+  local textWidth = math.max(1, frameWidth - leftPadding - Constants.TEXT_RIGHT_PADDING)
+  self.glassyLayoutWidth = frameWidth
+  self:SetWidth(frameWidth)
   self:UpdateFadeSettings()
-  updateTextLayout(self)
+  self.text:SetWidth(textWidth)
   self.text:SetIndentedWordWrap(Core.db.profile.indentWordWrap)
 
-  local Ypadding = self.text:GetLineHeight() * Core.db.profile.messageLinePadding
-  local messageLineHeight = (self.text:GetStringHeight() + Ypadding * 2)
-  self:SetHeight(messageLineHeight)
+  local textHeight, lineHeight = measureTextHeight(self.glassyDisplayText, textWidth)
+  local padding = lineHeight * Core.db.profile.messageLinePadding
+  self.glassyTextPadding = padding
+  -- Secret rows still size correctly through anchors; only scroll accounting uses this one-line estimate.
+  self.glassyHeight = (textHeight or lineHeight) + padding * 2
+
+  self:WithTextDetached(function ()
+    self:ClearAllPoints()
+    self:SetPoint("TOPLEFT", self.text, "TOPLEFT", -leftPadding, padding)
+    self:SetPoint("BOTTOMLEFT", self.text, "BOTTOMLEFT", -leftPadding, -padding)
+  end)
+  self:SetChainAnchor(self.glassyChainTarget, self.glassyChainPoint)
 
   updateBackground(self)
 end
@@ -167,6 +233,12 @@ local function CreateMessageLinePool(parent)
     function (_, message)
       -- Reset all animations and timers
       message:QuickHide()
+      message.text:ClearText()
+      message.glassyDisplayText = nil
+      message.glassySecretText = nil
+      message.glassyChainTarget = nil
+      message.glassyChainPoint = nil
+      message.glassyHeight = nil
       message.sourceText = nil
       message.sourceFrame = nil
       message.receivedAt = nil

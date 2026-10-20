@@ -54,6 +54,7 @@ Open Glassy through `/gl` or **Options → AddOns → Glassy**. Both show the sa
 | `/gl lock` | Toggle the chat-frame mover. |
 | `/gl debug` | Open a copyable layout report for troubleshooting. |
 | `/gl news` | Open the version history. |
+| `/gl demo` | Toggle demo mode: sample chat to preview styles and animations. |
 
 ## Shortcuts
 

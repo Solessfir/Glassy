@@ -189,6 +189,7 @@ local function getCommandOptions()
       commandMover = commandRow(2, "/gl lock", "Toggle the Glassy frame mover"),
       commandDebug = commandRow(3, "/gl debug", "Open a copyable layout debug report"),
       commandNews = commandRow(4, "/gl news", "Open version history"),
+      commandDemo = commandRow(5, "/gl demo", "Toggle demo mode"),
     },
   }
 end

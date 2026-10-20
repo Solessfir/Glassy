@@ -414,6 +414,14 @@ local function getMessageOptions()
             type = "execute",
             order = 4.3,
             func = previewAnimations,
+          },
+          demoMode = {
+            name = "Demo mode",
+            desc = "Fill chat with sample messages to preview styles and animations. Real chat is still recorded and returns when demo mode ends or the UI reloads.",
+            type = "toggle",
+            order = 4.4,
+            get = function () return Core:GetModule("Demo"):IsActive() end,
+            set = function (_, value) Core:GetModule("Demo"):SetActive(value) end,
           }
         }
       },

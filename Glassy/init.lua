@@ -30,6 +30,7 @@ Core.Version = GetAddOnMetadata and GetAddOnMetadata(AddonName, "Version") or "0
 -- Modules
 Core:NewModule("Config", "AceConsole-3.0")
 Core:NewModule("ChatCopy", "AceConsole-3.0")
+Core:NewModule("Demo")
 Core:NewModule("Fonts")
 Core:NewModule("Hyperlinks")
 Core:NewModule("News")

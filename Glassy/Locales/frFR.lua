@@ -9,7 +9,7 @@ Core:RegisterCompactTranslations("frFR", {
   TABS = "Onglets",
   TOOLTIPS = "Infobulles",
   GENERAL="Général", ABOUT="À propos", INFO="Informations", VERSION="Version :", WHATS_NEW="Nouveautés", OPEN_CONFIG="Ouvrir les options",
-  TOGGLE_MOVER="Afficher ou masquer le cadre de déplacement", OPEN_DEBUG="Ouvrir le rapport de disposition copiable", OPEN_NEWS_COMMAND="Ouvrir l’historique des versions", COMMANDS="Commandes", REPORT_ISSUE="Signaler un problème",
+  TOGGLE_MOVER="Afficher ou masquer le cadre de déplacement", OPEN_DEBUG="Ouvrir le rapport de disposition copiable", OPEN_NEWS_COMMAND="Ouvrir l’historique des versions", TOGGLE_DEMO="Activer ou désactiver le mode démo", DEMO_MODE="Mode démo", DEMO_MODE_DESC="Remplit la discussion de messages d’exemple pour prévisualiser les styles et les animations. La discussion réelle reste enregistrée et revient à la fin du mode démo ou au rechargement de l’interface.", COMMANDS="Commandes", REPORT_ISSUE="Signaler un problème",
   LOCK_FRAME="Verrouiller le cadre", UNLOCK_FRAME="Déverrouiller le cadre", APPEARANCE="Apparence", FONT="Police",
   FONT_OUTLINE="Contour de police", LEFT_TEXT_PADDING="Marge gauche du texte", HOVER_HIGHLIGHT="Surbrillance au survol",
   CHAT_TAB_TOOLTIPS="Infobulles des onglets", TAB_MESSAGE_SEPARATOR="Séparateur", TAB_MESSAGE_SPACING="Décalage vertical", HEADER_BACKGROUND="Arrière-plan de l’en-tête",

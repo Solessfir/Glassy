@@ -8,8 +8,50 @@ local UPDATE_CONFIG = Constants.EVENTS.UPDATE_CONFIG
 -- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
 -- luacheck: push ignore 113
 local CreateFont = CreateFont
+local CreateFontFamily = CreateFontFamily
+local ChatFontNormal = ChatFontNormal
 local GameFontNormal = GameFontNormal
 -- luacheck: pop
+
+-- Custom fonts usually lack CJK and Cyrillic glyphs, so only the roman member uses the
+-- selected font while the other alphabets keep the client's native chat fonts.
+local ALPHABETS = {"roman", "korean", "simplifiedchinese", "traditionalchinese", "russian"}
+local nativeMembers
+local nativeFontPaths = {}
+
+local function initNativeFonts()
+  if nativeMembers ~= nil then return end
+  nativeMembers = false
+  if not CreateFontFamily or not ChatFontNormal or not ChatFontNormal.GetFontObjectForAlphabet then return end
+  local members = {}
+  for _, alphabet in ipairs(ALPHABETS) do
+    local native = ChatFontNormal:GetFontObjectForAlphabet(alphabet)
+    if not native then return end
+    local path, size, flags = native:GetFont()
+    if not path then return end
+    nativeFontPaths[alphabet] = path
+    members[#members + 1] = {alphabet = alphabet, file = path, height = size, flags = flags or ""}
+  end
+  nativeMembers = members
+end
+
+local function createChatFont(name)
+  initNativeFonts()
+  if nativeMembers then return CreateFontFamily(name, nativeMembers) end
+  return CreateFont(name)
+end
+
+-- Applies a setter to every alphabet member of a font family, or to a plain font.
+local function eachMember(fontObject, callback)
+  if not nativeMembers or not fontObject.GetFontObjectForAlphabet then
+    callback(fontObject)
+    return
+  end
+  for _, alphabet in ipairs(ALPHABETS) do
+    local member = fontObject:GetFontObjectForAlphabet(alphabet)
+    if member then callback(member, alphabet) end
+  end
+end
 
 local function setFont(fontObject, size, setting)
   local defaultFontPath = GameFontNormal and GameFontNormal:GetFont()
@@ -22,33 +64,54 @@ local function setFont(fontObject, size, setting)
     shadow = true
     flags = flags:sub(7)
   end
-  local fontPath = LSM:Fetch(LSM.MediaType.FONT, selected, true) or defaultFontPath
-  if fontPath == nil then
-    return
-  end
-  local ok, applied = pcall(
-    fontObject.SetFont,
-    fontObject,
-    fontPath,
-    size,
-    flags
-  )
+  local selectedPath = LSM:Fetch(LSM.MediaType.FONT, selected, true)
 
-  if (not ok or applied == false) and defaultFontPath then
-    fontObject:SetFont(defaultFontPath, size, flags)
-  end
-  fontObject:SetShadowColor(0, 0, 0, shadow and 1 or 0)
-  fontObject:SetShadowOffset(shadow and 1 or 0, shadow and -1 or 0)
+  eachMember(fontObject, function (member, alphabet)
+    local fallbackPath = alphabet and nativeFontPaths[alphabet] or defaultFontPath
+    local fontPath = (alphabet == nil or alphabet == "roman") and selectedPath or fallbackPath
+    fontPath = fontPath or fallbackPath
+    if fontPath == nil then
+      return
+    end
+    local ok, applied = pcall(
+      member.SetFont,
+      member,
+      fontPath,
+      size,
+      flags
+    )
+
+    if (not ok or applied == false) and fallbackPath then
+      member:SetFont(fallbackPath, size, flags)
+    end
+    member:SetShadowColor(0, 0, 0, shadow and 1 or 0)
+    member:SetShadowOffset(shadow and 1 or 0, shadow and -1 or 0)
+  end)
+end
+
+local function setTextColor(fontObject, color)
+  eachMember(fontObject, function (member)
+    member:SetTextColor(color.r, color.g, color.b, 1)
+  end)
+end
+
+local function setSpacing(fontObject, spacing)
+  eachMember(fontObject, function (member)
+    member:SetSpacing(spacing)
+  end)
+end
+
+local function setJustify(fontObject)
+  fontObject:SetJustifyH("LEFT")
+  fontObject:SetJustifyV("MIDDLE")
+  eachMember(fontObject, function (member)
+    member:SetJustifyH("LEFT")
+    member:SetJustifyV("MIDDLE")
+  end)
 end
 
 local function setCombatLogHighlightColor(fontObject)
-  local color = Core.db.profile.tabHighlightTextColor or Constants.COLORS.apache
-  fontObject:SetTextColor(
-    color.r,
-    color.g,
-    color.b,
-    1
-  )
+  setTextColor(fontObject, Core.db.profile.tabHighlightTextColor or Constants.COLORS.apache)
 end
 
 function Fonts:OnInitialize()
@@ -57,45 +120,38 @@ end
 
 function Fonts:OnEnable()
   -- GlassyMessageFont
-  self.fonts.GlassyMessageFont = CreateFont("GlassyMessageFont")
+  self.fonts.GlassyMessageFont = createChatFont("GlassyMessageFont")
   setFont(self.fonts.GlassyMessageFont, Core.db.profile.messageFontSize, "messageFont")
-  self.fonts.GlassyMessageFont:SetJustifyH("LEFT")
-  self.fonts.GlassyMessageFont:SetJustifyV("MIDDLE")
-  self.fonts.GlassyMessageFont:SetSpacing(Core.db.profile.messageLeading)
+  setJustify(self.fonts.GlassyMessageFont)
+  setSpacing(self.fonts.GlassyMessageFont, Core.db.profile.messageLeading)
 
   -- GlassyChatDockFont
-  self.fonts.GlassyChatDockFont = CreateFont("GlassyChatDockFont")
+  self.fonts.GlassyChatDockFont = createChatFont("GlassyChatDockFont")
   setFont(self.fonts.GlassyChatDockFont, Core.db.profile.tabFontSize, "tabFont")
-  self.fonts.GlassyChatDockFont:SetJustifyH("LEFT")
-  self.fonts.GlassyChatDockFont:SetJustifyV("MIDDLE")
-  self.fonts.GlassyChatDockFont:SetSpacing(3)
+  setJustify(self.fonts.GlassyChatDockFont)
+  setSpacing(self.fonts.GlassyChatDockFont, 3)
 
   -- Combat Log filter buttons
-  self.fonts.GlassyCombatLogNormalFont = CreateFont("GlassyCombatLogNormalFont")
+  self.fonts.GlassyCombatLogNormalFont = createChatFont("GlassyCombatLogNormalFont")
   setFont(self.fonts.GlassyCombatLogNormalFont, Core.db.profile.tabFontSize, "tabFont")
-  local combatLogColor = Core.db.profile.tabTextColor
-  self.fonts.GlassyCombatLogNormalFont:SetTextColor(combatLogColor.r, combatLogColor.g, combatLogColor.b, 1)
-  self.fonts.GlassyCombatLogNormalFont:SetJustifyH("LEFT")
-  self.fonts.GlassyCombatLogNormalFont:SetJustifyV("MIDDLE")
+  setTextColor(self.fonts.GlassyCombatLogNormalFont, Core.db.profile.tabTextColor)
+  setJustify(self.fonts.GlassyCombatLogNormalFont)
 
-  self.fonts.GlassyCombatLogHighlightFont = CreateFont("GlassyCombatLogHighlightFont")
+  self.fonts.GlassyCombatLogHighlightFont = createChatFont("GlassyCombatLogHighlightFont")
   setFont(self.fonts.GlassyCombatLogHighlightFont, Core.db.profile.tabFontSize, "tabFont")
   setCombatLogHighlightColor(self.fonts.GlassyCombatLogHighlightFont)
-  self.fonts.GlassyCombatLogHighlightFont:SetJustifyH("LEFT")
-  self.fonts.GlassyCombatLogHighlightFont:SetJustifyV("MIDDLE")
+  setJustify(self.fonts.GlassyCombatLogHighlightFont)
 
-  self.fonts.GlassyCombatLogActiveFont = CreateFont("GlassyCombatLogActiveFont")
+  self.fonts.GlassyCombatLogActiveFont = createChatFont("GlassyCombatLogActiveFont")
   setFont(self.fonts.GlassyCombatLogActiveFont, Core.db.profile.tabFontSize, "tabFont")
   setCombatLogHighlightColor(self.fonts.GlassyCombatLogActiveFont)
-  self.fonts.GlassyCombatLogActiveFont:SetJustifyH("LEFT")
-  self.fonts.GlassyCombatLogActiveFont:SetJustifyV("MIDDLE")
+  setJustify(self.fonts.GlassyCombatLogActiveFont)
 
   -- GlassyEditBoxFont
-  self.fonts.GlassyEditBoxFont = CreateFont("GlassyEditBoxFont")
+  self.fonts.GlassyEditBoxFont = createChatFont("GlassyEditBoxFont")
   setFont(self.fonts.GlassyEditBoxFont, Core.db.profile.editBoxFontSize, "editBoxFont")
-  self.fonts.GlassyEditBoxFont:SetJustifyH("LEFT")
-  self.fonts.GlassyEditBoxFont:SetJustifyV("MIDDLE")
-  self.fonts.GlassyEditBoxFont:SetSpacing(3)
+  setJustify(self.fonts.GlassyEditBoxFont)
+  setSpacing(self.fonts.GlassyEditBoxFont, 3)
 
   Core:Subscribe(UPDATE_CONFIG, function (key)
     if key == "font" or key == "messageFontSize" then
@@ -103,7 +159,7 @@ function Fonts:OnEnable()
     end
 
     if key == "messageLeading" then
-      self.fonts.GlassyMessageFont:SetSpacing(Core.db.profile.messageLeading)
+      setSpacing(self.fonts.GlassyMessageFont, Core.db.profile.messageLeading)
     end
 
     if key == "font" or key == "tabFontSize" then
@@ -114,8 +170,7 @@ function Fonts:OnEnable()
     end
 
     if key == "tabTextColor" then
-      local color = Core.db.profile.tabTextColor
-      self.fonts.GlassyCombatLogNormalFont:SetTextColor(color.r, color.g, color.b, 1)
+      setTextColor(self.fonts.GlassyCombatLogNormalFont, Core.db.profile.tabTextColor)
     end
 
     if key == "tabHighlightTextColor" then

@@ -9,7 +9,7 @@ Core:RegisterCompactTranslations("zhTW", {
   TABS = "分頁",
   TOOLTIPS = "提示",
   GENERAL="一般", ABOUT="關於", INFO="資訊", VERSION="版本：", WHATS_NEW="更新內容", OPEN_CONFIG="開啟設定",
-  TOGGLE_MOVER="顯示或隱藏 Glassy 移動框", OPEN_DEBUG="開啟可複製的版面報告", OPEN_NEWS_COMMAND="開啟版本歷史", COMMANDS="指令", REPORT_ISSUE="回報問題", LOCK_FRAME="鎖定框架",
+  TOGGLE_MOVER="顯示或隱藏 Glassy 移動框", OPEN_DEBUG="開啟可複製的版面報告", OPEN_NEWS_COMMAND="開啟版本歷史", TOGGLE_DEMO="切換展示模式", DEMO_MODE="展示模式", DEMO_MODE_DESC="以範例訊息填滿聊天框以預覽樣式與動畫。真實聊天仍會記錄，並在展示模式結束或重新載入介面後恢復。", COMMANDS="指令", REPORT_ISSUE="回報問題", LOCK_FRAME="鎖定框架",
   UNLOCK_FRAME="解鎖框架", APPEARANCE="外觀", FONT="字型", FONT_OUTLINE="字型外框", LEFT_TEXT_PADDING="文字左側間距",
   CHAT_TAB_TOOLTIPS="聊天分頁提示", TAB_MESSAGE_SEPARATOR="分隔線", TAB_MESSAGE_SPACING="垂直偏移", HEADER_BACKGROUND="標題背景",
   LEFT_FADE_DISTANCE="左側淡出距離", RIGHT_FADE_DISTANCE="右側淡出距離", FRAME="框架", WIDTH="寬度", HEIGHT="高度",
