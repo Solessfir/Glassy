@@ -4,6 +4,7 @@ assert(loadfile("libs/CallbackHandler-1.0/CallbackHandler-1.0.lua"))()
 CreateFrame = function() return {RegisterEvent = function() end, SetScript = function() end} end
 GetRealmName = function() return "Realm" end
 UnitName = function() return "Player" end
+UnitNameUnmodified = UnitName
 UnitClass = function() return "Rogue", "ROGUE" end
 UnitRace = function() return "Human", "Human" end
 UnitFactionGroup = function() return "Alliance", "Alliance" end
