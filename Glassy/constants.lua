@@ -4,6 +4,7 @@ local _, Constants = unpack(select(2, ...))
 -- luacheck: push ignore 113
 local WOW_PROJECT_MAINLINE = WOW_PROJECT_MAINLINE
 local WOW_PROJECT_ID = WOW_PROJECT_ID
+local FCF_UpdateChatFrameParent = FCF_UpdateChatFrameParent
 -- luacheck: pop
 
 -- Constants
@@ -12,7 +13,9 @@ Constants.COMBAT_LOG_BAR_HEIGHT = 20
 Constants.EDIT_BOX_TRANSITION_DURATION = 0.2
 Constants.TEXT_RIGHT_PADDING = 15
 
-Constants.ENV = WOW_PROJECT_MAINLINE and WOW_PROJECT_ID == WOW_PROJECT_MAINLINE and "retail" or "classic"
+-- WoW Forever has its own project ID but ships the Mainline chat UI, which only defines FCF_UpdateChatFrameParent.
+local isMainlineChat = WOW_PROJECT_MAINLINE and WOW_PROJECT_ID == WOW_PROJECT_MAINLINE or FCF_UpdateChatFrameParent ~= nil
+Constants.ENV = isMainlineChat and "retail" or "classic"
 
 -- Colors
 local function createColor(r, g, b)

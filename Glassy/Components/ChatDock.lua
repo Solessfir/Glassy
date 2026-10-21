@@ -218,8 +218,21 @@ function ChatDockMixin:Init(parent)
 
   if not self:IsHooked(self.scrollFrame, "SetPoint") then
     Utils.hookPresentation(self, self.scrollFrame, "SetPoint", function (frame, point, relativeTo, relativePoint, xOffset, yOffset)
+      -- Glassy moves static tabs into the scroll child, so Blizzard anchors to them would loop.
+      -- UpdateTabOrder re-anchors the scroll frame after every tab update.
+      if Constants.ENV == "retail" then
+        -- Blizzard's anchor is already applied here, so only the shifted dock-relative BOTTOMRIGHT is redone.
+        local ownAnchor = relativeTo == nil or relativeTo == self or relativeTo == self.overflowButton
+        if point ~= "BOTTOMRIGHT" or not ownAnchor then return end
+      elseif type(relativeTo) == "table" and relativeTo.GetParent and relativeTo:GetParent() == self.scrollFrame.child then
+        return
+      end
+
       if point == "BOTTOMRIGHT" then
         yOffset = (yOffset or 0) + 5
+        if relativeTo == nil then
+          relativeTo, relativePoint, xOffset = self, point, xOffset or 0
+        end
       end
 
       self.hooks[self.scrollFrame].SetPoint(frame, point, relativeTo, relativePoint, xOffset, yOffset)

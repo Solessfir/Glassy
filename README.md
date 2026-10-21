@@ -24,7 +24,7 @@ These are feature requirements, not addon-loading requirements: Glassy can run o
 **Downloads:** [GitHub Releases](https://github.com/Solessfir/Glassy/releases) · [CurseForge](https://www.curseforge.com/wow/addons/glassy) · [Wago Addons](https://addons.wago.io/addons/glassy).
 
 1. Download the packaged addon ZIP from [GitHub Releases](https://github.com/Solessfir/Glassy/releases), not GitHub's **Source code** archives.
-2. Extract the `Glassy` folder into your client's `Interface/AddOns` folder, with `Glassy.toc` directly inside `Interface/AddOns/Glassy`. Use `_classic_era_` for Era/Hardcore, `_anniversary_` for Burning Crusade Anniversary, `_classic_` for Mists of Pandaria Classic, or `_retail_` for Retail.
+2. Extract the `Glassy` folder into your client's `Interface/AddOns` folder, with `Glassy.toc` directly inside `Interface/AddOns/Glassy`. Use `_classic_era_` for Era/Hardcore, `_anniversary_` for Burning Crusade Anniversary, `_classic_` for Mists of Pandaria Classic, `_forever_` for WoW Forever, or `_retail_` for Retail.
 3. Install Prat and ElvUI if you want the features listed above.
 4. Restart WoW or reload after replacing an existing installation, then enter `/gl`.
 5. Open **About** and check its **Compatibility** section for detected addons and conflicting Prat modules.
