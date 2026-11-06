@@ -39,7 +39,7 @@ jobs:
         run: git tag --points-at HEAD | xargs -r git tag --delete
 
       - name: Build without publishing
-        uses: BigWigsMods/packager@5abb6e1ddbd98c818ac5ee3692613cd372619dc9 # v2
+        uses: BigWigsMods/packager@01e8631a69c69d7654c788d152630d5fed9e3812 # v2.7.0
         with:
           args: -d
 
@@ -82,7 +82,7 @@ jobs:
           fi
 
       - name: Publish to CurseForge, Wago, and GitHub Releases
-        uses: BigWigsMods/packager@5abb6e1ddbd98c818ac5ee3692613cd372619dc9 # v2
+        uses: BigWigsMods/packager@01e8631a69c69d7654c788d152630d5fed9e3812 # v2.7.0
         env:
           CF_API_KEY: ${{ secrets.CF_API_KEY }}
           WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
