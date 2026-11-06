@@ -5,6 +5,9 @@ strsplit = function (delimiter, text)
   return unpack(parts)
 end
 COPY_CHARACTER_NAME, MOVE_TO_NEW_WINDOW = "Copy Character Name", "Move to New Window"
+MOVE_TO_WHISPER_WINDOW = "Move to Whisper Window"
+local openedWindow
+FCF_OpenTemporaryWindow = function (...) openedWindow = {...} end
 
 local listeners, modifiers = {}, {}
 local refs, copied, poppedOut = {}, nil, nil
@@ -29,10 +32,15 @@ local function menu(text)
   return root, element
 end
 local copyMenu, copyElement = menu(COPY_CHARACTER_NAME)
+local whisperElement = {text = MOVE_TO_WHISPER_WINDOW}
+function whisperElement:SetResponder(callback) self.responder = callback end
+copyMenu[2] = whisperElement
 local channelMenu, moveElement = menu(MOVE_TO_NEW_WINDOW)
 SetItemRef = function (link, text, button, frame)
   refs[#refs + 1] = {link = link, button = button, frame = frame}
-  if link:match("^player:") then modifiers.MENU_UNIT_PLAYER(nil, copyMenu, {name = "Elowen"}) end
+  if link:match("^player:") then
+    modifiers.MENU_UNIT_PLAYER(nil, copyMenu, {name = "Elowen", chatType = "WHISPER", chatTarget = "Elowen"})
+  end
   if link:match("^channel:") then modifiers.MENU_CHAT_FRAME_CHANNEL(nil, channelMenu) end
 end
 
@@ -70,6 +78,9 @@ listeners.click({"player:Elowen", "[Elowen]", "RightButton", chatFrame})
 assert(refs[2].frame == nil, "Right-click menus are not anchored to the hidden native frame")
 copyElement.responder()
 assert(copied == "Elowen", "Copy Character Name opens Glassy's copy window")
+whisperElement.responder()
+assert(openedWindow[1] == "WHISPER" and openedWindow[2] == "Elowen" and openedWindow[3] == chatFrame
+  and openedWindow[4] == true, "Move to Whisper Window carries the conversation from the clicked chat frame")
 
 listeners.click({"channel:CHANNEL:2", "[2. Trade]", "RightButton", chatFrame})
 moveElement.responder()

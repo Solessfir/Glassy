@@ -105,6 +105,7 @@ local function ensureCopyWindow()
   copyTextBox:SetLabel(L("All text is selected"))
   copyTextBox:DisableButton(true)
   copyFrame:AddChild(copyTextBox)
+  Core:GetModule("Ellesmere"):SkinWindow(copyFrame, {copyTextBox})
 end
 
 function ChatCopy:ShowText(title, text)
@@ -196,6 +197,7 @@ local function ensureSearchWindow()
   searchResults:SetFullHeight(true)
   searchResults:DisableButton(true)
   searchFrame:AddChild(searchResults)
+  Core:GetModule("Ellesmere"):SkinWindow(searchFrame, {searchInput, searchResults})
 end
 
 function ChatCopy:ShowSearch(chatFrame)

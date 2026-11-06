@@ -78,7 +78,7 @@ local function getMessageOptions()
             hasAlpha = true,
             order = 1.26,
             get = function ()
-              local color = Core.db.profile.unreadMessageSeparatorColor
+              local color = Core:GetThemeColor("unreadMessageSeparatorColor")
               return color.r, color.g, color.b, color.a
             end,
             set = function (_, r, g, b, a)

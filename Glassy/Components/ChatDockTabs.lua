@@ -3,6 +3,7 @@ local ChatDockMixin = Core.Components.ChatDockMixin
 
 -- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
 -- luacheck: push ignore 113
+local C_Timer = C_Timer
 local FCFDock_GetSelectedWindow = FCFDock_GetSelectedWindow
 local FCFDock_HideInsertHighlight = FCFDock_HideInsertHighlight
 local FCFDockOverflowListButton_SetValue = FCFDockOverflowListButton_SetValue
@@ -18,7 +19,7 @@ local TAB_DRAG_SCROLL_EDGE = 32
 local TAB_DRAG_SCROLL_SPEED = 300
 
 local function setTextColor(text, highlighted)
-  local color = Core.db.profile[highlighted and "tabHighlightTextColor" or "tabTextColor"] or Constants.COLORS.apache
+  local color = Core:GetThemeColor(highlighted and "tabHighlightTextColor" or "tabTextColor") or Constants.COLORS.apache
   text:SetTextColor(color.r, color.g, color.b, 1)
   text:SetAlpha(color.a or 1)
 end
@@ -229,6 +230,17 @@ function ChatDockMixin:LayoutDockedTabs(orderedFrames, keepSelectedVisible, gap)
   end
 
   self.scrollFrame:SetHorizontalScroll(math.max(0, math.min(scrollOffset, maximumScroll)))
+end
+
+-- Tab widths also change while Blizzard's FCFDock_UpdateTabs is mid-loop (its tab colour update reaches Glassy),
+-- and re-parenting tabs there makes its own anchors loop and abort the update, so changes lay out next frame.
+function ChatDockMixin:ScheduleTabOrder()
+  if self.tabOrderPending then return end
+  self.tabOrderPending = true
+  C_Timer.After(0, function ()
+    self.tabOrderPending = nil
+    self:UpdateTabOrder()
+  end)
 end
 
 function ChatDockMixin:UpdateTabOrder()

@@ -417,8 +417,33 @@ function C:OnSlashCommand(input)
     local demo = Core:GetModule("Demo")
     demo:SetActive(not demo:IsActive())
   else
-    AceConfigDialog:Open("Glassy")
+    self:OpenSettings()
   end
+end
+
+local settingsWindow
+
+-- AceConfigDialog's own window returns to AceGUI's shared pool when closed, so EllesmereUI's permanent skin would
+-- reach other addons' windows. While EllesmereUI skins Glassy, settings open in a window Glassy keeps instead.
+function C:OpenSettings()
+  local ellesmere = Core:GetModule("Ellesmere")
+  if not ellesmere:IsActive() then
+    AceConfigDialog:Open("Glassy")
+    return
+  end
+  if settingsWindow == nil then
+    settingsWindow = AceGUI:Create("Frame")
+    -- The pooled controls inside go back to AceGUI; only the kept window carries the skin.
+    settingsWindow:SetCallback("OnClose", function (widget) widget:ReleaseChildren() end)
+    _G.GlassySettingsFrame = settingsWindow.frame
+    table.insert(_G.UISpecialFrames, "GlassySettingsFrame")
+    -- AceConfigDialog refreshes registered containers while they are visible.
+    AceConfigDialog.BlizOptions.Glassy = AceConfigDialog.BlizOptions.Glassy or {}
+    AceConfigDialog.BlizOptions.Glassy.GlassySettingsWindow = settingsWindow
+    ellesmere:SkinWindow(settingsWindow)
+  end
+  AceConfigDialog:Open("Glassy", settingsWindow)
+  settingsWindow:Show()
 end
 
 local function debugName(region)
@@ -514,6 +539,7 @@ function C:ShowCopyableText(title, text)
     copyableTextBox:SetLabel(L("All text is selected"))
     copyableTextBox:DisableButton(true)
     copyableFrame:AddChild(copyableTextBox)
+    Core:GetModule("Ellesmere"):SkinWindow(copyableFrame, {copyableTextBox})
   end
 
   copyableFrame:SetTitle(title)

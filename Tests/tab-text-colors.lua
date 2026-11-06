@@ -12,6 +12,7 @@ local function noop() end
 local core = {Components = {}, db = {profile = profile}, Libs = {AceHook = {}, LSM = {
   MediaType = {FONT = "font"}, Fetch = function (_, _, name) return name end,
 }}, GetModule = function () return fonts end,
+  GetThemeColor = function (self, key) return self.db.profile[key] end,
   Subscribe = function (_, _, callback) listeners[#listeners + 1] = callback end}
 local constants = {ACTIONS = {}, EVENTS = {UPDATE_CONFIG = "update"}, COLORS = {apache = {r = 1, g = 1, b = 1}}}
 function CreateFont()
@@ -148,7 +149,11 @@ local relayouts = 0
 tab.CreateFontString = function () return count end
 tab.GetTextWidth = function () return 40 end
 tab.SetWidth = function (self, width) self.width = width end
-tab.glassyDock = {UpdateTabOrder = function () relayouts = relayouts + 1 end}
+-- A count can change inside Blizzard's own tab update, so the dock only schedules its layout.
+tab.glassyDock = {
+  UpdateTabOrder = function () error("Tab layout must not run inside Blizzard's tab update") end,
+  ScheduleTabOrder = function () relayouts = relayouts + 1 end,
+}
 local otherFrame = {}
 GENERAL_CHAT_DOCK = {selected = otherFrame}
 tab.chatFrame.isDocked = true
@@ -170,7 +175,29 @@ tab:AddUnreadMessage()
 assert(tab.glassyUnreadCount == 100, "The selected tab does not count")
 tab:UpdateVisualState()
 assert(tab.glassyUnreadCount == 0 and not count.shown and tab.width == 45, "Selecting the tab clears its count")
+GENERAL_CHAT_DOCK.selected = otherFrame
+tab.chatFrame.isTemporary = true
+tab:AddUnreadMessage()
+GENERAL_CHAT_DOCK.selected = tab.chatFrame
+tab:UpdateVisualState()
+assert(tab.glassyUnreadCount == 0, "Whisper tabs clear their count once read")
+tab.chatFrame.isTemporary = nil
 GENERAL_CHAT_DOCK = nil
+
+-- Whisper tabs place Blizzard's conversation icon before the name and widen the tab for it.
+local iconPoints, textPoint = {}, nil
+tab.conversationIcon = {
+  IsShown = function () return true end, GetWidth = function () return 16 end,
+  ClearAllPoints = function () iconPoints = {} end,
+  SetPoint = function (_, ...) iconPoints[#iconPoints + 1] = {...} end,
+}
+text.SetPoint = function (_, point, x) textPoint = {point, x} end
+tab:UpdateTextLayout()
+assert(#iconPoints == 1 and iconPoints[1][1] == "LEFT" and iconPoints[1][3] == "LEFT" and iconPoints[1][5] == 0,
+  "The icon keeps one centered anchor instead of Blizzard's two")
+assert(textPoint[1] == "LEFT" and textPoint[2] == 16 + 3, "The name starts after the icon")
+assert(tab.width == 16 + 3 + 40 + 5, "The tab is widened by the icon")
+tab.conversationIcon = nil
 
 local alertText = {
   ClearAllPoints = noop, SetPoint = noop, GetLineHeight = function () return 13 end,

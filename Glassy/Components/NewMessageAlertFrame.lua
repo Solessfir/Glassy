@@ -24,7 +24,7 @@ end
 
 function NewMessageAlertFrameMixin:SetHighlighted(highlighted)
     self.highlighted = highlighted
-    local color = Core.db.profile[highlighted and "tabHighlightTextColor" or "tabTextColor"] or Colors.apache
+    local color = Core:GetThemeColor(highlighted and "tabHighlightTextColor" or "tabTextColor") or Colors.apache
     self.text:SetTextColor(color.r, color.g, color.b, 1)
     self.text:SetAlpha(color.a or 1)
     local icon = self:GetParent().icon
@@ -61,7 +61,7 @@ function NewMessageAlertFrameMixin:Init()
       self.bottomLine:SetPoint("BOTTOMLEFT")
       self.bottomLine:SetPoint("BOTTOMRIGHT")
     end
-    self.bottomLine:SetSeparatorColor(Core.db.profile.unreadMessageSeparatorColor)
+    self.bottomLine:SetSeparatorColor(Core:GetThemeColor("unreadMessageSeparatorColor"))
 
     if self.subscriptions == nil then
       self.subscriptions = {
@@ -71,7 +71,7 @@ function NewMessageAlertFrameMixin:Init()
           end
 
           if key == "backgroundFade" or key == "unreadMessageSeparatorColor" then
-            self.bottomLine:SetSeparatorColor(Core.db.profile.unreadMessageSeparatorColor)
+            self.bottomLine:SetSeparatorColor(Core:GetThemeColor("unreadMessageSeparatorColor"))
           end
 
           if key == "tabHighlightTextColor" or key == "tabTextColor" then

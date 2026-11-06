@@ -86,6 +86,11 @@ Core:RegisterCompactTranslations("ptBR", {
   COPY_NAME_TITLE = "Glassy: Copiar nome",
   TRACK_RECIPE = "Rastrear receita",
   UNTRACK_RECIPE = "Parar de rastrear receita",
+  NOT_DETECTED_EUI = "Não detectado: EllesmereUI.",
+  EUI_CHAT_ENABLED = "EllesmereUI Chat está ativado.",
+  EUI_CHAT_CONFLICT = "Ele altera o visual das mesmas janelas de bate-papo que o Glassy. Desative o addon EllesmereUI Chat e recarregue.",
+  EUI_SKIN_ACTIVE = "As janelas, as cores dos rótulos e a fonte padrão do Glassy seguem o estilo dele.",
+  EUI_SKIN_OFF = "O visual do Glassy está desativado nas opções de addons de terceiros do EllesmereUI.",
 }, function(label)
   return label and ("Configurar: " .. label .. ".") or "Configurar esta opção."
 end)

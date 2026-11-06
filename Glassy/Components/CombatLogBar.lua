@@ -38,9 +38,9 @@ function CombatLogBarMixin:UpdateButtonHighlightFont(button)
     font = "GlassyCombatLogActiveFont"
   end
   button:SetHighlightFontObject(font)
-  local color = Core.db.profile.tabTextColor
+  local color = Core:GetThemeColor("tabTextColor")
   if isSelectedFilterButton(button) or button.glassyHovered then
-    color = Core.db.profile.tabHighlightTextColor
+    color = Core:GetThemeColor("tabHighlightTextColor")
   end
   local text = button:GetFontString()
   if text and color then

@@ -62,22 +62,33 @@ function Hyperlinks:ModifyLinkMenus()
   if not (Menu and Menu.ModifyMenu and MenuUtil and MenuUtil.GetElementText) then return end
 
   local copyText = _G.COPY_CHARACTER_NAME
-  if copyText then
-    local function redirectCopy(_, rootDescription, contextData)
-      local name = contextData and contextData.name
-      if not self.handlingClick or not (not _G.canaccessvalue or _G.canaccessvalue(name)) then return end
-      -- Battle.net names arrive as protected |K strings that only Blizzard's copy can resolve.
-      if type(name) ~= "string" or name:find("|K", 1, true) then return end
+  local whisperWindowText = _G.MOVE_TO_WHISPER_WINDOW
+  local function redirectUnitMenu(_, rootDescription, contextData)
+    if not self.handlingClick or not contextData then return end
+    local name = contextData.name
+    -- Battle.net names arrive as protected |K strings that only Blizzard's copy can resolve.
+    local copyable = (not _G.canaccessvalue or _G.canaccessvalue(name)) and type(name) == "string"
+      and not name:find("|K", 1, true)
+    if copyText and copyable then
       eachElement(rootDescription, copyText, function (description)
         description:SetResponder(function ()
           Core:GetModule("ChatCopy"):ShowText(L("Glassy: Copy name"), name)
         end)
       end)
     end
-    for _, which in ipairs({"FRIEND", "FRIEND_OFFLINE", "BN_FRIEND", "BN_FRIEND_OFFLINE", "CHAT_ROSTER", "PLAYER",
-      "PARTY", "RAID_PLAYER", "GUILD", "GUILD_OFFLINE", "COMMUNITIES_WOW_MEMBER", "COMMUNITIES_GUILD_MEMBER"}) do
-      Menu.ModifyMenu("MENU_UNIT_"..which, redirectCopy)
+    -- Blizzard moves the conversation out of the menu's chat frame, which Glassy's right-clicks leave empty.
+    local chatFrame = self.clickedChatFrame
+    if whisperWindowText and chatFrame and _G.FCF_OpenTemporaryWindow then
+      eachElement(rootDescription, whisperWindowText, function (description)
+        description:SetResponder(function ()
+          _G.FCF_OpenTemporaryWindow(contextData.chatType, contextData.chatTarget, chatFrame, true)
+        end)
+      end)
     end
+  end
+  for _, which in ipairs({"FRIEND", "FRIEND_OFFLINE", "BN_FRIEND", "BN_FRIEND_OFFLINE", "CHAT_ROSTER", "PLAYER",
+    "PARTY", "RAID_PLAYER", "GUILD", "GUILD_OFFLINE", "COMMUNITIES_WOW_MEMBER", "COMMUNITIES_GUILD_MEMBER"}) do
+    Menu.ModifyMenu("MENU_UNIT_"..which, redirectUnitMenu)
   end
 
   local moveText = _G.MOVE_TO_NEW_WINDOW

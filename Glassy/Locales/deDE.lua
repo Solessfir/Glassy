@@ -91,6 +91,11 @@ Core:RegisterCompactTranslations("deDE", {
   COPY_NAME_TITLE = "Glassy: Name kopieren",
   TRACK_RECIPE = "Rezept verfolgen",
   UNTRACK_RECIPE = "Rezept nicht mehr verfolgen",
+  NOT_DETECTED_EUI = "Nicht erkannt: EllesmereUI.",
+  EUI_CHAT_ENABLED = "EllesmereUI Chat ist aktiviert.",
+  EUI_CHAT_CONFLICT = "Es gestaltet dieselben Chatfenster wie Glassy um. Deaktiviere das Addon EllesmereUI Chat und lade dann neu.",
+  EUI_SKIN_ACTIVE = "Glassys Fenster, Beschriftungsfarben und Standardschrift folgen seinem Stil.",
+  EUI_SKIN_OFF = "Glassys Skin ist in den Optionen für Drittanbieter-Addons von EllesmereUI ausgeschaltet.",
 }, function(label)
   return label and (label .. " konfigurieren.") or "Diese Einstellung konfigurieren."
 end)

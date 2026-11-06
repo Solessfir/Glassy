@@ -73,6 +73,27 @@ local function getElvUIStatus()
   return "|cff80ff80Detected:|r ElvUI"..(version and " |cff8080ff"..tostring(version).."|r" or "")
 end
 
+local function isAddOnLoaded(name)
+  local loaded = _G.C_AddOns and _G.C_AddOns.IsAddOnLoaded or _G.IsAddOnLoaded
+  return loaded and loaded(name) or false
+end
+
+-- EllesmereUI Chat restyles the same chat frames Glassy owns, so both must not run together.
+local function getEllesmereStatus()
+  if not _G.EllesmereUI then
+    return "|cff808080Not detected: EllesmereUI.|r"
+  end
+  if isAddOnLoaded("EllesmereUIChat") then
+    return "|cffff8080EllesmereUI Chat is enabled.|r "..
+      "It restyles the same chat frames as Glassy. Disable the EllesmereUI Chat addon, then reload."
+  end
+  if Core:GetModule("Ellesmere"):IsActive() then
+    return "|cff80ff80Detected:|r EllesmereUI. Glassy's windows, label colors, and default font follow its style."
+  end
+  return "|cff80ff80Detected:|r EllesmereUI. "..
+    "Glassy's skin is turned off in EllesmereUI's Third-Party Addons options."
+end
+
 local function getEnabledPratUiModules()
   if _G.Prat == nil then
     return L("No compatibility warnings.")
@@ -212,6 +233,12 @@ local function getCompatibilityOptions()
         type = "description",
         fontSize = "medium",
         order = 1.1,
+      },
+      ellesmereStatus = {
+        name = getEllesmereStatus,
+        type = "description",
+        fontSize = "medium",
+        order = 1.2,
       },
       pratBoundary = {
         name = "Glassy owns its renderer, tabs, edit box, scrolling, history, timestamps, copying, and tooltips. Prat remains optional and may format message content before Glassy receives it.",

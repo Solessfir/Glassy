@@ -256,6 +256,11 @@ local english = {
   COPY_NAME_TITLE = "Glassy: Copy name",
   TRACK_RECIPE = "Track Recipe",
   UNTRACK_RECIPE = "Untrack Recipe",
+  NOT_DETECTED_EUI = "Not detected: EllesmereUI.",
+  EUI_CHAT_ENABLED = "EllesmereUI Chat is enabled.",
+  EUI_CHAT_CONFLICT = "It restyles the same chat frames as Glassy. Disable the EllesmereUI Chat addon, then reload.",
+  EUI_SKIN_ACTIVE = "Glassy's windows, label colors, and default font follow its style.",
+  EUI_SKIN_OFF = "Glassy's skin is turned off in EllesmereUI's Third-Party Addons options.",
 }
 
 local translations = {}

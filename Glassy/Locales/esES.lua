@@ -90,6 +90,11 @@ local values = {
   COPY_NAME_TITLE = "Glassy: Copiar nombre",
   TRACK_RECIPE = "Seguir receta",
   UNTRACK_RECIPE = "Dejar de seguir receta",
+  NOT_DETECTED_EUI = "No detectado: EllesmereUI.",
+  EUI_CHAT_ENABLED = "EllesmereUI Chat está activado.",
+  EUI_CHAT_CONFLICT = "Cambia el estilo de las mismas ventanas de chat que Glassy. Desactiva el addon EllesmereUI Chat y recarga.",
+  EUI_SKIN_ACTIVE = "Las ventanas, los colores de las etiquetas y la fuente predeterminada de Glassy siguen su estilo.",
+  EUI_SKIN_OFF = "El aspecto de Glassy está desactivado en las opciones de addons de terceros de EllesmereUI.",
 }
 
 local function describe(label)

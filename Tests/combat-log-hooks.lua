@@ -54,6 +54,7 @@ local function frame(name)
   object.ClearAllPoints, object.SetPoint, object.SetHeight = noop, noop, noop
   object.SetWidth, object.SetAlpha, object.SetNormalFontObject = noop, noop, noop
   object.SetAllPoints, object.SetClipsChildren, object.EnableMouse = noop, noop, noop
+  object.SetPushedTextOffset = noop
   object.SetHighlightFontObject = noop
   object.RegisterForDrag, object.SetTextColor = noop, noop
   object.GetTextWidth = function () return 30 end
@@ -80,6 +81,7 @@ local core = {
   Libs = {AceHook = AceHook, LibEasing = {}}, Components = {},
   GetModule = function (_, name) return name == "UIManager" and uiManager or {} end,
   Localize = function (_, text) return text end,
+  GetThemeColor = function (self, key) return self.db.profile[key] end,
   db = {profile = {activeTabHighlightStrength = 0.2, chatAlwaysVisible = false, chatHoldTime = 10, hoverHighlightStrength = 0.8, frameHeight = 230, frameWidth = 450, tabMessageSpacing = 0, textLeftPadding = 0}},
   defaults = {profile = {frameHeight = 230, frameWidth = 450, tabMessageSpacing = 0, textLeftPadding = 0}}, Subscribe = noop,
 }

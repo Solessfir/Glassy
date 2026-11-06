@@ -36,7 +36,8 @@ end
 Core.NewsEntries = {}
 Core.Version = "test"
 Core.Libs = {AceGUI = {Create = widget}}
-Core.GetModule = function () return news end
+local ellesmere = {IsActive = function () return false end, SkinWindow = noop}
+Core.GetModule = function (_, name) return name == "Ellesmere" and ellesmere or news end
 Core.Localize = function (_, text) return text end
 Core.Subscribe = function (_, _, callback) openNews = callback end
 UISpecialFrames = {}

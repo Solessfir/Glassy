@@ -74,7 +74,7 @@ local function getGeneralOptions()
             hasAlpha = true,
             order = 2,
             get = function ()
-              local color = Core.db.profile.tabHighlightTextColor
+              local color = Core:GetThemeColor("tabHighlightTextColor")
               return color.r, color.g, color.b, color.a
             end,
             set = function (_, r, g, b, a)
@@ -89,7 +89,7 @@ local function getGeneralOptions()
             hasAlpha = true,
             order = 1,
             get = function ()
-              local color = Core.db.profile.tabTextColor
+              local color = Core:GetThemeColor("tabTextColor")
               return color.r, color.g, color.b, color.a
             end,
             set = function (_, r, g, b, a)
@@ -378,7 +378,7 @@ local function getTabOptions()
             hasAlpha = true,
             order = 1.5,
             get = function ()
-              local color = Core.db.profile.tabMessageSeparatorColor
+              local color = Core:GetThemeColor("tabMessageSeparatorColor")
               return color.r, color.g, color.b, color.a
             end,
             set = function (_, r, g, b, a)
@@ -484,7 +484,7 @@ local function getEditBoxOptions()
             hasAlpha = true,
             order = 1.35,
             get = function ()
-              local color = Core.db.profile.editBoxMessageSeparatorColor
+              local color = Core:GetThemeColor("editBoxMessageSeparatorColor")
               return color.r, color.g, color.b, color.a
             end,
             set = function (_, r, g, b, a)

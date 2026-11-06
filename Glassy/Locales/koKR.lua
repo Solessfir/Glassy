@@ -85,6 +85,11 @@ Core:RegisterCompactTranslations("koKR", {
   COPY_NAME_TITLE = "Glassy: 이름 복사",
   TRACK_RECIPE = "제조법 추적",
   UNTRACK_RECIPE = "제조법 추적 중지",
+  NOT_DETECTED_EUI = "감지되지 않음: EllesmereUI.",
+  EUI_CHAT_ENABLED = "EllesmereUI Chat이 켜져 있습니다.",
+  EUI_CHAT_CONFLICT = "Glassy와 같은 대화창의 모양을 바꿉니다. EllesmereUI Chat 애드온을 끄고 다시 불러오세요.",
+  EUI_SKIN_ACTIVE = "Glassy의 창, 이름표 색상, 기본 글꼴이 그 스타일을 따릅니다.",
+  EUI_SKIN_OFF = "EllesmereUI의 타사 애드온 옵션에서 Glassy 스킨이 꺼져 있습니다.",
 }, function(label)
   return label and (label .. " 설정입니다.") or "이 설정을 구성합니다."
 end)

@@ -48,7 +48,7 @@ end
 function DetachedChatDockMixin:UpdateStyle()
   local backgroundColor = Core.db.profile.headerBackgroundColor
   self:SetGradientBackground(backgroundColor, backgroundColor.a)
-  self.messageSeparator:SetSeparatorColor(Core.db.profile.tabMessageSeparatorColor)
+  self.messageSeparator:SetSeparatorColor(Core:GetThemeColor("tabMessageSeparatorColor"))
 end
 
 function DetachedChatDockMixin:SetTab(tab)

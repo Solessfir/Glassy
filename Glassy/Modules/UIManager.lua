@@ -376,10 +376,24 @@ function UIManager:HookChatWindowLifecycle()
       return nil
     end
 
-    if self:GetChatWindow(chatFrame) == nil then
-      local window = self:CreateChatWindow(chatFrame, true)
+    local window = self:GetChatWindow(chatFrame)
+    if window == nil then
+      window = self:CreateChatWindow(chatFrame, true)
       self:CreateChatEditBox(window)
       self:RefreshChatFrameLayout(chatFrame)
+    end
+
+    -- Blizzard copies the conversation into the new window before Glassy renders it, and removes it from
+    -- the source window, so both show their native history again.
+    -- Demo mode keeps showing sample chat and reloads real history itself when it ends.
+    local function reload(frame)
+      if frame and frame.state and not frame.state.demo then frame:ReloadMessagesFromChatFrame() end
+    end
+    local sourceChatFrame = select(3, ...)
+    if sourceChatFrame then
+      reload(window.slidingMessageFrame)
+      local sourceWindow = self:GetChatWindow(sourceChatFrame)
+      reload(sourceWindow and sourceWindow.slidingMessageFrame)
     end
 
     return chatFrame

@@ -14,7 +14,9 @@ GetLocale = function() return "enUS" end
 GetBuildInfo = function() return "", "", "", 11509 end
 assert(loadfile("libs/AceDB-3.0/AceDB-3.0.lua"))()
 
-local addon = {NewModule = function() end}
+local ellesmereFont
+local ellesmere = {GetFontPath = function() return ellesmereFont end}
+local addon = {NewModule = function() end, GetModule = function() return ellesmere end}
 local media = {Friz = "Fonts\\FRIZQT__.TTF", Gilroy = "Interface\\Fonts\\Gilroy.ttf"}
 local libraries = {
   ["AceAddon-3.0"] = {NewAddon = function() return addon end},
@@ -49,5 +51,13 @@ for _, saved in ipairs({false, "Custom font", "Glassy: Game default"}) do
   addon.db:ResetProfile()
   assert(addon.db.profile.font == "Gilroy", "Reset must select the detected font")
 end
+
+-- EllesmereUI's UI font wins over the game font while its skinning is enabled for Glassy.
+ellesmereFont = media.Friz
+addon:SelectDefaultFont()
+assert(addon.defaults.profile.font == "Friz" and addon.db.profile.font == "Friz", "EllesmereUI's font becomes the default")
+ellesmereFont = nil
+addon:SelectDefaultFont()
+assert(addon.defaults.profile.font == "Gilroy", "Without EllesmereUI the game font is used again")
 
 print("PASS: late UI font detection selects real names, migrates the alias, and preserves custom fonts")

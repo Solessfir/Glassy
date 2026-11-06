@@ -111,7 +111,7 @@ local function setJustify(fontObject)
 end
 
 local function setCombatLogHighlightColor(fontObject)
-  setTextColor(fontObject, Core.db.profile.tabHighlightTextColor or Constants.COLORS.apache)
+  setTextColor(fontObject, Core:GetThemeColor("tabHighlightTextColor") or Constants.COLORS.apache)
 end
 
 function Fonts:OnInitialize()
@@ -134,7 +134,7 @@ function Fonts:OnEnable()
   -- Combat Log filter buttons
   self.fonts.GlassyCombatLogNormalFont = createChatFont("GlassyCombatLogNormalFont")
   setFont(self.fonts.GlassyCombatLogNormalFont, Core.db.profile.tabFontSize, "tabFont")
-  setTextColor(self.fonts.GlassyCombatLogNormalFont, Core.db.profile.tabTextColor)
+  setTextColor(self.fonts.GlassyCombatLogNormalFont, Core:GetThemeColor("tabTextColor"))
   setJustify(self.fonts.GlassyCombatLogNormalFont)
 
   self.fonts.GlassyCombatLogHighlightFont = createChatFont("GlassyCombatLogHighlightFont")
@@ -170,7 +170,7 @@ function Fonts:OnEnable()
     end
 
     if key == "tabTextColor" then
-      setTextColor(self.fonts.GlassyCombatLogNormalFont, Core.db.profile.tabTextColor)
+      setTextColor(self.fonts.GlassyCombatLogNormalFont, Core:GetThemeColor("tabTextColor"))
     end
 
     if key == "tabHighlightTextColor" then

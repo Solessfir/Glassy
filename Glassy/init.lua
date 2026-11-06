@@ -16,6 +16,7 @@ _G[AddonName] = Core
 Core.Libs = {
   AceConfig = _G.LibStub("AceConfig-3.0"),
   AceConfigDialog = _G.LibStub("AceConfigDialog-3.0"),
+  AceConfigRegistry = _G.LibStub("AceConfigRegistry-3.0"),
   AceDB = _G.LibStub("AceDB-3.0"),
   AceDBOptions = _G.LibStub("AceDBOptions-3.0"),
   AceGUI = _G.LibStub("AceGUI-3.0"),
@@ -31,6 +32,7 @@ Core.Version = GetAddOnMetadata and GetAddOnMetadata(AddonName, "Version") or "0
 Core:NewModule("Config", "AceConsole-3.0")
 Core:NewModule("ChatCopy", "AceConsole-3.0")
 Core:NewModule("Demo")
+Core:NewModule("Ellesmere")
 Core:NewModule("Fonts")
 Core:NewModule("Hyperlinks")
 Core:NewModule("News")
@@ -185,8 +187,10 @@ function Core:OnEnable()
   self.printBuffer = {}
 end
 
+-- The default font follows EllesmereUI's UI font when its skinning is enabled for Glassy, otherwise the game's.
 function Core:SelectDefaultFont()
-  local path = _G.GameFontNormal and _G.GameFontNormal:GetFont() or _G.STANDARD_TEXT_FONT
+  local path = self:GetModule("Ellesmere"):GetFontPath()
+    or _G.GameFontNormal and _G.GameFontNormal:GetFont() or _G.STANDARD_TEXT_FONT
   local media = self.Libs.LSM:HashTable("font")
   local selected = self.Libs.LSM:GetDefault("font")
   for _, name in ipairs(self.Libs.LSM:List("font")) do

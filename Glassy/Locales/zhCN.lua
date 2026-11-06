@@ -72,6 +72,11 @@ Core:RegisterCompactTranslations("zhCN", {
   COPY_NAME_TITLE = "Glassy：复制名字",
   TRACK_RECIPE = "追踪配方",
   UNTRACK_RECIPE = "取消追踪配方",
+  NOT_DETECTED_EUI = "未检测到：EllesmereUI。",
+  EUI_CHAT_ENABLED = "EllesmereUI Chat 已启用。",
+  EUI_CHAT_CONFLICT = "它会改造与 Glassy 相同的聊天窗口。请禁用 EllesmereUI Chat 插件，然后重载界面。",
+  EUI_SKIN_ACTIVE = "Glassy 的窗口、标签颜色和默认字体会跟随它的风格。",
+  EUI_SKIN_OFF = "已在 EllesmereUI 的第三方插件选项中关闭 Glassy 的皮肤。",
 }, function(label)
   return label and ("设置“" .. label .. "”。") or "配置此选项。"
 end)

@@ -25,6 +25,7 @@ end
 local core = {
   Components = {FadingFrameMixin = {Init = noop}, GradientBackgroundMixin = {Init = noop, SetGradientBackground = noop}},
   db = {profile = {frameWidth = 600, textLeftPadding = 0, chatBackgroundColor = {r = 0, g = 0, b = 0, a = 0.4}}},
+  GetThemeColor = function (self, key) return self.db.profile[key] end,
 }
 assert(loadfile("Glassy/Components/MessageLine.lua"))("Glassy", {core, {ACTIONS = {}, TEXT_RIGHT_PADDING = 15}})
 local message = core.Components.CreateMessageLine()

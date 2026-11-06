@@ -15,6 +15,8 @@ local function setLabelFont(label, size)
 end
 
 local function setGlassBackground(widget)
+  -- EllesmereUI paints its own window backdrop; recoloring this one would show the faded art again.
+  if Core:GetModule("Ellesmere"):IsActive() then return end
   local engine = _G.ElvUI and _G.ElvUI[1]
   local color = engine and engine.media and engine.media.backdropcolor
   local r, g, b = 0.1, 0.1, 0.1
@@ -47,6 +49,7 @@ function News:ShowIssueLink()
     issueEditBox:SetLabel("GitHub Issues")
     issueEditBox:DisableButton(true)
     issueFrame:AddChild(issueEditBox)
+    Core:GetModule("Ellesmere"):SkinWindow(issueFrame, {issueEditBox})
   end
 
   setGlassBackground(issueFrame)
@@ -78,6 +81,7 @@ function News:OnEnable()
   local scrollFrame = AceGUI:Create("ScrollFrame")
   scrollFrame:SetLayout("List")
   frame:AddChild(scrollFrame)
+  Core:GetModule("Ellesmere"):SkinWindow(frame, {scrollFrame})
 
   for _, release in ipairs(CHANGELOG) do
     local releaseLabel = AceGUI:Create("Label")

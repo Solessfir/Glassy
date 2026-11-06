@@ -39,8 +39,9 @@ Close WoW before migrating. Install Glassy, then copy `WTF/Account/<account>/Sav
 - Keep tabs and the Combat Log organized with reordering, highlighting, and customizable text colors and font size.
 - Find and share conversations with retained history, timestamps, phrase filtering, per-tab copying, and a live search through each tab's messages.
 - See smileys such as `:)` and codes such as `:smile:` as small faces, in Glassy's gold style or a classic yellow set. No other addon is needed.
-- Keep track of busy tabs with an optional unread count, and keep character whisper tabs open across reloads and logins.
+- Keep track of busy tabs with an optional unread count, and keep character whisper tabs open across reloads and logins. Battle.net whisper tabs are not kept, because the game hides their names from addons.
 - Track a recipe someone linked by right-clicking it (Retail and WoW Forever).
+- Match EllesmereUI automatically: its window skin, accent color, and UI font when it is installed, with every Glassy setting in its options panel.
 - Type without giving up familiar shortcuts or your WoW keybindings.
 - Adjust edit-box fade-in and fade-out timing separately from message fades.
 - Use the same addon across current WoW clients, with ten interface languages included.
@@ -97,6 +98,7 @@ Ctrl+U, Ctrl+K, and Ctrl+Y are unavailable during Blizzard's chat messaging lock
 | Right-click a linked recipe | Track or untrack it (Retail and WoW Forever). |
 | Right-click a channel name, then **Move to New Window** | Move that channel into its own tab. |
 | Right-click a player name, then **Copy Character Name** | Open the name in Glassy's copy window; press Ctrl+C to copy it. |
+| Right-click a player name, then **Move to Whisper Window** | Move that conversation, with its messages, into its own whisper tab. |
 
 See [latest release notes](LATEST.md) and the [changelog](CHANGELOG.md) for details. In-game notes are available through **What's new** in settings.
 
@@ -130,6 +132,14 @@ Disable Prat **Timestamps** and configure timestamps in Glassy instead. Leave Pr
 ### ElvUI
 
 Disable **ElvUI → Chat → Enable**, then reload, so Glassy can manage chat. The rest of ElvUI works alongside Glassy.
+
+### EllesmereUI
+
+Glassy follows [EllesmereUI](https://www.curseforge.com/projects/1477613)'s look when it is installed: Glassy's windows (settings, copy, search, version history, and debug report) use EllesmereUI's window skin, label and separator colors and Glassy-style emotes use its accent color, and the default font becomes its UI font. Colors and fonts you set in Glassy still take priority. Turn this off under **EllesmereUI → Blizzard Skins+ → Window Skins → Third-Party Addons**.
+
+All Glassy settings are also available in EllesmereUI's options panel, in a **Glassy** section built with EllesmereUI's own controls and included in its search. Both panels change the same settings. EllesmereUI's **Reset** button restores the defaults of the Glassy section you are viewing.
+
+Disable the **EllesmereUI Chat** addon: it restyles the same chat frames as Glassy. The **Compatibility** section under **About** warns while both are enabled.
 
 ### Leatrix Plus and other chat addons
 

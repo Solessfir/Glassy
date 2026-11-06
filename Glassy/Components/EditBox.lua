@@ -30,7 +30,7 @@ end
 
 local function hasVisibleBackground()
   local backgroundColor = Core.db.profile.editBoxBackgroundColor
-  local separatorColor = Core.db.profile.editBoxMessageSeparatorColor
+  local separatorColor = Core:GetThemeColor("editBoxMessageSeparatorColor")
   return
     (backgroundColor and (tonumber(backgroundColor.a) or 0) > 0) or
     (separatorColor and (tonumber(separatorColor.a) or 0) > 0)
@@ -58,7 +58,7 @@ function EditBoxMixin:UpdateGlassyBackground()
 
   if self.messageSeparator then
     self.messageSeparator:SetSeparatorColor(
-      Core.db.profile.editBoxMessageSeparatorColor,
+      Core:GetThemeColor("editBoxMessageSeparatorColor"),
       self:GetBackgroundAlpha()
     )
   end
@@ -120,7 +120,7 @@ function EditBoxMixin:UpdateMessageSeparator()
   end
 
   self.messageSeparator:SetSeparatorColor(
-    Core.db.profile.editBoxMessageSeparatorColor,
+    Core:GetThemeColor("editBoxMessageSeparatorColor"),
     self:GetBackgroundAlpha()
   )
 end

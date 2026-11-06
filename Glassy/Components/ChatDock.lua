@@ -29,7 +29,7 @@ local function getSafeDockInsertIndex(original, dock, chatFrame, mouseX, mouseY)
 end
 
 local function updateMessageSeparator(self)
-  self.messageSeparator:SetSeparatorColor(Core.db.profile.tabMessageSeparatorColor)
+  self.messageSeparator:SetSeparatorColor(Core:GetThemeColor("tabMessageSeparatorColor"))
 end
 
 function ChatDockMixin:SaveSelectedTab(chatFrame)

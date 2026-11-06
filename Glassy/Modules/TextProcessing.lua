@@ -118,14 +118,22 @@ end
 
 local emoteMarkupCache = {}
 
--- The Glassy set is drawn in white and tinted gold; the Classic set keeps its own colors.
+local function toByte(value)
+  return math.floor(math.max(0, math.min(1, value)) * 255 + 0.5)
+end
+
+-- The Glassy set is drawn in white and tinted gold, or EllesmereUI's accent; the Classic set keeps its own colors.
 local function getEmoteMarkup(name)
   local profile = Core.db.profile
   local style = profile.emoteStyle == "classic" and "classic" or "glass"
   local size = math.floor((tonumber(profile.messageFontSize) or 13) * EMOTE_SCALE + 0.5)
-  local key = style..name..size
+  local tint = ""
+  if style == "glass" then
+    local accent = Core:GetModule("Ellesmere"):GetActiveAccent()
+    tint = accent and (":"..toByte(accent.r)..":"..toByte(accent.g)..":"..toByte(accent.b)) or ":223:186:105"
+  end
+  local key = style..name..size..tint
   if not emoteMarkupCache[key] then
-    local tint = style == "glass" and ":223:186:105" or ""
     emoteMarkupCache[key] = "|T"..EMOTE_PATH..style.."_"..name..":"..size..":"..size..":0:0:32:32:0:32:0:32"..tint.."|t"
   end
   return emoteMarkupCache[key]

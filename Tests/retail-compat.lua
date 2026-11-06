@@ -49,7 +49,9 @@ strfind, strlen, strsub = string.find, string.len, string.sub
 date = os.date
 local processing = {}
 local textCore = {
-  GetModule = function () return processing end,
+  GetModule = function (_, name)
+    return name == "Ellesmere" and {GetActiveAccent = function () return processing.accent end} or processing
+  end,
   db = {profile = {timestampsEnabled = false, emojisEnabled = true}},
 }
 loadAddonFile("Glassy/Modules/TextProcessing.lua", textCore)
@@ -61,6 +63,10 @@ assert(emoteText:find("|Hplayer:Kitty|h[:)]|h", 1, true), "Link text is never re
 assert(processing:ProcessText("Unknown :nope: code, a:) b") == "Unknown :nope: code, a:) b", "Only whole words change")
 assert(processing:ProcessText("|A:heart:12:12|a |TInterface\\Icons\\x:smile:0|t") ==
   "|A:heart:12:12|a |TInterface\\Icons\\x:smile:0|t", "Escape sequences are never rewritten")
+processing.accent = {r = 12 / 255, g = 210 / 255, b = 159 / 255}
+assert(processing:ProcessText(":)"):find("glass_smile:15:15:0:0:32:32:0:32:0:32:12:210:159|t", 1, true),
+  "Glassy emotes follow EllesmereUI's accent")
+processing.accent = nil
 textCore.db.profile.emoteStyle = "classic"
 assert(processing:ProcessText(":(") == "|TInterface\\AddOns\\Glassy\\Glassy\\Assets\\Emotes\\classic_sad:15:15:0:0:32:32:0:32:0:32|t")
 textCore.db.profile.emojisEnabled = false

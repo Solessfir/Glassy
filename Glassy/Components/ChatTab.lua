@@ -53,6 +53,7 @@ local retailTabTexs = {"Left", "Middle", "Right", "ActiveLeft", "ActiveMiddle", 
 ---@class GlassyChatTab: Button
 ---@field Text FontString
 ---@field glow Texture
+---@field conversationIcon Texture?
 ---@field glassyHooks AceHook-3.0
 local ChatTabMixin = {}
 
@@ -96,19 +97,43 @@ local function getLeftTextPadding()
 end
 
 local UNREAD_COUNT_GAP = 4
+local CONVERSATION_ICON_GAP = 3
+
+-- Whisper tabs carry Blizzard's conversation icon; it takes room before the name.
+function ChatTabMixin:GetIconWidth()
+  local icon = self.conversationIcon
+  return icon and icon:IsShown() and icon:GetWidth() + CONVERSATION_ICON_GAP or 0
+end
 
 function ChatTabMixin:GetLayoutWidth()
-  local width = self:GetTextWidth() + getLeftTextPadding() + Constants.TEXT_RIGHT_PADDING
+  local width = self:GetIconWidth() + self:GetTextWidth() + getLeftTextPadding() + Constants.TEXT_RIGHT_PADDING
   if self.unreadText and self.unreadText:IsShown() then
     width = width + UNREAD_COUNT_GAP + self.unreadText:GetStringWidth()
   end
   return width
 end
 
+-- Blizzard anchors the icon to its own tab art and label offsets, which leaves it low beside Glassy's label.
+function ChatTabMixin:AnchorConversationIcon()
+  local icon = self.conversationIcon
+  if not icon then return end
+  local hooks = self.glassyHooks.hooks[icon]
+  local setPoint = hooks and hooks.SetPoint or icon.SetPoint
+  icon:ClearAllPoints()
+  setPoint(icon, "LEFT", self, "LEFT", getLeftTextPadding(), 0)
+end
+
 function ChatTabMixin:UpdateTextLayout()
   local leftPadding = getLeftTextPadding()
+  self:AnchorConversationIcon()
   self.Text:ClearAllPoints()
-  self.Text:SetPoint("LEFT", leftPadding, 0)
+  self.Text:SetPoint("LEFT", leftPadding + self:GetIconWidth(), 0)
+  -- Blizzard insets the alert glow for its own tab art; span Glassy's icon, name, and count instead.
+  if self.glow then
+    self.glow:ClearAllPoints()
+    self.glow:SetPoint("BOTTOMLEFT", self, "BOTTOMLEFT", leftPadding, -2)
+    self.glow:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -Constants.TEXT_RIGHT_PADDING, -2)
+  end
   self:SetWidth(self:GetLayoutWidth())
 end
 
@@ -124,9 +149,10 @@ function ChatTabMixin:SetUnreadCount(count)
   if not shown and not self.unreadText then return end
   if not self.unreadText then
     self.unreadText = self:CreateFontString(nil, "OVERLAY", "GlassyChatDockFont")
-    self.unreadText:SetPoint("LEFT", self.Text, "RIGHT", UNREAD_COUNT_GAP, 0)
+    -- Blizzard's tab resize widens the label past its text, so the count sits in the room added at the tab's right.
+    self.unreadText:SetPoint("RIGHT", self, "RIGHT", -Constants.TEXT_RIGHT_PADDING, 0)
   end
-  local color = Core.db.profile.tabHighlightTextColor or Colors.apache
+  local color = Core:GetThemeColor("tabHighlightTextColor") or Colors.apache
   self.unreadText:SetTextColor(color.r, color.g, color.b, color.a or 1)
   self.unreadText:SetText(shown and (count > 99 and "99+" or tostring(count)) or "")
   self.unreadText:SetShown(shown)
@@ -136,7 +162,7 @@ function ChatTabMixin:SetUnreadCount(count)
   if width ~= self.glassyLayoutWidth then
     self.glassyLayoutWidth = width
     self:UpdateTextLayout()
-    if self.glassyDock then self.glassyDock:UpdateTabOrder() end
+    if self.glassyDock then self.glassyDock:ScheduleTabOrder() end
   end
 end
 
@@ -149,17 +175,18 @@ function ChatTabMixin:IsSelected()
 end
 
 function ChatTabMixin:UpdateVisualState()
+  -- Whisper tabs keep their own colors below, but their unread count still clears once they are read.
+  if (self.glassyUnreadCount or 0) > 0 and self:IsSelected() then self:SetUnreadCount(0) end
   if self.chatFrame.isTemporary or self.glassyHooks.hooks[self.Text] == nil then
     return
   end
 
-  local color = Core.db.profile.tabTextColor or Colors.apache
+  local color = Core:GetThemeColor("tabTextColor") or Colors.apache
   if self:IsSelected() then
-    color = Core.db.profile.tabHighlightTextColor or Colors.apache
-    if (self.glassyUnreadCount or 0) > 0 then self:SetUnreadCount(0) end
+    color = Core:GetThemeColor("tabHighlightTextColor") or Colors.apache
   end
   if self.glassyHovered then
-    color = Core.db.profile.tabHighlightTextColor or Colors.apache
+    color = Core:GetThemeColor("tabHighlightTextColor") or Colors.apache
   end
 
   self.glassyHooks.hooks[self.Text].SetTextColor(
@@ -195,6 +222,14 @@ function ChatTabMixin:Init(slidingMessageFrame, dock)
 
   self:SetHeight(Constants.DOCK_HEIGHT)
   self:SetNormalFontObject("GlassyChatDockFont")
+  -- A press shifts the label, and a layout while the tab is held would leave it shifted after release.
+  self:SetPushedTextOffset(0, 0)
+  -- Blizzard re-anchors the icon whenever a whisper tab is reused or changes type.
+  if self.conversationIcon and not self.glassyHooks:IsHooked(self.conversationIcon, "SetPoint") then
+    Utils.hookPresentation(self.glassyHooks, self.conversationIcon, "SetPoint", function ()
+      self:UpdateTextLayout()
+    end, true)
+  end
   self:UpdateTextLayout()
 
   if not self.glassyHooks:IsHooked(self, "SetAlpha") then
