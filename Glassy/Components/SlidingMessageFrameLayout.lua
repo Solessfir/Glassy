@@ -101,48 +101,32 @@ function SlidingMessageFrameMixin:SetGlassyShown(shown)
   end
 end
 
+-- The pinned message sits on the slider's bottom edge. While scrolled back that edge stays above the
+-- return-to-latest row; at the bottom the pane extends below it so incoming lines can slide in.
 function SlidingMessageFrameMixin:UpdateViewportHeight(unreadRowHeight)
-  if self.state.scrollAtBottom then
-    self:SetHeight(self.config.height + self.config.overflowHeight)
-  else
+  local viewHeight = self.config.height
+  if not self.state.scrollAtBottom then
     local reservedHeight = unreadRowHeight
     if reservedHeight == nil and self.overlay and self.overlay.GetUnreadRowHeight then
       reservedHeight = self.overlay:GetUnreadRowHeight()
     end
     reservedHeight = math.max(0, tonumber(reservedHeight) or DEFAULT_UNREAD_ROW_HEIGHT)
-    self:SetHeight(math.max(1, self.config.height - reservedHeight))
+    viewHeight = math.max(1, viewHeight - reservedHeight)
   end
 
+  local overflow = self.state.scrollAtBottom and not self.state.jumpingToBottom and self.config.overflowHeight or 0
+  self:SetHeight(viewHeight + overflow)
   if self.slider then
-    self:UpdateScrollChildRect()
+    self.slider:SetHeight(viewHeight)
   end
 end
 
 function SlidingMessageFrameMixin:ApplyDynamicEditBoxHeight(nextHeight)
-  local previousHeight = self.config.height
-  if previousHeight == nextHeight then
-    self.overlay:UpdateFrame()
-    return
+  if self.config.height ~= nextHeight then
+    self.config.height = nextHeight
+    self:UpdateViewportHeight()
   end
-
-  local heightDifference = nextHeight - previousHeight
-  local previousScroll = self:GetVerticalScroll()
-  self.config.height = nextHeight
-  self:UpdateViewportHeight()
-
-  local minimumSliderHeight = nextHeight + self.config.overflowHeight
-  self.slider:SetHeight(math.max(minimumSliderHeight, self.slider:GetHeight() + heightDifference))
-  self:UpdateScrollChildRect()
-  self:SetVerticalScroll(previousScroll)
   self.overlay:UpdateFrame()
-end
-
-function SlidingMessageFrameMixin:AlignDynamicEditBoxScroll()
-  if self.state.scrollAtBottom then
-    self:SetVerticalScroll(self:GetVerticalScrollRange() + self.config.overflowHeight)
-  else
-    self:SetVerticalScroll(math.min(self:GetVerticalScroll(), self:GetVerticalScrollRange()))
-  end
 end
 
 function SlidingMessageFrameMixin:ApplyPendingDynamicEditBoxLayout()
@@ -153,7 +137,6 @@ function SlidingMessageFrameMixin:ApplyPendingDynamicEditBoxLayout()
 
   self.state.pendingEditBoxHeight = nil
   self:ApplyDynamicEditBoxHeight(nextHeight)
-  self:AlignDynamicEditBoxScroll()
 end
 
 function SlidingMessageFrameMixin:CancelDynamicEditBoxLayout(applyTarget)
@@ -166,7 +149,6 @@ function SlidingMessageFrameMixin:CancelDynamicEditBoxLayout(applyTarget)
   self.state.editBoxTargetHeight = nil
   if applyTarget and targetHeight then
     self:ApplyDynamicEditBoxHeight(targetHeight)
-    self:AlignDynamicEditBoxScroll()
   end
 end
 
@@ -184,15 +166,12 @@ function SlidingMessageFrameMixin:UpdateDynamicEditBoxLayout()
 
   self.state.pendingEditBoxHeight = nil
   if self.config.height == nextHeight then
-    self:AlignDynamicEditBoxScroll()
     self.overlay:UpdateFrame()
     return
   end
 
-  if self.state.prevEasingHandle then
-    LibEasing:StopEasing(self.state.prevEasingHandle)
-    self.state.prevEasingHandle = nil
-  end
+  self:StopScrollAnimation()
+  self:SetSlideOffset(0)
 
   self.state.editBoxTargetHeight = nextHeight
   self.state.editBoxEasingHandle = LibEasing:Ease(
@@ -207,7 +186,6 @@ function SlidingMessageFrameMixin:UpdateDynamicEditBoxLayout()
     function ()
       self.state.editBoxEasingHandle = nil
       self.state.editBoxTargetHeight = nil
-      self:AlignDynamicEditBoxScroll()
     end
   )
 end
@@ -227,26 +205,17 @@ function SlidingMessageFrameMixin:RefreshLayout(reprocessText)
   self:SetHeight(self.config.height + self.config.overflowHeight)
   self:SetWidth(self.config.width)
 
-  local contentHeight = 0
   for _, message in ipairs(self.state.messages) do
     if reprocessText and message.sourceText then
       local processedText = TP:ProcessText(message.sourceText, message.sourceFrame, message.receivedAt)
       message:SetDisplayText(processedText)
     end
     message:UpdateFrame()
-    contentHeight = contentHeight + message.glassyHeight
   end
 
-  self.slider:SetHeight(self.config.height + self.config.overflowHeight + contentHeight)
   self.slider:SetWidth(self.config.width)
-
-  self.state.scrollAtBottom = true
-  self.state.unreadMessages = false
-  self:UpdateScrollChildRect()
-  self:SetVerticalScroll(self:GetVerticalScrollRange() + self.config.overflowHeight)
   self.overlay:UpdateFrame()
-  self.overlay:Hide()
-  self.overlay:HideNewMessageAlert()
+  self:SetScrollPosition(1, 0)
 end
 
 function SlidingMessageFrameMixin:SetLayout(parent, width, height, editBox, detachedContainer)

@@ -90,6 +90,8 @@ local resizing = {
   config = {height = 250}, state = {},
   IsShown = function () return true end,
   CancelDynamicEditBoxLayout = function () end,
+  StopScrollAnimation = function () end,
+  SetSlideOffset = function () end,
   GetMessageFrameHeight = function (self) return self.nextHeight end,
 }
 core.db.profile.chatFadeInDuration = 3

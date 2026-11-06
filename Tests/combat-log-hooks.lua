@@ -53,6 +53,7 @@ local function frame(name)
   end
   object.ClearAllPoints, object.SetPoint, object.SetHeight = noop, noop, noop
   object.SetWidth, object.SetAlpha, object.SetNormalFontObject = noop, noop, noop
+  object.SetAllPoints, object.SetClipsChildren, object.EnableMouse = noop, noop, noop
   object.SetHighlightFontObject = noop
   object.RegisterForDrag, object.SetTextColor = noop, noop
   object.GetTextWidth = function () return 30 end
@@ -99,10 +100,8 @@ layout.state = {incomingMessages = {}, incomingScrollbackMessages = {}, isCombat
 layout.config = {height = 1, width = 1, overflowHeight = 60}
 layout.slider = frame("Slider")
 layout.overlay = {UpdateFrame = noop, Hide = noop, HideNewMessageAlert = noop}
+layout.viewport = frame("Viewport")
 layout.CancelDynamicEditBoxLayout = noop
-layout.UpdateScrollChildRect = noop
-layout.SetVerticalScroll = noop
-layout.GetVerticalScrollRange = function () return 0 end
 layout:SetLayout(detachedContainer, 320, 200, false, detachedContainer)
 assert(layout.parent == detachedContainer and layout.config.width == 320 and layout.config.height == 176)
 core.db.profile.tabMessageSpacing = 20
@@ -392,8 +391,6 @@ scroll.state = {isCombatLog = false}
 scroll.config = {height = 200, width = 450, overflowHeight = 60}
 scroll.overlay, scroll.messageFramePool = {}, {}
 scroll.slider = frame("BackgroundTestSlider")
-scroll.slider.bg = {SetAllPoints = noop, SetColorTexture = noop}
-scroll.SetVerticalScroll, scroll.SetScrollChild, scroll.EnableMouse = noop, noop, noop
 scroll:InitializeScrollFrame()
 scroll:InitializeScrollFrame()
 assert(scroll.gapBackground:GetParent() == primaryContainer and scroll.gapBackground.frameLevel < scroll:GetFrameLevel())

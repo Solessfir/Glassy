@@ -161,26 +161,46 @@ function MessageLineMixin:WithTextDetached(callback)
   if self.glassySecretText then self.text:SetText(self.glassyDisplayText) end
 end
 
+function MessageLineMixin:IsChainedTo(relativeTo, relativePoint, point)
+  return self.glassyChained == true and self.glassyChainTarget == relativeTo
+    and self.glassyChainPoint == relativePoint and self.glassyChainAnchorPoint == (point or "BOTTOMLEFT")
+end
+
+function MessageLineMixin:ClearChainAnchor()
+  self:WithTextDetached(function ()
+    self.text:ClearAllPoints()
+  end)
+  self.glassyChained = nil
+  self.glassyChainTarget = nil
+  self.glassyChainPoint = nil
+  self.glassyChainAnchorPoint = nil
+end
+
 ---
--- Chains this row above relativeTo, or to the bottom of its parent when relativeTo is nil.
+-- Chains this row's point (BOTTOMLEFT above relativeTo, TOPLEFT below it) to relativeTo,
+-- or to the bottom of its parent when relativeTo is nil.
 -- The text is the chain link and the row sizes itself around it, so Lua never reads secret bounds.
-function MessageLineMixin:SetChainAnchor(relativeTo, relativePoint)
+function MessageLineMixin:SetChainAnchor(relativeTo, relativePoint, point)
+  point = point or "BOTTOMLEFT"
+  self.glassyChained = true
   self.glassyChainTarget = relativeTo
   self.glassyChainPoint = relativePoint
+  self.glassyChainAnchorPoint = point
+  local padding = self.glassyTextPadding or 0
   self:WithTextDetached(function ()
     self.text:ClearAllPoints()
     self.text:SetPoint(
-      "BOTTOMLEFT",
+      point,
       relativeTo or self:GetParent(),
       relativeTo and relativePoint or "BOTTOMLEFT",
       getLeftTextPadding(),
-      self.glassyTextPadding or 0
+      point == "BOTTOMLEFT" and padding or -padding
     )
   end)
 end
 
 ---
--- Update layout and the numeric height used for scroll accounting
+-- Update layout and the measured height used for slide animations
 function MessageLineMixin:UpdateFrame()
   local frameWidth = Core.db.profile.frameWidth
   local leftPadding = getLeftTextPadding()
@@ -194,15 +214,15 @@ function MessageLineMixin:UpdateFrame()
   local textHeight, lineHeight = measureTextHeight(self.glassyDisplayText, textWidth)
   local padding = lineHeight * Core.db.profile.messageLinePadding
   self.glassyTextPadding = padding
-  -- Secret rows still size correctly through anchors; only scroll accounting uses this one-line estimate.
-  self.glassyHeight = (textHeight or lineHeight) + padding * 2
+  -- Secret rows still size correctly through anchors, but their height stays unknown to Lua.
+  self.glassyHeight = textHeight and textHeight + padding * 2 or nil
 
   self:WithTextDetached(function ()
     self:ClearAllPoints()
     self:SetPoint("TOPLEFT", self.text, "TOPLEFT", -leftPadding, padding)
     self:SetPoint("BOTTOMLEFT", self.text, "BOTTOMLEFT", -leftPadding, -padding)
   end)
-  self:SetChainAnchor(self.glassyChainTarget, self.glassyChainPoint)
+  self:SetChainAnchor(self.glassyChainTarget, self.glassyChainPoint, self.glassyChainAnchorPoint)
 
   updateBackground(self)
 end
@@ -236,8 +256,8 @@ local function CreateMessageLinePool(parent)
       message.text:ClearText()
       message.glassyDisplayText = nil
       message.glassySecretText = nil
-      message.glassyChainTarget = nil
-      message.glassyChainPoint = nil
+      -- Released rows must not keep links that could close a cycle once the row is reused.
+      message:ClearChainAnchor()
       message.glassyHeight = nil
       message.sourceText = nil
       message.sourceFrame = nil

@@ -1,6 +1,5 @@
 local Core, Constants, Utils = unpack(select(2, ...))
 
-local LibEasing = Core.Libs.LibEasing
 local CreateMessageLinePool = Core.Components.CreateMessageLinePool
 local CreateScrollOverlayFrame = Core.Components.CreateScrollOverlayFrame
 local SlidingMessageFrameMixin = Core.Components.SlidingMessageFrameMixin
@@ -24,6 +23,7 @@ local UPDATE_CONFIG = Constants.EVENTS.UPDATE_CONFIG
 -- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
 -- luacheck: push ignore 113
 local CreateFrame = CreateFrame
+local IsShiftKeyDown = IsShiftKeyDown
 local Mixin = Mixin
 local DEFAULT_CHAT_FRAME = DEFAULT_CHAT_FRAME
 -- luacheck: pop
@@ -109,10 +109,12 @@ function SlidingMessageFrameMixin:ResetForChatFrame(chatFrame)
     incomingScrollbackMessages = {},
     incomingMessages = {},
     messages = {},
-    head = nil,
-    tail = nil,
     isCombatLog = isCombatLog,
     scrollAtBottom = true,
+    jumpingToBottom = false,
+    scrollIndex = 1,
+    messageOffset = 0,
+    slideOffset = 0,
     unreadMessages = false,
   }
   self.chatFrame = chatFrame
@@ -138,18 +140,8 @@ function SlidingMessageFrameMixin:ConfigureScrollback(chatFrame)
 
       self.chatFrame:SetMaxLines(getScrollbackLimit())
 
-      local removedHeight = self:ReleaseOverflowMessages()
-      if removedHeight > 0 then
-        local minimumHeight = self.config.height + self.config.overflowHeight
-        local scrollOffset = math.max(0, self:GetVerticalScroll() - removedHeight)
-        self.slider:SetHeight(math.max(minimumHeight, self.slider:GetHeight() - removedHeight))
-        self:UpdateScrollChildRect()
-
-        if self.state.scrollAtBottom then
-          self:SetVerticalScroll(self:GetVerticalScrollRange() + self.config.overflowHeight)
-        else
-          self:SetVerticalScroll(scrollOffset)
-        end
+      if self:ReleaseOverflowMessages() > 0 then
+        self:SetScrollPosition(self.state.scrollIndex, self.state.messageOffset)
       end
     end)
   end
@@ -236,80 +228,40 @@ function SlidingMessageFrameMixin:InitializeScrollFrame()
   self.gapBackground:SetFrameStrata(self:GetFrameStrata())
   self.gapBackground:SetFrameLevel(math.max(0, self:GetFrameLevel() - 1))
   self.gapBackground:SetShown(self:IsShown())
-  self:SetHeight(self.config.height + self.config.overflowHeight)
   self:SetWidth(self.config.width)
   self:ClearAllPoints()
   self:SetPoint("TOPLEFT", 0, -getMessageTopInset(self.state.isCombatLog))
 
-  -- Set initial scroll position
-  self:SetVerticalScroll(self.config.overflowHeight)
+  -- Messages clip to the viewport; the return-to-latest overlay stays outside it.
+  if self.viewport == nil then
+    self.viewport = CreateFrame("Frame", nil, self)
+    self.viewport:SetAllPoints()
+    self.viewport:SetClipsChildren(true)
+    self.viewport:EnableMouse(false)
+  end
+  if self.slider == nil then
+    self.slider = CreateFrame("Frame", nil, self.viewport)
+  end
+  self.slider:SetWidth(self.config.width)
 
   -- Overlay
   if self.overlay == nil then
     self.overlay = CreateScrollOverlayFrame(self)
     self.overlay:QuickHide()
-
-    -- Snap to bottom on click
-    self.overlay:SetScript("OnClickSnapFrame", function ()
-      self.state.scrollAtBottom = true
-      self.state.unreadMessages = false
-      self.overlay:Hide()
-      self.overlay:HideNewMessageAlert()
-
-      self:UpdateViewportHeight()
-      local startOffset = self:GetVerticalScroll()
-      local endOffset = self:GetVerticalScrollRange() + self.config.overflowHeight
-
-      LibEasing:Ease(
-        function (offset) self:SetVerticalScroll(offset) end,
-        startOffset,
-        endOffset,
-        0.3,
-        LibEasing.OutCubic,
-        function ()
-          self:SetVerticalScroll(endOffset)
-        end
-      )
-    end)
+    self.overlay:SetScript("OnClickSnapFrame", function () self:SnapToBottom() end)
   end
 
-  -- Scrolling
-  self:SetScript("OnMouseWheel", function (frame, delta)
+  self:SetSlideOffset(0)
+  self:UpdateViewportHeight()
+
+  -- The wheel steps one message at a time; Shift pans within a message taller than the view.
+  self:SetScript("OnMouseWheel", function (_, delta)
     self:CancelDynamicEditBoxLayout(true)
-    local maxScroll = (
-      self.state.scrollAtBottom and
-      self:GetVerticalScrollRange() + self.config.overflowHeight
-      or self:GetVerticalScrollRange()
-    )
-    local minScroll = self.config.height + self.config.overflowHeight
-    local scrollValue
-
-    if delta < 0 then
-      -- Scroll down
-      scrollValue = math.min(self:GetVerticalScroll() + 20, maxScroll)
+    if IsShiftKeyDown() then
+      self:SetScrollPosition(self.state.scrollIndex, self.state.messageOffset + delta * 20)
     else
-      -- Scroll up
-      scrollValue = math.max(self:GetVerticalScroll() - 20, math.min(minScroll, maxScroll))
-    end
-
-    self:UpdateScrollChildRect()
-    self:SetVerticalScroll(scrollValue)
-
-    self.state.scrollAtBottom = scrollValue == maxScroll
-
-    -- Adjust height of scroll frame when scrolling
-    if self.state.scrollAtBottom then
-      -- If scrolled to the bottom, the height of the scroll frame should
-      -- include overflow to account for slide up animations
-      self:UpdateViewportHeight()
-      self:SetVerticalScroll(self:GetVerticalScrollRange() + self.config.overflowHeight)
-      self.overlay:Hide()
-      self.overlay:HideNewMessageAlert()
-      self.state.unreadMessages = false
-    else
-      -- While scrolled back, reserve the bottom row for the return-to-latest control so it never covers a chat message.
-      self:UpdateViewportHeight()
-      self.overlay:Show()
+      local step = delta > 0 and math.ceil(delta) or math.floor(delta)
+      self:SetScrollPosition(self.state.scrollIndex + step, 0)
     end
 
     -- Show hidden messages
@@ -321,20 +273,6 @@ function SlidingMessageFrameMixin:InitializeScrollFrame()
 
   -- Mouse clickthrough
   self:EnableMouse(false)
-
-  -- ScrollChild
-  if self.slider == nil then
-    self.slider = CreateFrame("Frame", nil, self)
-  end
-  self.slider:SetHeight(self.config.height + self.config.overflowHeight)
-  self.slider:SetWidth(self.config.width)
-  self:SetScrollChild(self.slider)
-
-  if self.slider.bg == nil then
-    self.slider.bg = self.slider:CreateTexture(nil, "BACKGROUND")
-  end
-  self.slider.bg:SetAllPoints()
-  self.slider.bg:SetColorTexture(0, 0, 1, 0)
 
   -- Pool for the message frames
   if self.messageFramePool == nil then
