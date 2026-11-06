@@ -1,10 +1,14 @@
-# 1.9.5 (2026-10-22)
+# 1.9.6 (2026-11-06)
 
 ## What's new
 
-- Added WoW Forever support. Glassy now detects Forever's retail-style chat and no longer throws anchor errors when switching tabs.
-- Added demo mode (`/gl demo` or Messages → Demo mode): sample chat to preview styles and animations. Real chat is restored when it ends.
-- Korean, Chinese, and Russian text keep the client's native fonts when a custom font lacks those characters.
-- Hidden (secret) chat text during Retail encounters no longer breaks message layout or scrolling.
-- Default label and separator colors are now #FFD100: tab text at 70% opacity, active/hover text at 100%.
-- Updated the addon icon.
+- The mouse wheel now scrolls one message at a time, and Shift+mouse wheel scrolls within a long message. Chat no longer shifts out of place when you scroll during Retail boss encounters.
+- Search a tab's messages from its right-click menu. Results update as you type, keep their chat colors, and can be copied.
+- Docked tabs can show how many messages arrived since you last viewed them (Tabs → Unread count, off by default).
+- Character whisper tabs reopen with their last 100 messages after a reload or login (Tabs → Keep whisper tabs).
+- Right-click a recipe someone linked to track or untrack it (Retail and WoW Forever).
+- Built-in emotes: smileys such as `:)` and codes such as `:smile:` show as small faces, in Glassy's gold style or a classic yellow set (Messages → Emote style). ElvUI is no longer needed for emotes.
+- Fixed "blocked action" errors blamed on Glassy, such as when Shift-clicking map pins, on Retail and WoW Forever. The edit box now closes instantly there.
+- "Move to New Window" in a channel's right-click menu works again.
+- "Copy Character Name" in a player's right-click menu opens Glassy's copy window instead of failing.
+- Clicking a link in chat now acts on the chat window it was clicked in, for example when whispering a player.
