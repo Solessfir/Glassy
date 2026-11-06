@@ -1,7 +1,7 @@
 ## Interface: 11509, 16001, 20506, 50504, 120100
 ## Plain Title: Glassy
 ## Author: Solessfir (original by mixxorz)
-## Version: 1.9.6
+## Version: 1.9.7
 
 ## Title: |c00DFBA69Glassy|r
 ## Notes: Immersive and minimalistic chat UI.
@@ -29,6 +29,7 @@
 ## Category-zhTW: 對話
 
 ## SavedVariables: GlassyDB
+## OptionalDeps: EllesmereUI
 ## X-Curse-Project-ID: 1695833
 ## X-Wago-ID: qGYZPRNg
 
@@ -83,6 +84,8 @@ Glassy\Components\SlidingMessageFrameLayout.lua
 Glassy\Components\SlidingMessageFrameNative.lua
 
 # Modules
+Glassy\Modules\Ellesmere.lua
+Glassy\Modules\EllesmereOptions.lua
 Glassy\Modules\ChatCopy.lua
 Glassy\Modules\Demo.lua
 Glassy\Modules\ProfileTransfer.lua

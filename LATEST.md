@@ -1,14 +1,12 @@
-# 1.9.6 (2026-11-06)
+# 1.9.7 (2026-11-06)
 
 ## What's new
 
-- The mouse wheel now scrolls one message at a time, and Shift+mouse wheel scrolls within a long message. Chat no longer shifts out of place when you scroll during Retail boss encounters.
-- Search a tab's messages from its right-click menu. Results update as you type, keep their chat colors, and can be copied.
-- Docked tabs can show how many messages arrived since you last viewed them (Tabs → Unread count, off by default).
-- Character whisper tabs reopen with their last 100 messages after a reload or login (Tabs → Keep whisper tabs).
-- Right-click a recipe someone linked to track or untrack it (Retail and WoW Forever).
-- Built-in emotes: smileys such as `:)` and codes such as `:smile:` show as small faces, in Glassy's gold style or a classic yellow set (Messages → Emote style). ElvUI is no longer needed for emotes.
-- Fixed "blocked action" errors blamed on Glassy, such as when Shift-clicking map pins, on Retail and WoW Forever. The edit box now closes instantly there.
-- "Move to New Window" in a channel's right-click menu works again.
-- "Copy Character Name" in a player's right-click menu opens Glassy's copy window instead of failing.
-- Clicking a link in chat now acts on the chat window it was clicked in, for example when whispering a player.
+- EllesmereUI support: Glassy's windows use EllesmereUI's window skin, untouched label and separator colors and Glassy-style emotes use its accent color, and the default font becomes its UI font. Colors and fonts you set in Glassy still take priority.
+- Every Glassy setting is also available in EllesmereUI's options panel, in a Glassy section included in its search. Its Reset button restores the defaults of the section you are viewing.
+- The Compatibility section under About warns while the EllesmereUI Chat addon is enabled, since it restyles the same chat frames as Glassy.
+- "Move to Whisper Window" in a player's right-click menu now moves the conversation's messages into the new whisper tab.
+- Fixed chat tabs piling on top of each other when a tab's unread count changed.
+- Fixed the unread count overlapping the next tab, and whisper tabs keeping their count after being read.
+- Fixed a tab name staying a little higher after it was clicked.
+- The whisper tab icon and the new-message glow now line up with the tab name.
