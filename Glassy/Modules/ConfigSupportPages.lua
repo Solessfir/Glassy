@@ -287,19 +287,6 @@ local function getCompatibilityOptions()
           },
         },
       },
-      elvuiEmojis = {
-        name = "ElvUI emojis",
-        type = "group",
-        inline = true,
-        order = 7,
-        args = {
-          details = {
-            name = "Uses ElvUI's emoji textures when ElvUI is available.",
-            type = "description",
-            order = 1,
-          },
-        },
-      },
     },
   }
 end

@@ -284,7 +284,9 @@ function SlidingMessageFrameMixin:HookNativeMessages(chatFrame, chatFrameWasShow
   local hookMessage = Constants.ENV == "retail" and self.SecureHook or self.Hook
   hookMessage(self, chatFrame, "AddMessage", function (...)
     local newestEntry = self.historyBuffer and self.historyBuffer:GetEntryAtIndex(1)
-    self:AddMessageAt(getReceivedAt(newestEntry), ...)
+    local queued = self:AddMessageAt(getReceivedAt(newestEntry), ...)
+    local tab = queued and not self.state.isCombatLog and _G[chatFrame:GetName().."Tab"]
+    if tab and tab.AddUnreadMessage then tab:AddUnreadMessage() end
   end, true)
 
   hookMessage(self, chatFrame, "Clear", function ()
@@ -419,6 +421,7 @@ function SlidingMessageFrameMixin:SubscribeToEvents()
         ) then
           self:ScheduleLayoutRefresh(
             key == "iconTextureYOffset" or
+            key == "messageFontSize" or
             key == "emojiDisplay" or
             key == "timestampDisplay"
           )

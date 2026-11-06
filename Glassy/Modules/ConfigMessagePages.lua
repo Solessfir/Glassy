@@ -159,8 +159,8 @@ local function getMessageOptions()
             end,
           },
           emojisEnabled = {
-            name = "Emoji shortcodes",
-            desc = "Show codes such as :smile: with ElvUI's emoji textures. Chat still sends the original text.\nDefault: enabled",
+            name = "Emotes",
+            desc = "Show smileys such as :) and codes such as :smile: as small faces. Only Glassy users see them; chat still sends the original text.\nDefault: enabled",
             type = "toggle",
             order = 1.6,
             get = function ()
@@ -168,6 +168,24 @@ local function getMessageOptions()
             end,
             set = function (_, input)
               Core.db.profile.emojisEnabled = input
+              Core:Dispatch(UpdateConfig("emojiDisplay"))
+            end,
+          },
+          emoteStyle = {
+            name = "Emote style",
+            desc = "Gold outlines that match Glassy, or classic yellow faces.\nDefault: Glassy",
+            type = "select",
+            order = 1.61,
+            values = {glass = "Glassy", classic = "Classic"},
+            sorting = {"glass", "classic"},
+            disabled = function ()
+              return not Core.db.profile.emojisEnabled
+            end,
+            get = function ()
+              return Core.db.profile.emoteStyle
+            end,
+            set = function (_, input)
+              Core.db.profile.emoteStyle = input
               Core:Dispatch(UpdateConfig("emojiDisplay"))
             end,
           },

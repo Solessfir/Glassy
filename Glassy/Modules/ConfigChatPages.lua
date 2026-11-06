@@ -331,6 +331,31 @@ local function getTabOptions()
               Core:Dispatch(UpdateConfig("chatTabTooltips"))
             end,
           },
+          tabUnreadCount = {
+            name = "Unread count",
+            desc = "Show how many messages arrived in a docked tab since you last viewed it.\nDefault: off",
+            type = "toggle",
+            order = 1.71,
+            get = function ()
+              return Core.db.profile.tabUnreadCount
+            end,
+            set = function (_, input)
+              Core.db.profile.tabUnreadCount = input
+              Core:Dispatch(UpdateConfig("tabUnreadCount"))
+            end,
+          },
+          keepWhisperTabs = {
+            name = "Keep whisper tabs",
+            desc = "Reopen character whisper tabs, with their last 100 messages, after a reload or login. Battle.net whispers are not kept.\nDefault: on",
+            type = "toggle",
+            order = 1.72,
+            get = function ()
+              return Core.db.profile.keepWhisperTabs
+            end,
+            set = function (_, input)
+              Core.db.profile.keepWhisperTabs = input
+            end,
+          },
           headerBackgroundColor = {
             name = "Background",
             desc = "Choose the color and opacity behind the chat tabs and Combat Log filter bar.\nDefault: black at 50% opacity.",

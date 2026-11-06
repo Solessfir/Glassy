@@ -4,41 +4,45 @@ local canaccessvalue = _G.canaccessvalue
 local Core = unpack(select(2, ...))
 local TP = Core:GetModule("TextProcessing")
 
-local EMOJI_MEDIA_KEYS = {
-  angry = "Angry",
-  blush = "Blush",
-  broken_heart = "BrokenHeart",
-  call_me = "CallMe",
-  cry = "Cry",
-  facepalm = "Facepalm",
-  grin = "Grin",
-  heart = "Heart",
-  heart_eyes = "HeartEyes",
-  joy = "Joy",
-  kappa = "Kappa",
-  meaw = "Meaw",
-  middle_finger = "MiddleFinger",
-  murloc = "Murloc",
-  ok_hand = "OkHand",
-  open_mouth = "OpenMouth",
-  poop = "Poop",
-  rage = "Rage",
-  sadkitty = "SadKitty",
-  scream = "Scream",
-  scream_cat = "ScreamCat",
-  semi_colon = "SemiColon",
-  slight_frown = "SlightFrown",
-  slight_smile = "SlightSmile",
-  smile = "Smile",
-  smirk = "Smirk",
-  sob = "Sob",
-  stuck_out_tongue = "StuckOutTongue",
-  stuck_out_tongue_closed_eyes = "StuckOutTongueClosedEyes",
-  sunglassyes = "Sunglassyes",
-  thinking = "Thinking",
-  thumbs_up = "ThumbsUp",
-  wink = "Wink",
-  zzz = "ZZZ",
+local EMOTE_PATH = "Interface\\AddOns\\Glassy\\Glassy\\Assets\\Emotes\\"
+-- Faces render slightly taller than the message text.
+local EMOTE_SCALE = 1.15
+
+-- Smileys typed as their own word. A typed "|" arrives doubled because it starts WoW's text codes.
+local SMILEYS = {
+  [":)"] = "smile", [":-)"] = "smile",
+  [":("] = "sad", [":-("] = "sad",
+  [":D"] = "grin", [":-D"] = "grin",
+  [";)"] = "wink", [";-)"] = "wink",
+  [":P"] = "tongue", [":p"] = "tongue", [":-P"] = "tongue", [":-p"] = "tongue",
+  [":O"] = "wow", [":o"] = "wow", [":-O"] = "wow", [":-o"] = "wow",
+  [":||"] = "neutral", [":-||"] = "neutral",
+  [":/"] = "meh", [":-/"] = "meh",
+  ["xD"] = "laugh", ["XD"] = "laugh",
+  ["<3"] = "heart",
+  ["</3"] = "brokenheart",
+  ["D:"] = "horror",
+  [":S"] = "confused", [":s"] = "confused", [":-S"] = "confused", [":-s"] = "confused",
+  [":*"] = "kiss", [":-*"] = "kiss",
+  ["B)"] = "cool", ["B-)"] = "cool",
+  [":'("] = "cry",
+  [">:("] = "angry", [">:-("] = "angry",
+  ["^^"] = "joy", ["^_^"] = "joy",
+  ["-_-"] = "unamused",
+  ["o.O"] = "wtf", ["O.o"] = "wtf",
+  [":3"] = "cat",
+  ["T_T"] = "sob",
+  [":$"] = "blush",
+}
+
+-- Shortcodes such as :smile:, including the common names earlier versions accepted.
+local SHORTCODES = {
+  angry = "angry", blush = "blush", brokenheart = "brokenheart", broken_heart = "brokenheart", cat = "cat",
+  confused = "confused", cool = "cool", sunglasses = "cool", cry = "cry", grin = "grin", heart = "heart",
+  horror = "horror", scream = "horror", joy = "joy", kiss = "kiss", laugh = "laugh", meh = "meh",
+  neutral = "neutral", rage = "angry", sad = "sad", slight_frown = "sad", smile = "smile", slight_smile = "smile",
+  sob = "sob", tongue = "tongue", stuck_out_tongue = "tongue", stuck_out_tongue_closed_eyes = "tongue",
+  unamused = "unamused", wink = "wink", wow = "wow", open_mouth = "wow", wtf = "wtf",
 }
 
 -- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
@@ -112,23 +116,66 @@ local function textureProcessor(text)
   return strjoin("", unpack(parts))
 end
 
-local function emojiProcessor(text)
-  local elvui = rawget(_G, "ElvUI")
-  local engine = type(elvui) == "table" and elvui[1]
-  local media = engine and engine.Media
-  local emojis = media and media.ChatEmojis
-  if type(emojis) ~= "table" then
-    return text
-  end
+local emoteMarkupCache = {}
 
-  return text:gsub(":([%l_]+):", function (shortcode)
-    local mediaKey = EMOJI_MEDIA_KEYS[shortcode]
-    local texture = mediaKey and emojis[mediaKey]
-    if type(texture) ~= "string" or texture == "" then
-      return ":"..shortcode..":"
-    end
-    return "|T"..texture..":16:16|t"
+-- The Glassy set is drawn in white and tinted gold; the Classic set keeps its own colors.
+local function getEmoteMarkup(name)
+  local profile = Core.db.profile
+  local style = profile.emoteStyle == "classic" and "classic" or "glass"
+  local size = math.floor((tonumber(profile.messageFontSize) or 13) * EMOTE_SCALE + 0.5)
+  local key = style..name..size
+  if not emoteMarkupCache[key] then
+    local tint = style == "glass" and ":223:186:105" or ""
+    emoteMarkupCache[key] = "|T"..EMOTE_PATH..style.."_"..name..":"..size..":"..size..":0:0:32:32:0:32:0:32"..tint.."|t"
+  end
+  return emoteMarkupCache[key]
+end
+
+local function emoteWord(word)
+  local name = SMILEYS[word]
+  if name then return getEmoteMarkup(name) end
+  -- Smileys that end a sentence, such as ":)." or "<3!!"
+  local smiley, trail = word:match("^(.-)([%.,!%?]+)$")
+  name = smiley and SMILEYS[smiley]
+  if name then return getEmoteMarkup(name)..trail end
+end
+
+local function emoteSegment(segment)
+  segment = segment:gsub(":([%l_]+):", function (shortcode)
+    local name = SHORTCODES[shortcode]
+    return name and getEmoteMarkup(name)
   end)
+  return (segment:gsub("%S+", emoteWord))
+end
+
+-- Links, textures, atlases, and protected names keep their escape sequences untouched.
+local PROTECTED_SEQUENCES = {"|H.-|h.-|h", "|T.-|t", "|A.-|a", "|K.-|k"}
+
+local function findProtectedSequence(text, cursor)
+  local firstStart, firstEnd
+  for _, pattern in ipairs(PROTECTED_SEQUENCES) do
+    local sequenceStart, sequenceEnd = strfind(text, pattern, cursor)
+    if sequenceStart and (firstStart == nil or sequenceStart < firstStart) then
+      firstStart, firstEnd = sequenceStart, sequenceEnd
+    end
+  end
+  return firstStart, firstEnd
+end
+
+local function emojiProcessor(text)
+  local parts = {}
+  local cursor = 1
+  while true do
+    local sequenceStart, sequenceEnd = findProtectedSequence(text, cursor)
+    if not sequenceStart then
+      parts[#parts + 1] = emoteSegment(strsub(text, cursor))
+      break
+    end
+    parts[#parts + 1] = emoteSegment(strsub(text, cursor, sequenceStart - 1))
+    parts[#parts + 1] = strsub(text, sequenceStart, sequenceEnd)
+    cursor = sequenceEnd + 1
+  end
+  return table.concat(parts)
 end
 
 local cachedTimestampRed

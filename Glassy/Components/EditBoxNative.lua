@@ -57,6 +57,52 @@ local function hideExternalBackgrounds(editBox)
   end
 end
 
+-- Classic hides the box only after its background fades out.
+function EditBoxMixin:HookClassicVisibility()
+  self.glassyHooks:RawHook(self, "Show", function (frame)
+    local wasVisible = frame:IsVisible()
+    self.glassyHooks.hooks[frame].Show(frame)
+    hideExternalBackgrounds(frame)
+    if wasVisible and not self.glassyEntryVisible then
+      self:ShowEntry(true)
+    end
+  end, true)
+
+  self.glassyHooks:RawHook(self, "Hide", function (frame)
+    if frame.glassyClearingFocus then
+      return
+    end
+
+    if not frame:IsVisible() then
+      self.glassyHooks.hooks[frame].Hide(frame)
+      return
+    end
+
+    local messageAreaChanged = self.glassyEntryVisible
+    if messageAreaChanged then
+      self.glassyEntryVisible = false
+      Core:Dispatch(EditBoxVisibilityChanged(false))
+    end
+    self.header:Hide()
+    if self.headerSuffix then
+      self.headerSuffix:Hide()
+    end
+    if frame:HasFocus() then
+      frame.glassyClearingFocus = true
+      frame:ClearFocus()
+      frame.glassyClearingFocus = nil
+    end
+    self:AnimateBackgroundAlpha(0, function ()
+      if not self.glassyEntryVisible then
+        self.glassyHooks.hooks[frame].Hide(frame)
+      end
+    end)
+    if messageAreaChanged then
+      self:UpdateDynamicMessageArea()
+    end
+  end, true)
+end
+
 function EditBoxMixin:Init(parent, useParentWidth)
   -- Hide default styling
   hideExternalBackgrounds(self)
@@ -65,9 +111,11 @@ function EditBoxMixin:Init(parent, useParentWidth)
   -- Glassy owns the visible edit box, so use standard arrow-key behavior.
   self:SetAltArrowKeyMode(false)
 
-  self.glassyHooks:RawHook(_G[self:GetName().."Left"], "Show", function () end, true)
-  self.glassyHooks:RawHook(_G[self:GetName().."Mid"], "Show", function () end, true)
-  self.glassyHooks:RawHook(_G[self:GetName().."Right"], "Show", function () end, true)
+  for _, suffix in ipairs({"Left", "Mid", "Right"}) do
+    Utils.hookPresentation(self.glassyHooks, _G[self:GetName()..suffix], "Show", function (texture)
+      texture:Hide()
+    end, true)
+  end
 
   -- Retail shows these focus textures again after Show(), using SetShown().
   for _, key in ipairs({"focusLeft", "focusMid", "focusRight"}) do
@@ -101,16 +149,16 @@ function EditBoxMixin:Init(parent, useParentWidth)
   local Ypadding = self.header:GetLineHeight() * getVerticalPadding()
   self:SetHeight(self.header:GetLineHeight() + Ypadding * 2)
 
-  self.glassyHooks:RawHook(self, "SetTextInsets", function ()
+  local function applyTextInsets()
     Ypadding = self.header:GetLineHeight() * getVerticalPadding()
     self.glassyHooks.hooks[self].SetTextInsets(
       self,
       self.header:GetStringWidth() + getLeftTextPadding(),
       EDIT_BOX_RIGHT_PADDING, Ypadding, Ypadding
     )
-  end, true)
-
-  self:SetTextInsets()
+  end
+  Utils.hookPresentation(self.glassyHooks, self, "SetTextInsets", applyTextInsets, true)
+  applyTextInsets()
 
   if self.dynamicMessageArea == nil then
     self.dynamicMessageArea = CreateFrame("Frame", nil, self.glassyParent)
@@ -198,6 +246,8 @@ function EditBoxMixin:Init(parent, useParentWidth)
   end)
 
   super(self).HookScript(self, "OnHide", function ()
+    -- Retail closes the box when Alt-key bindings take focus; the Hide post-hook reopens it.
+    if self.glassyClearingFocus then return end
     self:StopBackgroundAlphaTransition()
     self:SetBackgroundAlpha(1)
     if self.glassyEntryVisible then
@@ -207,54 +257,22 @@ function EditBoxMixin:Init(parent, useParentWidth)
     end
   end)
 
-  self.glassyHooks:RawHook(self, "Show", function (frame)
-    local wasVisible = frame:IsVisible()
-    self.glassyHooks.hooks[frame].Show(frame)
-    hideExternalBackgrounds(frame)
-    if wasVisible and not self.glassyEntryVisible then
-      self:ShowEntry(true)
-    end
-  end, true)
-
-  self.glassyHooks:RawHook(self, "Hide", function (frame)
-    if frame.glassyClearingFocus then
-      return
-    end
-
-    if not frame:IsVisible() then
-      self.glassyHooks.hooks[frame].Hide(frame)
-      return
-    end
-
-    local messageAreaChanged = self.glassyEntryVisible
-    if messageAreaChanged then
-      self.glassyEntryVisible = false
-      Core:Dispatch(EditBoxVisibilityChanged(false))
-    end
-    self.header:Hide()
-    if self.headerSuffix then
-      self.headerSuffix:Hide()
-    end
-    if frame:HasFocus() then
-      frame.glassyClearingFocus = true
-      frame:ClearFocus()
-      frame.glassyClearingFocus = nil
-    end
-    self:AnimateBackgroundAlpha(0, function ()
-      if not self.glassyEntryVisible then
-        self.glassyHooks.hooks[frame].Hide(frame)
-      end
+  if Constants.ENV == "retail" then
+    -- Blizzard's secure chat code shows and hides this box. Replacing those methods taints that code
+    -- (for example Shift-clicking map pins), so Retail closes with the native Hide and skips the fade-out.
+    self.glassyHooks:SecureHook(self, "Show", hideExternalBackgrounds)
+    self.glassyHooks:SecureHook(self, "Hide", function (frame)
+      if frame.glassyClearingFocus then frame:Show() end
     end)
-    if messageAreaChanged then
-      self:UpdateDynamicMessageArea()
-    end
-  end, true)
+  else
+    self:HookClassicVisibility()
+  end
 
   Core:Subscribe(UPDATE_CONFIG, function (key)
     if key == "font" or key == "editBoxFontSize" or key == "editBoxVerticalPadding" then
       Ypadding = self.header:GetLineHeight() * getVerticalPadding()
       self:SetHeight(self.header:GetLineHeight() + Ypadding * 2)
-      self:SetTextInsets()
+      applyTextInsets()
     end
 
     if key == "frameWidth" then
@@ -265,7 +283,7 @@ function EditBoxMixin:Init(parent, useParentWidth)
 
     if key == "textLeftPadding" then
       updateHeaderAnchor()
-      self:SetTextInsets()
+      applyTextInsets()
     end
 
     if key == "editBoxBackgroundColor" or key == "backgroundFade" then
@@ -276,7 +294,8 @@ function EditBoxMixin:Init(parent, useParentWidth)
       if not hasVisibleBackground() then
         self:StopBackgroundAlphaTransition()
         self:SetBackgroundAlpha(1)
-        if not self.glassyEntryVisible and self:IsVisible() then
+        -- Only Classic keeps a closed box visible while its background fades.
+        if Constants.ENV ~= "retail" and not self.glassyEntryVisible and self:IsVisible() then
           self.glassyHooks.hooks[self].Hide(self)
         end
       end

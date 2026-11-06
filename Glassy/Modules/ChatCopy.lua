@@ -107,16 +107,107 @@ local function ensureCopyWindow()
   copyFrame:AddChild(copyTextBox)
 end
 
+function ChatCopy:ShowText(title, text)
+  ensureCopyWindow()
+  copyFrame:SetTitle(title)
+  copyTextBox:SetText(text)
+  copyFrame:Show()
+  copyTextBox:SetFocus()
+  copyTextBox:HighlightText()
+end
+
 function ChatCopy:Show(chatFrame)
   chatFrame = chatFrame or getSelectedChatFrame()
   if chatFrame == nil then
     return
   end
 
-  ensureCopyWindow()
-  copyFrame:SetTitle(L("Glassy: Copy chat — ")..getFrameLabel(chatFrame))
-  copyTextBox:SetText(readChatFrame(chatFrame))
-  copyFrame:Show()
-  copyTextBox:SetFocus()
-  copyTextBox:HighlightText()
+  self:ShowText(L("Glassy: Copy chat — ")..getFrameLabel(chatFrame), readChatFrame(chatFrame))
+end
+
+local SEARCH_RESULT_LIMIT = 200
+local searchFrame
+local searchInput
+local searchResults
+
+local function toHex(value)
+  return string.format("%02x", math.floor(math.max(0, math.min(1, value or 1)) * 255 + 0.5))
+end
+
+-- Newest first, in each message's chat color. Secret and blocked lines are never searched.
+local function searchChatFrame(chatFrame, query)
+  local lines, found = {}, 0
+  query = query:lower()
+  for index = chatFrame:GetNumMessages(), 1, -1 do
+    local text, red, green, blue = chatFrame:GetMessageInfo(index)
+    local plain = (not _G.canaccessvalue or _G.canaccessvalue(text)) and stripChatMarkup(text)
+    if plain and plain:lower():find(query, 1, true) and not TP:IsMessageBlacklisted(plain) then
+      found = found + 1
+      if found <= SEARCH_RESULT_LIMIT then
+        lines[#lines + 1] = "|cff"..toHex(red)..toHex(green)..toHex(blue)..plain:gsub("|", "||").."|r"
+      end
+    end
+  end
+  return lines, found
+end
+
+local function updateSearch()
+  local query = searchInput:GetText() or ""
+  if query == "" then
+    searchResults:SetLabel(L("Type to search"))
+    searchResults:SetText("")
+    return
+  end
+  local lines, found = searchChatFrame(searchFrame.chatFrame, query)
+  if found == 0 then
+    searchResults:SetLabel(L("No messages found"))
+  elseif found > SEARCH_RESULT_LIMIT then
+    local shown = " ("..L("showing the newest").." "..SEARCH_RESULT_LIMIT..")"
+    searchResults:SetLabel(L("Messages found:").." "..found..shown)
+  else
+    searchResults:SetLabel(L("Messages found:").." "..found)
+  end
+  searchResults:SetText(table.concat(lines, "\n"))
+end
+
+local function ensureSearchWindow()
+  if searchFrame ~= nil then
+    return
+  end
+
+  searchFrame = AceGUI:Create("Frame")
+  searchFrame:SetWidth(640)
+  searchFrame:SetHeight(460)
+  searchFrame:SetStatusText(L("Results can be selected and copied with Ctrl+C."))
+  searchFrame:SetCallback("OnClose", function (widget)
+    widget:Hide()
+  end)
+  searchFrame:SetLayout("Flow")
+
+  searchInput = AceGUI:Create("EditBox")
+  searchInput:SetLabel(L("Search messages"))
+  searchInput:SetFullWidth(true)
+  searchInput:DisableButton(true)
+  searchInput:SetCallback("OnTextChanged", updateSearch)
+  searchFrame:AddChild(searchInput)
+
+  searchResults = AceGUI:Create("MultiLineEditBox")
+  searchResults:SetFullWidth(true)
+  searchResults:SetFullHeight(true)
+  searchResults:DisableButton(true)
+  searchFrame:AddChild(searchResults)
+end
+
+function ChatCopy:ShowSearch(chatFrame)
+  chatFrame = chatFrame or getSelectedChatFrame()
+  if chatFrame == nil then
+    return
+  end
+
+  ensureSearchWindow()
+  searchFrame.chatFrame = chatFrame
+  searchFrame:SetTitle(L("Glassy: Search — ")..getFrameLabel(chatFrame))
+  searchFrame:Show()
+  updateSearch()
+  searchInput:SetFocus()
 end

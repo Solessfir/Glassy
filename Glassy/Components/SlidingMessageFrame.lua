@@ -455,6 +455,7 @@ function SlidingMessageFrameMixin:AddMessageAt(receivedAt, ...)
   args.receivedAt = receivedAt
   table.insert(self.state.incomingMessages, args)
   UIManager:QueueFrameForUpdate(self)
+  return true
 end
 
 function SlidingMessageFrameMixin:BackFillMessage(...)

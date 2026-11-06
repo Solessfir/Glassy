@@ -37,6 +37,7 @@ Core:NewModule("News")
 Core:NewModule("ProfileTransfer")
 Core:NewModule("TextProcessing")
 Core:NewModule("UIManager", "AceHook-3.0")
+Core:NewModule("WhisperTabs")
 
 -- Default settings
 Core.defaults = {
@@ -56,6 +57,8 @@ Core.defaults = {
     tabTextColor = {r = 1, g = 209 / 255, b = 0, a = 0.7},
     tabHighlightTextColor = {r = 1, g = 209 / 255, b = 0, a = 1},
     chatTabTooltips = false,
+    tabUnreadCount = false,
+    keepWhisperTabs = true,
     tabMessageSeparatorColor = {
       r = 1,
       g = 209 / 255,
@@ -132,6 +135,7 @@ Core.defaults = {
     messageLeading = 3,
     messageLinePadding = 0.25,
     emojisEnabled = true,
+    emoteStyle = "glass",
     messageBlacklistEnabled = false,
     messageBlacklist = "",
     scrollbackLines = 500,

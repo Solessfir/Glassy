@@ -134,6 +134,43 @@ tab.glassyHovered = true
 tab:UpdateVisualState()
 equals(text.color, {0, 0.1, 0.2, 1})
 assert(text.alpha == 0.3)
+tab.glassyHovered = false
+
+-- Unread counts grow the tab only while it is unselected, and selecting it clears them.
+text.ClearAllPoints, text.SetPoint = noop, noop
+local count = {SetPoint = noop}
+function count:SetTextColor() end
+function count:SetText(value) self.value = value end
+function count:SetShown(shown) self.shown = not not shown end
+function count:IsShown() return self.shown end
+function count:GetStringWidth() return #(self.value or "") * 6 end
+local relayouts = 0
+tab.CreateFontString = function () return count end
+tab.GetTextWidth = function () return 40 end
+tab.SetWidth = function (self, width) self.width = width end
+tab.glassyDock = {UpdateTabOrder = function () relayouts = relayouts + 1 end}
+local otherFrame = {}
+GENERAL_CHAT_DOCK = {selected = otherFrame}
+tab.chatFrame.isDocked = true
+profile.textLeftPadding = 0
+core.defaults = {profile = {textLeftPadding = 0}}
+constants.TEXT_RIGHT_PADDING = 5
+tab:AddUnreadMessage()
+assert(tab.glassyUnreadCount == nil and count.value == nil, "Counts stay off by default")
+profile.tabUnreadCount = true
+tab:AddUnreadMessage()
+tab:AddUnreadMessage()
+assert(count.value == "2" and count.shown and tab.width == 40 + 5 + 4 + 6, "The count widens the tab")
+assert(relayouts == 1, "Only a width change re-lays out the dock")
+tab.glassyUnreadCount = 99
+tab:AddUnreadMessage()
+assert(count.value == "99+")
+GENERAL_CHAT_DOCK.selected = tab.chatFrame
+tab:AddUnreadMessage()
+assert(tab.glassyUnreadCount == 100, "The selected tab does not count")
+tab:UpdateVisualState()
+assert(tab.glassyUnreadCount == 0 and not count.shown and tab.width == 45, "Selecting the tab clears its count")
+GENERAL_CHAT_DOCK = nil
 
 local alertText = {
   ClearAllPoints = noop, SetPoint = noop, GetLineHeight = function () return 13 end,

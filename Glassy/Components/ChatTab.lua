@@ -81,6 +81,12 @@ if Menu and Menu.ModifyMenu and MenuUtil and ToggleChannelFrame then
       insertBefore(CHAT_CONFIGURATION, MenuUtil.CreateButton(CHAT_CHANNELS, function ()
         ToggleChannelFrame()
       end))
+
+      if chatFrame and chatFrame ~= _G.ChatFrame2 then
+        insertBefore(CHAT_CONFIGURATION, MenuUtil.CreateButton(L("Search messages"), function ()
+          Core:GetModule("ChatCopy"):ShowSearch(chatFrame)
+        end))
+      end
     end
   end)
 end
@@ -89,11 +95,49 @@ local function getLeftTextPadding()
   return math.max(0, tonumber(Core.db.profile.textLeftPadding) or Core.defaults.profile.textLeftPadding)
 end
 
+local UNREAD_COUNT_GAP = 4
+
+function ChatTabMixin:GetLayoutWidth()
+  local width = self:GetTextWidth() + getLeftTextPadding() + Constants.TEXT_RIGHT_PADDING
+  if self.unreadText and self.unreadText:IsShown() then
+    width = width + UNREAD_COUNT_GAP + self.unreadText:GetStringWidth()
+  end
+  return width
+end
+
 function ChatTabMixin:UpdateTextLayout()
   local leftPadding = getLeftTextPadding()
   self.Text:ClearAllPoints()
   self.Text:SetPoint("LEFT", leftPadding, 0)
-  self:SetWidth(self:GetTextWidth() + leftPadding + Constants.TEXT_RIGHT_PADDING)
+  self:SetWidth(self:GetLayoutWidth())
+end
+
+-- Counts messages that arrive while a docked tab is not selected; selecting it clears the count.
+function ChatTabMixin:AddUnreadMessage()
+  if not Core.db.profile.tabUnreadCount or not self.chatFrame.isDocked or self:IsSelected() then return end
+  self:SetUnreadCount((self.glassyUnreadCount or 0) + 1)
+end
+
+function ChatTabMixin:SetUnreadCount(count)
+  self.glassyUnreadCount = count
+  local shown = count > 0 and Core.db.profile.tabUnreadCount
+  if not shown and not self.unreadText then return end
+  if not self.unreadText then
+    self.unreadText = self:CreateFontString(nil, "OVERLAY", "GlassyChatDockFont")
+    self.unreadText:SetPoint("LEFT", self.Text, "RIGHT", UNREAD_COUNT_GAP, 0)
+  end
+  local color = Core.db.profile.tabHighlightTextColor or Colors.apache
+  self.unreadText:SetTextColor(color.r, color.g, color.b, color.a or 1)
+  self.unreadText:SetText(shown and (count > 99 and "99+" or tostring(count)) or "")
+  self.unreadText:SetShown(shown)
+
+  -- Only re-lay out the dock when the tab actually grows or shrinks.
+  local width = self:GetLayoutWidth()
+  if width ~= self.glassyLayoutWidth then
+    self.glassyLayoutWidth = width
+    self:UpdateTextLayout()
+    if self.glassyDock then self.glassyDock:UpdateTabOrder() end
+  end
 end
 
 function ChatTabMixin:IsSelected()
@@ -112,6 +156,7 @@ function ChatTabMixin:UpdateVisualState()
   local color = Core.db.profile.tabTextColor or Colors.apache
   if self:IsSelected() then
     color = Core.db.profile.tabHighlightTextColor or Colors.apache
+    if (self.glassyUnreadCount or 0) > 0 then self:SetUnreadCount(0) end
   end
   if self.glassyHovered then
     color = Core.db.profile.tabHighlightTextColor or Colors.apache
@@ -143,6 +188,7 @@ end
 function ChatTabMixin:Init(slidingMessageFrame, dock)
   self.slidingMessageFrame = slidingMessageFrame
   self.chatFrame = slidingMessageFrame.chatFrame
+  self.glassyDock = dock
   local dropDown = _G[self.chatFrame:GetName().."TabDropDown"]
 
   self:ClearBackgroundTextures()
@@ -170,11 +216,8 @@ function ChatTabMixin:Init(slidingMessageFrame, dock)
 
   -- Set width dynamically based on text width
   if not self.glassyHooks:IsHooked(self, "SetWidth") then
-    Utils.hookPresentation(self.glassyHooks, self, "SetWidth", function (_, width)
-      self.glassyHooks.hooks[self].SetWidth(
-        self,
-        self:GetTextWidth() + getLeftTextPadding() + Constants.TEXT_RIGHT_PADDING
-      )
+    Utils.hookPresentation(self.glassyHooks, self, "SetWidth", function ()
+      self.glassyHooks.hooks[self].SetWidth(self, self:GetLayoutWidth())
     end, true)
   end
 
@@ -329,6 +372,10 @@ function ChatTabMixin:Init(slidingMessageFrame, dock)
 
         if key == "tabTextColor" or key == "tabHighlightTextColor" then
           self:UpdateVisualState()
+        end
+
+        if key == "tabUnreadCount" or key == "tabHighlightTextColor" then
+          self:SetUnreadCount(Core.db.profile.tabUnreadCount and self.glassyUnreadCount or 0)
         end
 
         if key == "chatTabTooltips" and not Core.db.profile.chatTabTooltips and GameTooltip:IsOwned(self) then

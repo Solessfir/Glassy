@@ -53,7 +53,18 @@ local textCore = {
   db = {profile = {timestampsEnabled = false, emojisEnabled = true}},
 }
 loadAddonFile("Glassy/Modules/TextProcessing.lua", textCore)
-assert(processing:ProcessText("Hello :smile:") == "Hello :smile:")
+local emoteText = processing:ProcessText("Hello :smile: :) there <3! |Hplayer:Kitty|h[:)]|h")
+assert(emoteText:find("Emotes\\glass_smile:15:15:0:0:32:32:0:32:0:32:223:186:105|t there", 1, true),
+  "Shortcodes and smileys become tinted faces")
+assert(emoteText:find("glass_heart:15:15:0:0:32:32:0:32:0:32:223:186:105|t!", 1, true), "Trailing punctuation is kept")
+assert(emoteText:find("|Hplayer:Kitty|h[:)]|h", 1, true), "Link text is never replaced")
+assert(processing:ProcessText("Unknown :nope: code, a:) b") == "Unknown :nope: code, a:) b", "Only whole words change")
+assert(processing:ProcessText("|A:heart:12:12|a |TInterface\\Icons\\x:smile:0|t") ==
+  "|A:heart:12:12|a |TInterface\\Icons\\x:smile:0|t", "Escape sequences are never rewritten")
+textCore.db.profile.emoteStyle = "classic"
+assert(processing:ProcessText(":(") == "|TInterface\\AddOns\\Glassy\\Glassy\\Assets\\Emotes\\classic_sad:15:15:0:0:32:32:0:32:0:32|t")
+textCore.db.profile.emojisEnabled = false
+assert(processing:ProcessText("Hello :)") == "Hello :)")
 local rendered, original = processing:ProcessText(protected)
 assert(rendered == protected and original == protected, "Protected text was changed")
 assert(processing:ProcessTextures(protected) == protected)
