@@ -26,7 +26,23 @@ local function stripChatMarkup(text)
   clean = clean:gsub("|A.-|a", "")
   clean = clean:gsub("|T.-|t", "")
   clean = clean:gsub("|c%x%x%x%x%x%x%x%x", "")
+  clean = clean:gsub("|cn[%w_]+:", "")
   clean = clean:gsub("|r", "")
+  -- Chat font strings resolve "|4singular:plural;" from the preceding number; edit boxes print it raw.
+  clean = clean:gsub("(%d*)(%s*)|4([^;]*);", function (number, space, forms)
+    local list = {strsplit(":", forms)}
+    local n = tonumber(number)
+    local form = list[#list]
+    if n and #list >= 3 then
+      local mod10, mod100 = n % 10, n % 100
+      form = (mod10 == 1 and mod100 ~= 11) and list[1]
+        or (mod10 >= 2 and mod10 <= 4 and (mod100 < 12 or mod100 > 14)) and list[2]
+        or list[3]
+    elseif n == 1 then
+      form = list[1]
+    end
+    return number..space..form
+  end)
   clean = clean:gsub("||", "|")
   return clean
 end
