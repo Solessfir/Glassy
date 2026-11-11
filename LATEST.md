@@ -1,12 +1,7 @@
-# 1.9.7 (2026-11-06)
+# 1.9.8 (2026-11-11)
 
 ## What's new
 
-- EllesmereUI support: Glassy's windows use EllesmereUI's window skin, untouched label and separator colors and Glassy-style emotes use its accent color, and the default font becomes its UI font. Colors and fonts you set in Glassy still take priority.
-- Every Glassy setting is also available in EllesmereUI's options panel, in a Glassy section included in its search. Its Reset button restores the defaults of the section you are viewing.
-- The Compatibility section under About warns while the EllesmereUI Chat addon is enabled, since it restyles the same chat frames as Glassy.
-- "Move to Whisper Window" in a player's right-click menu now moves the conversation's messages into the new whisper tab.
-- Fixed chat tabs piling on top of each other when a tab's unread count changed.
-- Fixed the unread count overlapping the next tab, and whisper tabs keeping their count after being read.
-- Fixed a tab name staying a little higher after it was clicked.
-- The whisper tab icon and the new-message glow now line up with the tab name.
+- Channel keybindings: set keys for Say, Yell, Party, Raid, Instance, Guild, Officer, Reply and channels 1-5 under Options > Keybindings > Glassy. While typing, they switch the channel and keep the text you have written; otherwise they open chat in that channel. They are unbound by default.
+- Glassy tells you when a newer version is available, once per session, when someone in your guild or group already has it.
+- Fixed copied chat text taking on the colors of surrounding lines, and showing raw plural codes instead of the right word.
