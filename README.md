@@ -45,6 +45,7 @@ Close WoW before migrating. Install Glassy, then copy `WTF/Account/<account>/Sav
 - Type without giving up familiar shortcuts or your WoW keybindings.
 - Adjust edit-box fade-in and fade-out timing separately from message fades.
 - Use the same addon across current WoW clients, with ten interface languages included.
+- Hear about a newer release when someone in your guild or group already has it.
 
 ## Commands
 
@@ -80,6 +81,8 @@ The same reference is available in the **Shortcuts** section under **/gl → Abo
 | Shift-click a quest or item | Insert its link while chat is active. |
 
 Ctrl+U, Ctrl+K, and Ctrl+Y are unavailable during Blizzard's chat messaging lockdown.
+
+Keys for switching the channel (Say, Yell, Party, Raid, Instance, Guild, Officer, Reply and channels 1-5) can be set under **Options → Keybindings → Glassy**. They are unbound by default. While typing, they keep the text you have written; otherwise they open chat in that channel.
 
 ### Chat tabs and history
 

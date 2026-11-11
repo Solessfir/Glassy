@@ -77,6 +77,7 @@ Core:RegisterCompactTranslations("zhTW", {
   EUI_CHAT_CONFLICT = "它會改造與 Glassy 相同的聊天視窗。請停用 EllesmereUI Chat 插件，然後重新載入介面。",
   EUI_SKIN_ACTIVE = "Glassy 的視窗、標籤顏色和預設字型會跟隨它的風格。",
   EUI_SKIN_OFF = "已在 EllesmereUI 的第三方插件選項中關閉 Glassy 的外觀。",
+  NEWER_VERSION_AVAILABLE = "有新版本可用：%s",
 }, function(label)
   return label and ("設定「" .. label .. "」。") or "設定此選項。"
 end)

@@ -96,6 +96,7 @@ Core:RegisterCompactTranslations("deDE", {
   EUI_CHAT_CONFLICT = "Es gestaltet dieselben Chatfenster wie Glassy um. Deaktiviere das Addon EllesmereUI Chat und lade dann neu.",
   EUI_SKIN_ACTIVE = "Glassys Fenster, Beschriftungsfarben und Standardschrift folgen seinem Stil.",
   EUI_SKIN_OFF = "Glassys Skin ist in den Optionen für Drittanbieter-Addons von EllesmereUI ausgeschaltet.",
+  NEWER_VERSION_AVAILABLE = "Eine neuere Version ist verfügbar: %s",
 }, function(label)
   return label and (label .. " konfigurieren.") or "Diese Einstellung konfigurieren."
 end)

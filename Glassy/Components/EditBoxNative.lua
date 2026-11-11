@@ -14,7 +14,10 @@ local CreateSeparatorFrame = Core.Components.CreateSeparatorFrame
 -- luacheck: push ignore 113
 local C_ChatInfo = C_ChatInfo
 local C_Timer = C_Timer
+local ChatFrameUtil = ChatFrameUtil
 local CreateFrame = CreateFrame
+local CreateKeyChordStringUsingMetaKeyState = CreateKeyChordStringUsingMetaKeyState
+local GetBindingAction = GetBindingAction
 local GetCurrentKeyBoardFocus = GetCurrentKeyBoardFocus
 local InCombatLockdown = InCombatLockdown
 local IsAltKeyDown = IsAltKeyDown
@@ -35,6 +38,49 @@ local function setPropagateKeyboardInput(editBox, propagate)
   end
   editBox:SetPropagateKeyboardInput(propagate)
   return true
+end
+
+-- Bindings.xml actions mapped to a chat type, or a channel number.
+local CHAT_BINDINGS = {
+  GLASSY_CHAT_SAY = "SAY",
+  GLASSY_CHAT_YELL = "YELL",
+  GLASSY_CHAT_PARTY = "PARTY",
+  GLASSY_CHAT_RAID = "RAID",
+  GLASSY_CHAT_INSTANCE = "INSTANCE_CHAT",
+  GLASSY_CHAT_GUILD = "GUILD",
+  GLASSY_CHAT_OFFICER = "OFFICER",
+  GLASSY_CHAT_REPLY = "REPLY",
+}
+for channel = 1, 5 do
+  CHAT_BINDINGS["GLASSY_CHAT_CHANNEL"..channel] = channel
+end
+
+BINDING_HEADER_GLASSY = "Glassy"
+for action, target in pairs(CHAT_BINDINGS) do
+  _G["BINDING_NAME_"..action] = type(target) == "number"
+    and string.format("%s %d", _G.CHANNEL or "Channel", target)
+    -- The labels of Blizzard's chat menu, which has no officer entry.
+    or _G[target.."_MESSAGE"] or _G["CHAT_MSG_"..target] or target
+end
+
+-- Blizzard's own prefix handling keeps the typed text, so switching works like typing "/p " in front of it.
+local function switchChat(editBox, target)
+  if isChatMessagingLocked() then
+    return
+  end
+  if type(target) == "number" then
+    editBox:HandleChatType(editBox:GetText(), "/"..target, 0)
+  else
+    editBox:ProcessChatType(editBox:GetText(), target, 0)
+  end
+end
+
+-- Runs from Bindings.xml when no edit box has focus.
+function GlassySwitchChat(target) -- luacheck: ignore 111
+  local editBox = ChatFrameUtil.GetActiveWindow() or ChatFrameUtil.OpenChat()
+  if editBox then
+    switchChat(editBox, target)
+  end
 end
 
 local function getLeftTextPadding()
@@ -187,6 +233,12 @@ function EditBoxMixin:Init(parent, useParentWidth)
 
   super(self).HookScript(self, "OnKeyDown", function (editBox, key)
     setPropagateKeyboardInput(editBox, false)
+    -- Key bindings never fire while the box has focus, so look up chat bindings here.
+    local chatTarget = CHAT_BINDINGS[GetBindingAction(CreateKeyChordStringUsingMetaKeyState(key)) or ""]
+    if chatTarget then
+      switchChat(editBox, chatTarget)
+      return
+    end
     if IsAltKeyDown() and not IsControlKeyDown() then
       -- Leave native history navigation and modifier presses with the edit box.
       if key ~= "UP" and key ~= "DOWN" and key ~= "LEFT" and key ~= "RIGHT"

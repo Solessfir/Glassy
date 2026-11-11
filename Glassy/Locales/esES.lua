@@ -95,6 +95,7 @@ local values = {
   EUI_CHAT_CONFLICT = "Cambia el estilo de las mismas ventanas de chat que Glassy. Desactiva el addon EllesmereUI Chat y recarga.",
   EUI_SKIN_ACTIVE = "Las ventanas, los colores de las etiquetas y la fuente predeterminada de Glassy siguen su estilo.",
   EUI_SKIN_OFF = "El aspecto de Glassy está desactivado en las opciones de addons de terceros de EllesmereUI.",
+  NEWER_VERSION_AVAILABLE = "Hay una versión más reciente disponible: %s",
 }
 
 local function describe(label)

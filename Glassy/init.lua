@@ -39,6 +39,7 @@ Core:NewModule("News")
 Core:NewModule("ProfileTransfer")
 Core:NewModule("TextProcessing")
 Core:NewModule("UIManager", "AceHook-3.0")
+Core:NewModule("VersionCheck")
 Core:NewModule("WhisperTabs")
 
 -- Default settings

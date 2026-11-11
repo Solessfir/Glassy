@@ -246,6 +246,7 @@ local english = {
   UNREAD_COUNT_DESC = "Show how many messages arrived in a docked tab since you last viewed it.\nDefault: off",
   KEEP_WHISPER_TABS = "Keep whisper tabs",
   KEEP_WHISPER_TABS_DESC = "Reopen character whisper tabs, with their last 100 messages, after a reload or login. Battle.net whispers are not kept.\nDefault: on",
+  NEWER_VERSION_AVAILABLE = "A newer version is available: %s",
   SEARCH_MESSAGES = "Search messages",
   TYPE_TO_SEARCH = "Type to search",
   NO_MESSAGES_FOUND = "No messages found",

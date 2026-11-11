@@ -1,0 +1,15 @@
+<Bindings>
+	<Binding name="GLASSY_CHAT_SAY" category="BINDING_HEADER_GLASSY">GlassySwitchChat("SAY")</Binding>
+	<Binding name="GLASSY_CHAT_YELL" category="BINDING_HEADER_GLASSY">GlassySwitchChat("YELL")</Binding>
+	<Binding name="GLASSY_CHAT_PARTY" category="BINDING_HEADER_GLASSY">GlassySwitchChat("PARTY")</Binding>
+	<Binding name="GLASSY_CHAT_RAID" category="BINDING_HEADER_GLASSY">GlassySwitchChat("RAID")</Binding>
+	<Binding name="GLASSY_CHAT_INSTANCE" category="BINDING_HEADER_GLASSY">GlassySwitchChat("INSTANCE_CHAT")</Binding>
+	<Binding name="GLASSY_CHAT_GUILD" category="BINDING_HEADER_GLASSY">GlassySwitchChat("GUILD")</Binding>
+	<Binding name="GLASSY_CHAT_OFFICER" category="BINDING_HEADER_GLASSY">GlassySwitchChat("OFFICER")</Binding>
+	<Binding name="GLASSY_CHAT_REPLY" category="BINDING_HEADER_GLASSY">GlassySwitchChat("REPLY")</Binding>
+	<Binding name="GLASSY_CHAT_CHANNEL1" category="BINDING_HEADER_GLASSY">GlassySwitchChat(1)</Binding>
+	<Binding name="GLASSY_CHAT_CHANNEL2" category="BINDING_HEADER_GLASSY">GlassySwitchChat(2)</Binding>
+	<Binding name="GLASSY_CHAT_CHANNEL3" category="BINDING_HEADER_GLASSY">GlassySwitchChat(3)</Binding>
+	<Binding name="GLASSY_CHAT_CHANNEL4" category="BINDING_HEADER_GLASSY">GlassySwitchChat(4)</Binding>
+	<Binding name="GLASSY_CHAT_CHANNEL5" category="BINDING_HEADER_GLASSY">GlassySwitchChat(5)</Binding>
+</Bindings>

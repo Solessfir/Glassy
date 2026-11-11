@@ -100,4 +100,5 @@ Glassy\Modules\NewsData.lua
 Glassy\Modules\News.lua
 Glassy\Modules\TextProcessing.lua
 Glassy\Modules\UIManager.lua
+Glassy\Modules\VersionCheck.lua
 Glassy\Modules\WhisperTabs.lua

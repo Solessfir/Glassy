@@ -90,6 +90,7 @@ Core:RegisterCompactTranslations("koKR", {
   EUI_CHAT_CONFLICT = "Glassy와 같은 대화창의 모양을 바꿉니다. EllesmereUI Chat 애드온을 끄고 다시 불러오세요.",
   EUI_SKIN_ACTIVE = "Glassy의 창, 이름표 색상, 기본 글꼴이 그 스타일을 따릅니다.",
   EUI_SKIN_OFF = "EllesmereUI의 타사 애드온 옵션에서 Glassy 스킨이 꺼져 있습니다.",
+  NEWER_VERSION_AVAILABLE = "새 버전을 사용할 수 있습니다: %s",
 }, function(label)
   return label and (label .. " 설정입니다.") or "이 설정을 구성합니다."
 end)

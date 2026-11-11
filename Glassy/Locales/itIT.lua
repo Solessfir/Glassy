@@ -93,6 +93,7 @@ Core:RegisterCompactTranslations("itIT", {
   EUI_CHAT_CONFLICT = "Modifica lo stile delle stesse finestre di chat di Glassy. Disattiva l'addon EllesmereUI Chat, poi ricarica.",
   EUI_SKIN_ACTIVE = "Le finestre, i colori delle etichette e il carattere predefinito di Glassy seguono il suo stile.",
   EUI_SKIN_OFF = "La skin di Glassy è disattivata nelle opzioni degli addon di terze parti di EllesmereUI.",
+  NEWER_VERSION_AVAILABLE = "È disponibile una versione più recente: %s",
 }, function(label)
   return label and ("Configura: " .. label .. ".") or "Configura questa impostazione."
 end)
