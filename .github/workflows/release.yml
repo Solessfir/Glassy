@@ -24,8 +24,14 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      # Builds Lua from lua.org so the checks don't depend on the Ubuntu package mirrors. The posix target needs no readline.
       - name: Install Lua 5.1
-        run: sudo apt-get update && sudo apt-get install -y lua5.1
+        run: |
+          curl -fsSL --retry 3 https://www.lua.org/ftp/lua-5.1.5.tar.gz -o "$RUNNER_TEMP/lua.tar.gz"
+          echo "2640fc56a795f29d28ef15e13c34a47e223960b0240e8cb0a82d9b0738695333  $RUNNER_TEMP/lua.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/lua.tar.gz" -C "$RUNNER_TEMP"
+          make -C "$RUNNER_TEMP/lua-5.1.5" posix
+          sudo make -C "$RUNNER_TEMP/lua-5.1.5" install INSTALL_TOP=/usr/local
 
       - name: Check release generation
         run: |
@@ -50,9 +56,9 @@ jobs:
 
       - name: Compile addon and run regression tests
         run: |
-          find Glassy Tests -name '*.lua' -print0 | xargs -0 -n 1 luac5.1 -p
+          find Glassy Tests -name '*.lua' -print0 | xargs -0 -n 1 luac -p
           cp -R .release/Glassy/libs ./libs
-          for test in Tests/*.lua; do lua5.1 "$test"; done
+          for test in Tests/*.lua; do lua "$test"; done
 
   release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
