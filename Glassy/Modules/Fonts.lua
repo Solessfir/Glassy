@@ -41,10 +41,11 @@ local function createChatFont(name)
   return CreateFont(name)
 end
 
--- Applies a setter to every alphabet member of a font family, or to a plain font.
+-- Applies a setter to a font and to every alphabet member of a font family.
 local function eachMember(fontObject, callback)
+  -- Text can render from the family's own font, which its members don't update (seen on ruRU clients).
+  callback(fontObject)
   if not nativeMembers or not fontObject.GetFontObjectForAlphabet then
-    callback(fontObject)
     return
   end
   for _, alphabet in ipairs(ALPHABETS) do
@@ -102,8 +103,6 @@ local function setSpacing(fontObject, spacing)
 end
 
 local function setJustify(fontObject)
-  fontObject:SetJustifyH("LEFT")
-  fontObject:SetJustifyV("MIDDLE")
   eachMember(fontObject, function (member)
     member:SetJustifyH("LEFT")
     member:SetJustifyV("MIDDLE")
