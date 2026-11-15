@@ -35,7 +35,7 @@ Core:RegisterCompactTranslations("frFR", {
   INSERT_LINK="Insérer son lien lorsque le chat est actif.", COPY_TAB="Ouvrir l’historique de cet onglet. Ctrl+C le copie.",
   MESSAGES="Messages", UNREAD_MESSAGE_SEPARATOR="Séparateur des messages non lus", UNREAD_MESSAGE_BACKGROUND="Arrière-plan des messages non lus", WRAPPED_LINE_SPACING="Espacement des lignes renvoyées", MESSAGE_PADDING="Marge des messages",
   INLINE_ICON_OFFSET="Décalage des icônes", EMOJI_SHORTCODES="Émoticônes", VISIBILITY="Visibilité",
-  FADE_OUT_DELAY="Délai de disparition", SHOW_ON_MOUSE_OVER="Afficher au survol", SHOW_WHILE_TYPING="Afficher pendant la saisie", FADING="Fondu",
+  FADE_OUT_DELAY="Délai de disparition", SHOW_ON_MOUSE_OVER="Afficher au survol", SHOW_WHILE_TYPING="Afficher pendant la saisie", ALWAYS_VISIBLE="Toujours visible", FADING="Fondu",
   SHOW_WHILE_TYPING_DESC="Réaffiche les messages estompés et les onglets tant que le champ de saisie du chat est ouvert.\nPar défaut : activé",
   FADE_IN_DURATION="Durée d’apparition", FADE_OUT_DURATION="Durée de disparition", FADE_EASING="Animation du fondu",
   MOVEMENT="Mouvement", MOVEMENT_DURATION="Durée du mouvement", PREVIEW_ANIMATIONS="Aperçu des animations",

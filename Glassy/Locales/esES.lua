@@ -37,7 +37,7 @@ local values = {
   COPY_TAB="Abrir el historial de esta pestaña. Pulsa Ctrl+C para copiarlo.", MESSAGES="Mensajes", UNREAD_MESSAGE_SEPARATOR="Separador de mensajes no leídos", UNREAD_MESSAGE_BACKGROUND="Fondo de mensajes no leídos",
   WRAPPED_LINE_SPACING="Espacio entre líneas ajustadas", MESSAGE_PADDING="Margen de mensajes",
   INLINE_ICON_OFFSET="Desplazamiento de iconos", EMOJI_SHORTCODES="Emoticonos", VISIBILITY="Visibilidad",
-  FADE_OUT_DELAY="Retraso del fundido", SHOW_ON_MOUSE_OVER="Mostrar al pasar el ratón", SHOW_WHILE_TYPING="Mostrar al escribir", FADING="Fundido",
+  FADE_OUT_DELAY="Retraso del fundido", SHOW_ON_MOUSE_OVER="Mostrar al pasar el ratón", SHOW_WHILE_TYPING="Mostrar al escribir", ALWAYS_VISIBLE="Siempre visible", FADING="Fundido",
   SHOW_WHILE_TYPING_DESC="Vuelve a mostrar los mensajes desvanecidos y las pestañas mientras el cuadro de chat está abierto.\nPredeterminado: activado",
   FADE_IN_DURATION="Duración de aparición", FADE_OUT_DURATION="Duración de desaparición", FADE_EASING="Animación del fundido",
   MOVEMENT="Movimiento", MOVEMENT_DURATION="Duración del movimiento", PREVIEW_ANIMATIONS="Previsualizar animaciones",

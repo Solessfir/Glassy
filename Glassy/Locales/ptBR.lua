@@ -35,7 +35,7 @@ Core:RegisterCompactTranslations("ptBR", {
   INSERT_LINK="Inserir o link enquanto o chat estiver ativo.", COPY_TAB="Abrir o histórico desta aba. Pressione Ctrl+C para copiar.",
   MESSAGES="Mensagens", UNREAD_MESSAGE_SEPARATOR="Separador de mensagens não lidas", UNREAD_MESSAGE_BACKGROUND="Fundo de mensagens não lidas", WRAPPED_LINE_SPACING="Espaço entre linhas quebradas", MESSAGE_PADDING="Margem das mensagens",
   INLINE_ICON_OFFSET="Deslocamento dos ícones", EMOJI_SHORTCODES="Emoticons", VISIBILITY="Visibilidade",
-  FADE_OUT_DELAY="Atraso para desaparecer", SHOW_ON_MOUSE_OVER="Mostrar ao passar o mouse", SHOW_WHILE_TYPING="Mostrar ao digitar", FADING="Transição",
+  FADE_OUT_DELAY="Atraso para desaparecer", SHOW_ON_MOUSE_OVER="Mostrar ao passar o mouse", SHOW_WHILE_TYPING="Mostrar ao digitar", ALWAYS_VISIBLE="Sempre visível", FADING="Transição",
   SHOW_WHILE_TYPING_DESC="Exibe novamente as mensagens esmaecidas e as abas enquanto a caixa de entrada do chat estiver aberta.\nPadrão: ativado",
   FADE_IN_DURATION="Duração da aparição", FADE_OUT_DURATION="Duração do desaparecimento", FADE_EASING="Animação da transição",
   MOVEMENT="Movimento", MOVEMENT_DURATION="Duração do movimento", PREVIEW_ANIMATIONS="Visualizar animações",

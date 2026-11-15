@@ -35,7 +35,7 @@ Core:RegisterCompactTranslations("koKR", {
   INSERT_LINK="채팅 입력 중 링크를 삽입합니다.", COPY_TAB="이 탭의 기록을 엽니다. Ctrl+C로 복사하세요.",
   MESSAGES="메시지", UNREAD_MESSAGE_SEPARATOR="읽지 않은 메시지 구분선", UNREAD_MESSAGE_BACKGROUND="읽지 않은 메시지 배경", WRAPPED_LINE_SPACING="줄바꿈 간격", MESSAGE_PADDING="메시지 여백",
   INLINE_ICON_OFFSET="아이콘 위치", EMOJI_SHORTCODES="이모티콘", VISIBILITY="표시",
-  FADE_OUT_DELAY="사라짐 지연", SHOW_ON_MOUSE_OVER="마우스를 올리면 표시", SHOW_WHILE_TYPING="입력 중 표시", FADING="페이드",
+  FADE_OUT_DELAY="사라짐 지연", SHOW_ON_MOUSE_OVER="마우스를 올리면 표시", SHOW_WHILE_TYPING="입력 중 표시", ALWAYS_VISIBLE="항상 표시", FADING="페이드",
   SHOW_WHILE_TYPING_DESC="채팅 입력창이 열려 있는 동안 사라진 채팅 메시지와 탭을 다시 표시합니다.\n기본값: 켜짐",
   FADE_IN_DURATION="나타나는 시간", FADE_OUT_DURATION="사라지는 시간", FADE_EASING="페이드 애니메이션",
   MOVEMENT="이동", MOVEMENT_DURATION="이동 시간", PREVIEW_ANIMATIONS="애니메이션 미리보기",

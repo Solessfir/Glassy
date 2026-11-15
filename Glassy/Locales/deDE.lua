@@ -38,7 +38,7 @@ Core:RegisterCompactTranslations("deDE", {
   COPY_TAB="Chatverlauf dieses Tabs öffnen. Mit Strg+C in die Zwischenablage kopieren.",
   MESSAGES="Nachrichten", UNREAD_MESSAGE_SEPARATOR="Trennlinie für ungelesene Nachrichten", UNREAD_MESSAGE_BACKGROUND="Hintergrund ungelesener Nachrichten", WRAPPED_LINE_SPACING="Abstand umgebrochener Zeilen", MESSAGE_PADDING="Nachrichtenabstand",
   INLINE_ICON_OFFSET="Symbolversatz", EMOJI_SHORTCODES="Emotes", VISIBILITY="Sichtbarkeit",
-  FADE_OUT_DELAY="Ausblendverzögerung", SHOW_ON_MOUSE_OVER="Bei Mausberührung anzeigen", SHOW_WHILE_TYPING="Beim Schreiben anzeigen", FADING="Überblenden",
+  FADE_OUT_DELAY="Ausblendverzögerung", SHOW_ON_MOUSE_OVER="Bei Mausberührung anzeigen", SHOW_WHILE_TYPING="Beim Schreiben anzeigen", ALWAYS_VISIBLE="Immer sichtbar", FADING="Überblenden",
   SHOW_WHILE_TYPING_DESC="Verblasste Chatnachrichten und Tabs anzeigen, solange das Chat-Eingabefeld geöffnet ist.\nStandard: aktiviert",
   FADE_IN_DURATION="Einblenddauer", FADE_OUT_DURATION="Ausblenddauer", FADE_EASING="Überblendanimation",
   MOVEMENT="Bewegung", MOVEMENT_DURATION="Bewegungsdauer", PREVIEW_ANIMATIONS="Animationen anzeigen",
