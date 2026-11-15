@@ -37,7 +37,7 @@ Close WoW before migrating. Install Glassy, then copy `WTF/Account/<account>/Sav
 - Make it fit your UI with separate fonts and outlines for tabs, messages, and the edit box, plus colors, backgrounds, spacing, opacity, and animations.
 - Background edge fades use a percentage of chat width, so they stay proportional when resized.
 - Keep tabs and the Combat Log organized with reordering, highlighting, and customizable text colors and font size.
-- Find and share conversations with retained history, timestamps, phrase filtering, per-tab copying, and a live search through each tab's messages.
+- Find and share conversations with retained history, timestamps, phrase filtering, per-tab copying, and a live search through each tab's messages. Restoring chat after a reload or login needs Prat's History module.
 - See smileys such as `:)` and codes such as `:smile:` as small Twemoji faces. Codes such as `:thumbsup:`, `:fire:`, `:skull:` and `:100:` add hands and symbols. Off by default. No other addon is needed.
 - Keep track of busy tabs with an optional unread count, and keep character whisper tabs open across reloads and logins. Battle.net whisper tabs are not kept, because the game hides their names from addons.
 - Track a recipe someone linked by right-clicking it (Retail and WoW Forever).
