@@ -160,7 +160,7 @@ local function getMessageOptions()
           },
           emojisEnabled = {
             name = "Emotes",
-            desc = "Show smileys such as :) and codes such as :smile: as small faces. Only Glassy users see them; chat still sends the original text.\nDefault: enabled",
+            desc = "Show smileys such as :) and codes such as :smile: as small faces. Only Glassy users see them; chat still sends the original text.\nDefault: off",
             type = "toggle",
             order = 1.6,
             get = function ()

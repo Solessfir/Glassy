@@ -137,7 +137,7 @@ Core.defaults = {
     },
     messageLeading = 3,
     messageLinePadding = 0.25,
-    emojisEnabled = true,
+    emojisEnabled = false,
     emoteStyle = "glass",
     messageBlacklistEnabled = false,
     messageBlacklist = "",
