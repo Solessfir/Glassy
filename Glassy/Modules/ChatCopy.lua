@@ -8,6 +8,7 @@ local MAX_COPY_BYTES = 60000
 
 -- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
 -- luacheck: push ignore 113
+local C_Timer = C_Timer
 local DEFAULT_CHAT_FRAME = DEFAULT_CHAT_FRAME
 -- luacheck: pop
 
@@ -122,6 +123,11 @@ local function ensureCopyWindow()
   copyTextBox:DisableButton(true)
   copyFrame:AddChild(copyTextBox)
   Core:GetModule("Ellesmere"):SkinWindow(copyFrame, {copyTextBox})
+
+  -- Escape closes the window; while the text box has focus, Escape would only clear that focus.
+  _G.GlassyCopyFrame = copyFrame.frame
+  table.insert(_G.UISpecialFrames, "GlassyCopyFrame")
+  copyTextBox.editBox:HookScript("OnEscapePressed", function () copyFrame:Hide() end)
 end
 
 function ChatCopy:ShowText(title, text)
@@ -131,6 +137,13 @@ function ChatCopy:ShowText(title, text)
   copyFrame:Show()
   copyTextBox:SetFocus()
   copyTextBox:HighlightText()
+  -- AceGUI moves the cursor to the top once the text is set, and the scroll range only updates after layout.
+  C_Timer.After(0, function ()
+    copyTextBox:SetCursorPosition(#text)
+    copyTextBox:HighlightText()
+    local scrollFrame = copyTextBox.scrollFrame
+    scrollFrame:SetVerticalScroll(scrollFrame:GetVerticalScrollRange())
+  end)
 end
 
 function ChatCopy:Show(chatFrame)
