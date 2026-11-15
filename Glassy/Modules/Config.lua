@@ -1,4 +1,4 @@
-local Core, Constants = unpack(select(2, ...))
+local Core, Constants, Utils = unpack(select(2, ...))
 local C = Core:GetModule("Config")
 
 local AceConfig = Core.Libs.AceConfig
@@ -540,6 +540,7 @@ function C:ShowCopyableText(title, text)
     copyableTextBox:DisableButton(true)
     copyableFrame:AddChild(copyableTextBox)
     Core:GetModule("Ellesmere"):SkinWindow(copyableFrame, {copyableTextBox})
+    Utils.closeOnEscape(copyableFrame, "GlassyCopyableFrame", copyableTextBox.editBox)
   end
 
   copyableFrame:SetTitle(title)

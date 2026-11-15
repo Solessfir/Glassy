@@ -37,6 +37,15 @@ function Utils.lower(text)
   return (text:gsub("[A-Z]", LOWER_ASCII):gsub("[\195\208][\128-\191]", LOWER_UTF8))
 end
 
+-- Escape closes an AceGUI window; while one of its edit boxes has focus, Escape would only clear that focus.
+function Utils.closeOnEscape(window, globalName, ...)
+  _G[globalName] = window.frame
+  table.insert(_G.UISpecialFrames, globalName)
+  for index = 1, select("#", ...) do
+    select(index, ...):HookScript("OnEscapePressed", function () window:Hide() end)
+  end
+end
+
 Utils.super = function (obj)
   return getmetatable(obj).__index
 end

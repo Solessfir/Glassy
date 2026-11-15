@@ -123,11 +123,7 @@ local function ensureCopyWindow()
   copyTextBox:DisableButton(true)
   copyFrame:AddChild(copyTextBox)
   Core:GetModule("Ellesmere"):SkinWindow(copyFrame, {copyTextBox})
-
-  -- Escape closes the window; while the text box has focus, Escape would only clear that focus.
-  _G.GlassyCopyFrame = copyFrame.frame
-  table.insert(_G.UISpecialFrames, "GlassyCopyFrame")
-  copyTextBox.editBox:HookScript("OnEscapePressed", function () copyFrame:Hide() end)
+  Utils.closeOnEscape(copyFrame, "GlassyCopyFrame", copyTextBox.editBox)
 end
 
 function ChatCopy:ShowText(title, text)
@@ -139,7 +135,7 @@ function ChatCopy:ShowText(title, text)
   copyTextBox:HighlightText()
   -- AceGUI moves the cursor to the top once the text is set, and the scroll range only updates after layout.
   C_Timer.After(0, function ()
-    copyTextBox:SetCursorPosition(#text)
+    copyTextBox:SetCursorPosition(copyTextBox.editBox:GetNumLetters())
     copyTextBox:HighlightText()
     local scrollFrame = copyTextBox.scrollFrame
     scrollFrame:SetVerticalScroll(scrollFrame:GetVerticalScrollRange())
@@ -227,6 +223,7 @@ local function ensureSearchWindow()
   searchResults:DisableButton(true)
   searchFrame:AddChild(searchResults)
   Core:GetModule("Ellesmere"):SkinWindow(searchFrame, {searchInput, searchResults})
+  Utils.closeOnEscape(searchFrame, "GlassySearchFrame", searchInput.editbox, searchResults.editBox)
 end
 
 function ChatCopy:ShowSearch(chatFrame)
