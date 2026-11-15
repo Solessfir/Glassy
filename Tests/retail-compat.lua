@@ -56,19 +56,17 @@ local textCore = {
 }
 loadAddonFile("Glassy/Modules/TextProcessing.lua", textCore)
 local emoteText = processing:ProcessText("Hello :smile: :) there <3! |Hplayer:Kitty|h[:)]|h")
-assert(emoteText:find("Emotes\\glass_smile:15:15:0:0:32:32:0:32:0:32:223:186:105|t there", 1, true),
-  "Shortcodes and smileys become tinted faces")
-assert(emoteText:find("glass_heart:15:15:0:0:32:32:0:32:0:32:223:186:105|t!", 1, true), "Trailing punctuation is kept")
+assert(emoteText:find("Emotes\\twemoji_smile:15:15:0:0:64:64:0:64:0:64|t there", 1, true),
+  "Shortcodes and smileys become faces")
+assert(emoteText:find("twemoji_heart:15:15:0:0:64:64:0:64:0:64|t!", 1, true), "Trailing punctuation is kept")
 assert(emoteText:find("|Hplayer:Kitty|h[:)]|h", 1, true), "Link text is never replaced")
 assert(processing:ProcessText("Unknown :nope: code, a:) b") == "Unknown :nope: code, a:) b", "Only whole words change")
 assert(processing:ProcessText("|A:heart:12:12|a |TInterface\\Icons\\x:smile:0|t") ==
   "|A:heart:12:12|a |TInterface\\Icons\\x:smile:0|t", "Escape sequences are never rewritten")
-processing.accent = {r = 12 / 255, g = 210 / 255, b = 159 / 255}
-assert(processing:ProcessText(":)"):find("glass_smile:15:15:0:0:32:32:0:32:0:32:12:210:159|t", 1, true),
-  "Glassy emotes follow EllesmereUI's accent")
-processing.accent = nil
-textCore.db.profile.emoteStyle = "classic"
-assert(processing:ProcessText(":(") == "|TInterface\\AddOns\\Glassy\\Glassy\\Assets\\Emotes\\classic_sad:15:15:0:0:32:32:0:32:0:32|t")
+assert(processing:ProcessText(":thumbsup: :100:") == "|TInterface\\AddOns\\Glassy\\Glassy\\Assets\\Emotes\\twemoji_thumbsup:15:15:0:0:64:64:0:64:0:64|t "
+  .."|TInterface\\AddOns\\Glassy\\Glassy\\Assets\\Emotes\\twemoji_hundred:15:15:0:0:64:64:0:64:0:64|t",
+  "Codes with digits are matched")
+assert(processing:ProcessText("12:30:45") == "12:30:45", "Numbers between colons stay text")
 textCore.db.profile.emojisEnabled = false
 assert(processing:ProcessText("Hello :)") == "Hello :)")
 local rendered, original = processing:ProcessText(protected)

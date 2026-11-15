@@ -51,7 +51,7 @@ for line in toc.splitlines():
     if line and not line.startswith("#"):
         check_file(package / line.replace("\\", "/"))
 for name in ("LICENSE", "README.md", "Media/Icon.tga", "Glassy/Assets/snapToBottomIcon.tga",
-             "Glassy/Assets/Emotes/glass_smile.tga", "Glassy/Assets/Emotes/classic_smile.tga"):
+             "Glassy/Assets/Emotes/twemoji_smile.tga"):
     check_file(package / name)
 for name in ("Tests", "tests", "DEVELOPMENT.md", ".git", ".github", ".travis.yml", ".luacheckrc", ".pkgmeta"):
     assert not (package / name).exists(), f"Development file in package: {name}"

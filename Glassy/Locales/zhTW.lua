@@ -59,7 +59,6 @@ Core:RegisterCompactTranslations("zhTW", {
   ENTER_PROFILE_NAME="請輸入設定檔名稱。", PROFILE_ALREADY_EXISTS="已存在同名設定檔。",
   PROFILE_IMPORTED="已匯入設定檔：%s", REPLACE_PROFILE_CONFIRM="取代設定檔「%s」？目前設定將會遺失。",
   EXPORT_PROFILE_TITLE="Glassy：匯出設定檔",
-  EMOTE_STYLE = "表情符號樣式",
   UNREAD_COUNT = "未讀計數",
   KEEP_WHISPER_TABS = "保留密語分頁",
   SEARCH_MESSAGES = "搜尋訊息",

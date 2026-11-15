@@ -72,7 +72,6 @@ Core:RegisterCompactTranslations("koKR", {
   ENTER_PROFILE_NAME="프로필 이름을 입력하세요.", PROFILE_ALREADY_EXISTS="같은 이름의 프로필이 이미 있습니다.",
   PROFILE_IMPORTED="프로필을 가져왔습니다: %s", REPLACE_PROFILE_CONFIRM="프로필 '%s'을(를) 교체할까요? 현재 설정이 사라집니다.",
   EXPORT_PROFILE_TITLE="Glassy: 프로필 내보내기",
-  EMOTE_STYLE = "이모티콘 스타일",
   UNREAD_COUNT = "읽지 않은 메시지 수",
   KEEP_WHISPER_TABS = "귓속말 탭 유지",
   SEARCH_MESSAGES = "메시지 검색",

@@ -43,6 +43,11 @@ local SHORTCODES = {
   neutral = "neutral", rage = "angry", sad = "sad", slight_frown = "sad", smile = "smile", slight_smile = "smile",
   sob = "sob", tongue = "tongue", stuck_out_tongue = "tongue", stuck_out_tongue_closed_eyes = "tongue",
   unamused = "unamused", wink = "wink", wow = "wow", open_mouth = "wow", wtf = "wtf",
+  tears_of_joy = "tearsofjoy", rofl = "rofl", heart_eyes = "hearteyes", smirk = "smirk", thinking = "thinking",
+  sweat_smile = "sweatsmile", sleeping = "sleeping", zzz = "zzz", facepalm = "facepalm", thumbsup = "thumbsup",
+  thumbs_up = "thumbsup", thumbsdown = "thumbsdown", thumbs_down = "thumbsdown", ok_hand = "okhand",
+  clap = "clap", pray = "pray", wave = "wave", muscle = "muscle", call_me = "callme", fire = "fire",
+  skull = "skull", poop = "poop", eyes = "eyes", tada = "tada", ["100"] = "hundred",
 }
 
 -- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
@@ -118,23 +123,12 @@ end
 
 local emoteMarkupCache = {}
 
-local function toByte(value)
-  return math.floor(math.max(0, math.min(1, value)) * 255 + 0.5)
-end
-
--- The Glassy set is drawn in white and tinted gold, or EllesmereUI's accent; the Classic set keeps its own colors.
+-- 64 px Twemoji images.
 local function getEmoteMarkup(name)
-  local profile = Core.db.profile
-  local style = profile.emoteStyle == "classic" and "classic" or "glass"
-  local size = math.floor((tonumber(profile.messageFontSize) or 13) * EMOTE_SCALE + 0.5)
-  local tint = ""
-  if style == "glass" then
-    local accent = Core:GetModule("Ellesmere"):GetActiveAccent()
-    tint = accent and (":"..toByte(accent.r)..":"..toByte(accent.g)..":"..toByte(accent.b)) or ":223:186:105"
-  end
-  local key = style..name..size..tint
+  local size = math.floor((tonumber(Core.db.profile.messageFontSize) or 13) * EMOTE_SCALE + 0.5)
+  local key = name..size
   if not emoteMarkupCache[key] then
-    emoteMarkupCache[key] = "|T"..EMOTE_PATH..style.."_"..name..":"..size..":"..size..":0:0:32:32:0:32:0:32"..tint.."|t"
+    emoteMarkupCache[key] = "|T"..EMOTE_PATH.."twemoji_"..name..":"..size..":"..size..":0:0:64:64:0:64:0:64|t"
   end
   return emoteMarkupCache[key]
 end
@@ -149,7 +143,7 @@ local function emoteWord(word)
 end
 
 local function emoteSegment(segment)
-  segment = segment:gsub(":([%l_]+):", function (shortcode)
+  segment = segment:gsub(":([%l%d_]+):", function (shortcode)
     local name = SHORTCODES[shortcode]
     return name and getEmoteMarkup(name)
   end)

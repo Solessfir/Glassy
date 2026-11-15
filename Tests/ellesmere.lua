@@ -56,7 +56,7 @@ assert(skinnedWith("Panel", statusBar)[3].inset and skinnedWith("EditBox", editB
 assert(skinnedWith("Panel", textBox.scrollBG) and skinnedWith("ScrollBar", textBox.scrollBar))
 assert(fontsSelected == 1 and module:GetFontPath() == "Fonts\\Ellesmere.ttf", "The default font is re-resolved")
 local updates = table.concat(dispatched, ",")
-assert(updates:find("tabTextColor", 1, true) and updates:find("emojiDisplay", 1, true), "Themed elements refresh")
+assert(updates:find("tabTextColor", 1, true), "Themed elements refresh")
 
 -- Untouched colors follow the accent with their own opacity; customized colors stay.
 local themed = core:GetThemeColor("tabTextColor")

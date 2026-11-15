@@ -73,7 +73,6 @@ Core:RegisterCompactTranslations("ptBR", {
   ENTER_PROFILE_NAME="Digite um nome de perfil.", PROFILE_ALREADY_EXISTS="Já existe um perfil com esse nome.",
   PROFILE_IMPORTED="Perfil importado: %s", REPLACE_PROFILE_CONFIRM="Substituir o perfil '%s'? As configurações atuais serão perdidas.",
   EXPORT_PROFILE_TITLE="Glassy: Exportar perfil",
-  EMOTE_STYLE = "Estilo dos emoticons",
   UNREAD_COUNT = "Contador de não lidas",
   KEEP_WHISPER_TABS = "Manter abas de sussurro",
   SEARCH_MESSAGES = "Pesquisar mensagens",

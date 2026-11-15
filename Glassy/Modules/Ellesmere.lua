@@ -117,7 +117,6 @@ function Ellesmere:RefreshLooks()
   for _, key in ipairs(ACCENT_KEYS) do
     Core:Dispatch(UpdateConfig(key))
   end
-  Core:Dispatch(UpdateConfig("emojiDisplay"))
 end
 
 local themedColors = {}

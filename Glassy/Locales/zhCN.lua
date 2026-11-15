@@ -59,7 +59,6 @@ Core:RegisterCompactTranslations("zhCN", {
   ENTER_PROFILE_NAME="请输入配置名称。", PROFILE_ALREADY_EXISTS="已存在同名配置。",
   PROFILE_IMPORTED="已导入配置：%s", REPLACE_PROFILE_CONFIRM="替换配置“%s”？当前设置将丢失。",
   EXPORT_PROFILE_TITLE="Glassy：导出配置",
-  EMOTE_STYLE = "表情风格",
   UNREAD_COUNT = "未读计数",
   KEEP_WHISPER_TABS = "保留密语标签",
   SEARCH_MESSAGES = "搜索消息",

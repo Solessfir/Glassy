@@ -38,7 +38,7 @@ Close WoW before migrating. Install Glassy, then copy `WTF/Account/<account>/Sav
 - Background edge fades use a percentage of chat width, so they stay proportional when resized.
 - Keep tabs and the Combat Log organized with reordering, highlighting, and customizable text colors and font size.
 - Find and share conversations with retained history, timestamps, phrase filtering, per-tab copying, and a live search through each tab's messages.
-- See smileys such as `:)` and codes such as `:smile:` as small faces, in Glassy's gold style or a classic yellow set. No other addon is needed.
+- See smileys such as `:)` and codes such as `:smile:` as small Twemoji faces. Codes such as `:thumbsup:`, `:fire:`, `:skull:` and `:100:` add hands and symbols. Off by default. No other addon is needed.
 - Keep track of busy tabs with an optional unread count, and keep character whisper tabs open across reloads and logins. Battle.net whisper tabs are not kept, because the game hides their names from addons.
 - Track a recipe someone linked by right-clicking it (Retail and WoW Forever).
 - Match EllesmereUI automatically: its window skin, accent color, and UI font when it is installed, with every Glassy setting in its options panel.
@@ -116,7 +116,7 @@ Use `/gl` to configure:
 - Edit-box position and dynamic message-space movement.
 - Tab appearance, unread counts, kept whisper tabs, Combat Log visibility, and filter-bar layout.
 - Timestamp formats, colors, and enabled chat windows.
-- Scrollback limits, emotes, and emote style.
+- Scrollback limits and emotes.
 
 Glassy keeps its visible renderer bounded to 128 messages; the separate **Scrollback lines** setting controls retained history available for copying.
 
@@ -138,7 +138,7 @@ Disable **ElvUI → Chat → Enable**, then reload, so Glassy can manage chat. T
 
 ### EllesmereUI
 
-Glassy follows [EllesmereUI](https://www.curseforge.com/projects/1477613)'s look when it is installed: Glassy's windows (settings, copy, search, version history, and debug report) use EllesmereUI's window skin, label and separator colors and Glassy-style emotes use its accent color, and the default font becomes its UI font. Colors and fonts you set in Glassy still take priority. Turn this off under **EllesmereUI → Blizzard Skins+ → Window Skins → Third-Party Addons**.
+Glassy follows [EllesmereUI](https://www.curseforge.com/projects/1477613)'s look when it is installed: Glassy's windows (settings, copy, search, version history, and debug report) use EllesmereUI's window skin, label and separator colors use its accent color, and the default font becomes its UI font. Colors and fonts you set in Glassy still take priority. Turn this off under **EllesmereUI → Blizzard Skins+ → Window Skins → Third-Party Addons**.
 
 All Glassy settings are also available in EllesmereUI's options panel, in a **Glassy** section built with EllesmereUI's own controls and included in its search. Both panels change the same settings. EllesmereUI's **Reset** button restores the defaults of the Glassy section you are viewing.
 
@@ -158,6 +158,8 @@ See [Development and releases](DEVELOPMENT.md).
 
 ## Credits and license
 
-Original Glass by mixxorz (Mitchel Cabuloy). Fork maintained by Solessfir. Emote art, recipe tracking, chat search, and several fixes are adapted from Glass Forever by Nelson Abrantes (Rethz).
+Original Glass by mixxorz (Mitchel Cabuloy). Fork maintained by Solessfir. Recipe tracking, chat search, and several fixes are adapted from Glass Forever by Nelson Abrantes (Rethz).
 
 [MIT License](LICENSE). Original copyright notices retained. Prat and ElvUI are separate projects and are not bundled with this fork.
+
+Color emotes are [Twemoji](https://github.com/jdecked/twemoji) graphics, copyright Twitter, Inc. and other contributors, licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/) and resized for WoW.

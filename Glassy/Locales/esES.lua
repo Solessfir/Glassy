@@ -77,7 +77,6 @@ local values = {
   ENTER_PROFILE_NAME="Introduce un nombre de perfil.", PROFILE_ALREADY_EXISTS="Ya existe un perfil con ese nombre.",
   PROFILE_IMPORTED="Perfil importado: %s", REPLACE_PROFILE_CONFIRM="¿Reemplazar el perfil '%s'? Se perderá su configuración actual.",
   EXPORT_PROFILE_TITLE="Glassy: Exportar perfil",
-  EMOTE_STYLE = "Estilo de emoticonos",
   UNREAD_COUNT = "Contador de no leídos",
   KEEP_WHISPER_TABS = "Conservar pestañas de susurros",
   SEARCH_MESSAGES = "Buscar mensajes",
