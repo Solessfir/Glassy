@@ -1,7 +1,8 @@
-# 1.9.8 (2026-11-11)
+# 1.9.9 (2026-11-15)
 
 ## What's new
 
-- Channel keybindings: set keys for Say, Yell, Party, Raid, Instance, Guild, Officer, Reply and channels 1-5 under Options > Keybindings > Glassy. While typing, they switch the channel and keep the text you have written; otherwise they open chat in that channel. They are unbound by default.
-- Glassy tells you when a newer version is available, once per session, when someone in your guild or group already has it.
-- Fixed copied chat text taking on the colors of surrounding lines, and showing raw plural codes instead of the right word.
+- Copying chat now opens at the newest messages, and Escape closes the copy, search and debug report windows.
+- Fixed the tab font size not changing on Russian and other non-English game clients.
+- Fixed the message blacklist and chat search ignoring letter case only for English letters. Russian and accented letters now match regardless of case too.
+- Always visible is now translated.
