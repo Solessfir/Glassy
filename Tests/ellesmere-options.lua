@@ -124,7 +124,9 @@ local core = {
   GetModule = function (_, name) return name == "Config" and {Print = function (_, text) printed = text end} or module end,
   Subscribe = function (_, _, callback) updateListeners[#updateListeners + 1] = callback end,
 }
-assert(loadfile("Glassy/Modules/EllesmereOptions.lua"))("Glassy", {core, {EVENTS = {UPDATE_CONFIG = "update"}}})
+local utils = {}
+assert(loadfile("Glassy/utils.lua"))("Glassy", {core, {}, utils})
+assert(loadfile("Glassy/Modules/EllesmereOptions.lua"))("Glassy", {core, {EVENTS = {UPDATE_CONFIG = "update"}}, utils})
 module:OnEnable()
 
 assert(spec.label == "Glassy" and #spec.modules == 2, "Each top-level settings group becomes a module")

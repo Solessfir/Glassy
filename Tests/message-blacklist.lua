@@ -21,7 +21,9 @@ function core:GetModule(name)
   return textProcessing
 end
 
-assert(loadfile("Glassy/Modules/TextProcessing.lua"))("Glassy", {core})
+local utils = {}
+assert(loadfile("Glassy/utils.lua"))("Glassy", {core, {}, utils})
+assert(loadfile("Glassy/Modules/TextProcessing.lua"))("Glassy", {core, {}, utils})
 
 local reminder = "Remember to act responsibly, protect your personal information"
 assert(not textProcessing:IsMessageBlacklisted(reminder), "The blacklist must default to off")
@@ -32,6 +34,10 @@ assert(textProcessing:IsMessageBlacklisted("REMEMBER   to act\nresponsibly"), "M
 assert(textProcessing:IsMessageBlacklisted("|cffffd100Remember|r to act responsibly"), "Visible formatted text must match")
 assert(textProcessing:IsMessageBlacklisted("Prefix [Notice].* suffix"), "Phrases must be matched literally")
 assert(not textProcessing:IsMessageBlacklisted("Prefix Notice suffix"), "Lua patterns must not be evaluated")
+
+core.db.profile.messageBlacklist = "продам золото\nüber"
+assert(textProcessing:IsMessageBlacklisted("ПРОДАМ Золото дёшево"), "Matching must ignore case in Cyrillic text")
+assert(textProcessing:IsMessageBlacklisted("Ich bin ÜBER dir"), "Matching must ignore case in accented Latin text")
 
 core.db.profile.messageBlacklist = "different phrase"
 assert(not textProcessing:IsMessageBlacklisted(reminder), "Changing the setting must refresh cached phrases")

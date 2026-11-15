@@ -21,6 +21,22 @@ function Utils.hookPresentation(owner, object, method, handler)
 end
 
 -- Utility functions
+-- Folds A-Z plus accented Latin and Cyrillic capitals, so case-insensitive matching works for European and
+-- Russian text. Byte ranges rather than string.lower, which follows the C locale and can rewrite UTF-8 bytes.
+-- Other scripts used by WoW clients have no case.
+local LOWER_ASCII, LOWER_UTF8 = {}, {}
+for byte = 0x41, 0x5A do LOWER_ASCII[string.char(byte)] = string.char(byte + 0x20) end
+for byte = 0x80, 0x9E do
+  if byte ~= 0x97 then LOWER_UTF8["\195"..string.char(byte)] = "\195"..string.char(byte + 0x20) end
+end
+for byte = 0x80, 0x8F do LOWER_UTF8["\208"..string.char(byte)] = "\209"..string.char(byte + 0x10) end
+for byte = 0x90, 0x9F do LOWER_UTF8["\208"..string.char(byte)] = "\208"..string.char(byte + 0x20) end
+for byte = 0xA0, 0xAF do LOWER_UTF8["\208"..string.char(byte)] = "\209"..string.char(byte - 0x20) end
+
+function Utils.lower(text)
+  return (text:gsub("[A-Z]", LOWER_ASCII):gsub("[\195\208][\128-\191]", LOWER_UTF8))
+end
+
 Utils.super = function (obj)
   return getmetatable(obj).__index
 end

@@ -31,7 +31,9 @@ local core = {
     RegisterCallback = function (_, event, callback) assert(event == "OnDatabaseShutdown"); shutdown = callback end},
   GetModule = function () return module end,
 }
-assert(loadfile("Glassy/Modules/WhisperTabs.lua"))("Glassy", {core})
+local utils = {}
+assert(loadfile("Glassy/utils.lua"))("Glassy", {core, {}, utils})
+assert(loadfile("Glassy/Modules/WhisperTabs.lua"))("Glassy", {core, {}, utils})
 module:OnEnable()
 shutdown()
 local saved = core.db.char.whisperTabs

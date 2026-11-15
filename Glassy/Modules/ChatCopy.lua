@@ -1,4 +1,4 @@
-local Core = unpack(select(2, ...))
+local Core, _, Utils = unpack(select(2, ...))
 local ChatCopy = Core:GetModule("ChatCopy")
 local TP = Core:GetModule("TextProcessing")
 
@@ -167,11 +167,11 @@ end
 -- Newest first, in each message's chat color. Secret and blocked lines are never searched.
 local function searchChatFrame(chatFrame, query)
   local lines, found = {}, 0
-  query = query:lower()
+  query = Utils.lower(query)
   for index = chatFrame:GetNumMessages(), 1, -1 do
     local text, red, green, blue = chatFrame:GetMessageInfo(index)
     local plain = (not _G.canaccessvalue or _G.canaccessvalue(text)) and stripChatMarkup(text)
-    if plain and plain:lower():find(query, 1, true) and not TP:IsMessageBlacklisted(plain) then
+    if plain and Utils.lower(plain):find(query, 1, true) and not TP:IsMessageBlacklisted(plain) then
       found = found + 1
       if found <= SEARCH_RESULT_LIMIT then
         lines[#lines + 1] = "|cff"..toHex(red)..toHex(green)..toHex(blue)..plain:gsub("|", "||").."|r"

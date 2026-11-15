@@ -1,7 +1,7 @@
 local _G = _G
 local canaccessvalue = _G.canaccessvalue
 
-local Core = unpack(select(2, ...))
+local Core, _, Utils = unpack(select(2, ...))
 local TP = Core:GetModule("TextProcessing")
 
 local EMOTE_PATH = "Interface\\AddOns\\Glassy\\Glassy\\Assets\\Emotes\\"
@@ -201,7 +201,7 @@ local function normalizeBlacklistText(text)
   text = text:gsub("|c%x%x%x%x%x%x%x%x", "")
   text = text:gsub("|r", "")
   text = text:gsub("||", "|")
-  return text:lower():gsub("%s+", " "):match("^%s*(.-)%s*$")
+  return Utils.lower(text):gsub("%s+", " "):match("^%s*(.-)%s*$")
 end
 
 local function getBlacklistPhrases()

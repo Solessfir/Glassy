@@ -1,4 +1,4 @@
-local Core = unpack(select(2, ...))
+local Core, _, Utils = unpack(select(2, ...))
 local WhisperTabs = Core:GetModule("WhisperTabs")
 
 -- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
@@ -51,7 +51,7 @@ end
 local function findWhisperFrame(target)
   local found
   eachWhisperFrame(function (chatFrame, frameTarget)
-    if frameTarget:lower() == target:lower() then found = found or chatFrame end
+    if Utils.lower(frameTarget) == Utils.lower(target) then found = found or chatFrame end
   end)
   return found
 end

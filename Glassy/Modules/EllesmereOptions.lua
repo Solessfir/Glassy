@@ -1,4 +1,4 @@
-local Core, Constants = unpack(select(2, ...))
+local Core, Constants, Utils = unpack(select(2, ...))
 local Ellesmere = Core:GetModule("Ellesmere")
 
 local UPDATE_CONFIG = Constants.EVENTS.UPDATE_CONFIG
@@ -466,7 +466,7 @@ function Ellesmere:BuildOptionModules(root)
     if group.type == "group" and not group.dialogHidden then
       local title = nameOf(group, entry.key)
       -- EllesmereUI prefixes titles that match its own sections, such as Profiles.
-      if entry.key == "profile" then title = "Glassy "..title:lower() end
+      if entry.key == "profile" then title = "Glassy "..Utils.lower(title) end
       local key = entry.key
       self.optionModuleKeys[#self.optionModuleKeys + 1] = key
       -- Only sections that hold settings offer EllesmereUI's Reset button.
