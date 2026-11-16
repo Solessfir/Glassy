@@ -1,8 +1,6 @@
-# 1.9.10 (2026-11-15)
+# 1.9.11 (2026-11-16)
 
-## What's new
+## Fixes
 
-- Emotes now use Twemoji, the full-color emoji art, drawn at twice the old resolution.
-- New codes for hands and symbols: `:thumbsup:`, `:thumbsdown:`, `:ok_hand:`, `:clap:`, `:pray:`, `:wave:`, `:muscle:`, `:call_me:`, `:fire:`, `:skull:`, `:poop:`, `:eyes:`, `:tada:`, `:100:`, `:zzz:`, `:sleeping:`, `:heart_eyes:`, `:smirk:`, `:thinking:`, `:sweat_smile:`, `:rofl:`, `:tears_of_joy:` and `:facepalm:`.
-- Emotes are now off by default. Turn them on under Messages > Emotes. If you never changed this setting, emotes turn off with this update.
-- The Emote style option is gone, since Twemoji is now the only style.
+- Fixed chat tabs disappearing with an anchor error when restoring whisper tabs while the Combat Log tab is hidden.
+- Fixed Lua errors when hovering battle-pet links, including messages that have faded or been reused. Retail tooltips now have a valid position before other addons inspect them; clients without a complete battle-pet tooltip skip the hover preview safely.

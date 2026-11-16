@@ -60,6 +60,35 @@ MenuUtil = {
 }
 ChatFrameUtil = {PopOutChat = function (frame, chatType, target) poppedOut = {frame, chatType, target} end}
 
+UIParent = {}
+local function tooltip()
+  local frame = {}
+  function frame:SetOwner(_, anchor) self.ownerAnchor = anchor end
+  function frame:ClearAllPoints() self.point = nil end
+  function frame:SetPoint(...) self.point = {...} end
+  function frame:GetPoint() return unpack(self.point or {}) end
+  function frame:GetBottom() return self.point and self.point[5] end
+  function frame:Show() self.shown = true end
+  function frame:Hide() self.shown = false end
+  function frame:SetHyperlink(link) self.link = link end
+  return frame
+end
+GameTooltip, BattlePetTooltip = tooltip(), tooltip()
+BattlePetTooltip.Owned = {}
+ShowUIPanel = function (frame) frame:Show() end
+local petLinksShown = 0
+BattlePetToolTip_ShowLink = function (text)
+  assert(BattlePetTooltip.Owned, "Forever clients without Owned must skip pet tooltips")
+  assert(BattlePetTooltip:GetBottom() and BattlePetTooltip:GetBottom() >= 0,
+    "TSM's OnShow hook needs a positioned pet tooltip")
+  assert(text == "[Pet]", "The full link text reaches Blizzard")
+  BattlePetTooltip:Show()
+  BattlePetTooltip:ClearAllPoints()
+  BattlePetTooltip:SetPoint(GameTooltip:GetPoint(1))
+  assert(BattlePetTooltip:GetBottom(), "Blizzard must retain a valid anchor after showing")
+  petLinksShown = petLinksShown + 1
+end
+
 assert(loadfile("Glassy/Modules/Hyperlinks.lua"))("Glassy", {core, constants})
 module:OnInitialize()
 module:OnEnable()
@@ -92,3 +121,36 @@ copyElement.responder, copied = nil, nil
 modifiers.MENU_UNIT_PLAYER(nil, copyMenu, {name = "Elowen"})
 assert(copyElement.responder == nil, "Blizzard's own menus are left unchanged")
 print("PASS: links keep their chat frame, recipes can be tracked, and link menus are redirected")
+
+local petLink = {"battlepet:39:1:2:100:10:10", "[Pet]"}
+for _ = 1, 2 do
+  -- Repeated hovers must work after the previous line or tooltip has been reused.
+  BattlePetTooltip:ClearAllPoints()
+  listeners.enter(petLink)
+  assert(module.state.showingTooltip == BattlePetTooltip and BattlePetTooltip.shown)
+  assert(BattlePetTooltip.point[1] == "BOTTOMRIGHT" and BattlePetTooltip.point[2] == UIParent)
+  assert(BattlePetTooltip.point[4] == -13 and BattlePetTooltip.point[5] == 64)
+  assert(GameTooltip.ownerAnchor == "ANCHOR_NONE" and not GameTooltip.shown)
+  listeners.leave(petLink[1])
+  assert(not BattlePetTooltip.shown and not module.state.showingTooltip)
+end
+assert(petLinksShown == 2)
+
+BattlePetTooltip.Owned = nil
+listeners.enter(petLink)
+assert(petLinksShown == 2 and not module.state.showingTooltip, "Missing Owned safely skips hover")
+listeners.leave(petLink[1])
+
+BattlePetTooltip = nil
+assert(loadfile("Glassy/Modules/Hyperlinks.lua"))("Glassy", {core, constants})
+module:OnInitialize()
+module:OnEnable()
+listeners.enter(petLink)
+assert(petLinksShown == 2 and not module.state.showingTooltip, "Missing pet tooltip safely skips hover")
+
+listeners.enter({"item:6948", "[Hearthstone]"})
+assert(module.state.showingTooltip == GameTooltip and GameTooltip.link == "item:6948" and GameTooltip.shown)
+assert(GameTooltip.ownerAnchor == "ANCHOR_CURSOR", "Other links keep cursor tooltips")
+listeners.leave("item:6948")
+assert(not GameTooltip.shown and not module.state.showingTooltip)
+print("PASS: pet hovers anchor before OnShow, skip incomplete clients, and preserve normal tooltips")

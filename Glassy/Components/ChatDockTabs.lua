@@ -162,6 +162,8 @@ function ChatDockMixin:LayoutDockedTabs(orderedFrames, keepSelectedVisible, gap)
   local hasPreviousSlot = false
 
   self.scrollFrame:SetScript("OnUpdate", nil)
+  -- Remove native tab anchors before moving tabs into their scroll child.
+  self.scrollFrame:ClearAllPoints()
   self.scrollFrame:SetPoint("LEFT", self, "LEFT", 0, 0)
 
   for index, chatFrame in ipairs(orderedFrames) do

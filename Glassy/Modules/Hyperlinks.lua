@@ -154,9 +154,16 @@ function Hyperlinks:OnEnable()
 
     if linkTypes[t] then
       if t == "battlepet" then
-        self.state.showingTooltip = BattlePetTooltip
-        GameTooltip:SetOwner(UIParent, "ANCHOR_CURSOR")
-        BattlePetToolTip_ShowLink(text)
+        if BattlePetTooltip and BattlePetTooltip.Owned and BattlePetToolTip_ShowLink then
+          self.state.showingTooltip = BattlePetTooltip
+          -- Blizzard shows the pet tooltip before copying GameTooltip's anchor.
+          GameTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+          GameTooltip:ClearAllPoints()
+          GameTooltip:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -13, 64)
+          BattlePetTooltip:ClearAllPoints()
+          BattlePetTooltip:SetPoint(GameTooltip:GetPoint(1))
+          BattlePetToolTip_ShowLink(text)
+        end
       else
         self.state.showingTooltip = GameTooltip
         ShowUIPanel(GameTooltip)
