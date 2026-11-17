@@ -106,7 +106,8 @@ function ChatTabMixin:GetIconWidth()
 end
 
 function ChatTabMixin:GetLayoutWidth()
-  local width = self:GetIconWidth() + self:GetTextWidth() + getLeftTextPadding() + Constants.TEXT_RIGHT_PADDING
+  local textWidth = self.Text and (self.Text.GetUnboundedStringWidth and self.Text:GetUnboundedStringWidth() or self.Text:GetStringWidth()) or self:GetTextWidth()
+  local width = self:GetIconWidth() + math.ceil(textWidth) + getLeftTextPadding() + Constants.TEXT_RIGHT_PADDING + 2
   if self.unreadText and self.unreadText:IsShown() then
     width = width + UNREAD_COUNT_GAP + self.unreadText:GetStringWidth()
   end
@@ -128,6 +129,7 @@ function ChatTabMixin:UpdateTextLayout()
   self:AnchorConversationIcon()
   self.Text:ClearAllPoints()
   self.Text:SetPoint("LEFT", leftPadding + self:GetIconWidth(), 0)
+  self.Text:SetPoint("RIGHT", -Constants.TEXT_RIGHT_PADDING, 0)
   -- Blizzard insets the alert glow for its own tab art; span Glassy's icon, name, and count instead.
   if self.glow then
     self.glow:ClearAllPoints()
@@ -398,6 +400,7 @@ function ChatTabMixin:Init(slidingMessageFrame, dock)
           key == "frameWidth" or
           key == "frameHeight" or
           key == "font" or
+          key == "tabFont" or
           key == "tabFontSize" or
           key == "textLeftPadding"
         ) then

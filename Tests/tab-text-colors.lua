@@ -139,6 +139,7 @@ tab.glassyHovered = false
 
 -- Unread counts grow the tab only while it is unselected, and selecting it clears them.
 text.ClearAllPoints, text.SetPoint = noop, noop
+text.GetStringWidth = function () return 40 end
 local count = {SetPoint = noop}
 function count:SetTextColor() end
 function count:SetText(value) self.value = value end
@@ -165,7 +166,7 @@ assert(tab.glassyUnreadCount == nil and count.value == nil, "Counts stay off by 
 profile.tabUnreadCount = true
 tab:AddUnreadMessage()
 tab:AddUnreadMessage()
-assert(count.value == "2" and count.shown and tab.width == 40 + 5 + 4 + 6, "The count widens the tab")
+assert(count.value == "2" and count.shown and tab.width == 40 + 5 + 2 + 4 + 6, "The count widens the tab")
 assert(relayouts == 1, "Only a width change re-lays out the dock")
 tab.glassyUnreadCount = 99
 tab:AddUnreadMessage()
@@ -174,7 +175,7 @@ GENERAL_CHAT_DOCK.selected = tab.chatFrame
 tab:AddUnreadMessage()
 assert(tab.glassyUnreadCount == 100, "The selected tab does not count")
 tab:UpdateVisualState()
-assert(tab.glassyUnreadCount == 0 and not count.shown and tab.width == 45, "Selecting the tab clears its count")
+assert(tab.glassyUnreadCount == 0 and not count.shown and tab.width == 47, "Selecting the tab clears its count")
 GENERAL_CHAT_DOCK.selected = otherFrame
 tab.chatFrame.isTemporary = true
 tab:AddUnreadMessage()
@@ -185,19 +186,33 @@ tab.chatFrame.isTemporary = nil
 GENERAL_CHAT_DOCK = nil
 
 -- Whisper tabs place Blizzard's conversation icon before the name and widen the tab for it.
-local iconPoints, textPoint = {}, nil
+local iconPoints, textPoints = {}, {}
 tab.conversationIcon = {
   IsShown = function () return true end, GetWidth = function () return 16 end,
   ClearAllPoints = function () iconPoints = {} end,
   SetPoint = function (_, ...) iconPoints[#iconPoints + 1] = {...} end,
 }
-text.SetPoint = function (_, point, x) textPoint = {point, x} end
+text.SetPoint = function (_, point, x) textPoints[point] = x end
 tab:UpdateTextLayout()
 assert(#iconPoints == 1 and iconPoints[1][1] == "LEFT" and iconPoints[1][3] == "LEFT" and iconPoints[1][5] == 0,
   "The icon keeps one centered anchor instead of Blizzard's two")
-assert(textPoint[1] == "LEFT" and textPoint[2] == 16 + 3, "The name starts after the icon")
-assert(tab.width == 16 + 3 + 40 + 5, "The tab is widened by the icon")
+assert(textPoints.LEFT == 16 + 3, "The name starts after the icon")
+assert(tab.width == 16 + 3 + 40 + 5 + 2, "The tab is widened by the icon")
 tab.conversationIcon = nil
+assert(textPoints.RIGHT == -5, "The label uses the full tab width")
+text.GetUnboundedStringWidth = function () return 80.25 end
+tab:UpdateTextLayout()
+assert(tab.width == 81 + 5 + 2, "Tab width uses the rounded unbounded label width")
+tab:SetUnreadCount(1)
+assert(tab.width == 81 + 5 + 2 + 4 + 6, "Unread counts preserve the full label width")
+tab:SetUnreadCount(0)
+assert(tab.width == 81 + 5 + 2, "Clearing unread counts preserves the full label width")
+text.GetUnboundedStringWidth = nil
+assert(tab:GetLayoutWidth() == 47, "Older clients fall back to GetStringWidth")
+local savedText = tab.Text
+tab.Text = nil
+assert(tab:GetLayoutWidth() == 47, "Tabs without a FontString fall back to GetTextWidth")
+tab.Text = savedText
 
 local alertText = {
   ClearAllPoints = noop, SetPoint = noop, GetLineHeight = function () return 13 end,

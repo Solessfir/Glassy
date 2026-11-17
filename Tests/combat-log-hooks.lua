@@ -58,6 +58,7 @@ local function frame(name)
   object.SetHighlightFontObject = noop
   object.RegisterForDrag, object.SetTextColor = noop, noop
   object.GetTextWidth = function () return 30 end
+  object.GetStringWidth = function () return 30 end
   function object:GetParent() return self.parent end
   function object:SetParent(parent) self.parent = parent end
   object.SetIgnoreParentAlpha, object.SetFrameStrata = noop, noop
@@ -270,8 +271,13 @@ GlassyTestTab:SetScript("OnClick", function () clicked = true end)
 local onClick, nativeHookScript = GlassyTestTab:GetScript("OnClick"), GlassyTestTab.HookScript
 local tabAlpha, tabWidth, textColor = GlassyTestTab.SetAlpha, GlassyTestTab.SetWidth, GlassyTestTab.Text.SetTextColor
 local saved = 0
-local dock = {UpdateTabOrder = noop, SaveSelectedTab = function () saved = saved + 1 end}
+local tabLayouts, tabConfigListener = 0, nil
+core.Subscribe = function (_, _, callback) tabConfigListener = callback end
+local dock = {UpdateTabOrder = function () tabLayouts = tabLayouts + 1 end, SaveSelectedTab = function () saved = saved + 1 end}
 core.Components.CreateChatTab({chatFrame = frame("GlassyTest")}, dock)
+local previousLayouts = tabLayouts
+tabConfigListener("tabFont")
+assert(tabLayouts == previousLayouts + 1, "Changing the tab font refreshes the tab layout")
 rawset(_G, "GlassyTest", GlassyTestTab.chatFrame)
 assert(GlassyTestTab:GetScript("OnClick") == onClick, "Glassy replaced the secure tab click")
 assert(GlassyTestTab.HookScript == nativeHookScript, "AceHook replaced native HookScript")
