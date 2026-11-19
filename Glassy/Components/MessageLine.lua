@@ -130,12 +130,18 @@ function MessageLineMixin:Init()
   -- Hyperlink handling
   self:SetHyperlinksEnabled(true)
 
+  -- Lines clipped by the viewport still receive hyperlink events.
+  local function isVisibleUnderMouse()
+    return self:GetParent():GetParent():IsMouseOver()
+  end
+
   self:SetScript("OnHyperlinkClick", function (_, link, text, button)
+    if not isVisibleUnderMouse() then return end
     Core:Dispatch(HyperlinkClick({link, text, button, self.sourceFrame}))
   end)
 
   self:SetScript("OnHyperlinkEnter", function (_, link, text)
-    if Core.db.profile.mouseOverTooltips and isAccessible(link) then
+    if Core.db.profile.mouseOverTooltips and isAccessible(link) and isVisibleUnderMouse() then
       Core:Dispatch(HyperlinkEnter({link, text}))
     end
   end)

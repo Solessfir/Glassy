@@ -198,6 +198,9 @@ function ChatDockMixin:Init(parent)
   self:SetHeight(Constants.DOCK_HEIGHT)
   self:ClearAllPoints()
   self:SetPoint("TOPLEFT", parent, "TOPLEFT")
+  -- Clipped message lines still catch hyperlink clicks, so the tabs must sit above them.
+  self:SetFrameStrata(parent:GetFrameStrata())
+  self:SetFrameLevel(parent:GetFrameLevel() + 20)
   self:UpdateFadeSettings()
 
   self.scrollFrame:SetHeight(Constants.DOCK_HEIGHT)

@@ -57,7 +57,7 @@ function DetachedChatDockMixin:SetTab(tab)
   end
   self.tab = tab
   tab:SetParent(self)
-  tab:SetFrameStrata("LOW")
+  tab:SetFrameStrata(self:GetFrameStrata())
   tab:ClearAllPoints()
   tab:SetPoint("LEFT", self, "LEFT", 0, 0)
   if tab.UpdateVisualState then
@@ -72,6 +72,8 @@ function DetachedChatDockMixin:Init(parent)
   self:SetHeight(Constants.DOCK_HEIGHT)
   self:SetPoint("TOPLEFT", parent, "TOPLEFT")
   self:SetPoint("TOPRIGHT", parent, "TOPRIGHT")
+  -- Clipped message lines still catch hyperlink clicks, so the tab must sit above them.
+  self:SetFrameLevel(parent:GetFrameLevel() + 20)
   self:UpdateFadeSettings()
 
   self.messageSeparator = CreateSeparatorFrame(self)

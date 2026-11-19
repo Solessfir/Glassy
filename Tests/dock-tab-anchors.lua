@@ -52,6 +52,9 @@ local function frame(name, parent, width)
   function f:SetShown(shown) self.shown = shown end
   function f:IsShown() return self.shown end
   f.SetHeight, f.SetFrameStrata, f.SetSeparatorColor = noop, noop, noop
+  f.SetFrameLevel = noop
+  function f:GetFrameStrata() return "MEDIUM" end
+  function f:GetFrameLevel() return 1 end
   f.SetPoint = native(function (self, point, relative, relativePoint, x, y)
     assert(not depends(relative, self, {}), "Cannot anchor to a region dependent on it: "..self.name)
     self.points[point] = {point, relative, relativePoint, x, y}

@@ -220,7 +220,8 @@ function MoverFrameMixin:Init()
 
   self.boundsFrame = CreateFrame("Frame", nil, self)
   self.boundsFrame:SetAllPoints(self)
-  self.boundsFrame:SetFrameLevel(self:GetFrameLevel() + 10)
+  -- Stays above the chat dock, which sits 20 levels over the container.
+  self.boundsFrame:SetFrameLevel(self:GetFrameLevel() + 30)
   self.boundsFrame:EnableMouse(true)
 
   if self.bg == nil then

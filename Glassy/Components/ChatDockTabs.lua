@@ -182,7 +182,7 @@ function ChatDockMixin:LayoutDockedTabs(orderedFrames, keepSelectedVisible, gap)
       end
 
       tab:SetParent(child)
-      tab:SetFrameStrata("LOW")
+      tab:SetFrameStrata(self:GetFrameStrata())
       tab:ClearAllPoints()
       tab:SetPoint("LEFT", child, "LEFT", totalWidth, 0)
 
@@ -412,7 +412,7 @@ function ChatDockMixin:StopTabDrag(tab)
   tab:StopMovingOrSizing()
   tab:SetScript("OnUpdate", nil)
   tab:SetMovable(false)
-  tab:SetFrameStrata("LOW")
+  tab:SetFrameStrata(self:GetFrameStrata())
   tab:UnlockHighlight()
   FCFDock_HideInsertHighlight(GENERAL_CHAT_DOCK)
 

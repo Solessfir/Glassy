@@ -1,6 +1,7 @@
-# 1.9.11 (2026-11-16)
+# 1.9.12 (2026-11-19)
 
 ## Fixes
 
-- Fixed chat tabs disappearing with an anchor error when restoring whisper tabs while the Combat Log tab is hidden.
-- Fixed Lua errors when hovering battle-pet links, including messages that have faded or been reused. Retail tooltips now have a valid position before other addons inspect them; clients without a complete battle-pet tooltip skip the hover preview safely.
+- Fixed clicks on chat tabs sometimes going to a link in a message hidden underneath, such as opening a guild message instead of switching tabs.
+- Fixed hidden messages above or below the chat showing link tooltips and opening links.
+- Fixed chat tab labels getting cut off with wider fonts.
