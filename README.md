@@ -82,7 +82,7 @@ The same reference is available in the **Shortcuts** section under **/gl → Abo
 
 Ctrl+U, Ctrl+K, and Ctrl+Y are unavailable during Blizzard's chat messaging lockdown.
 
-Keys for switching the channel (Say, Yell, Party, Raid, Instance, Guild, Officer, Reply and channels 1-5) can be set under **Options → Keybindings → Glassy**. They are unbound by default. While typing, they keep the text you have written; otherwise they open chat in that channel.
+Keys for switching the channel (Say, Yell, Party, Raid, Instance, Guild, Officer, Reply and channels 1-5) can be set under **Options → Keybindings → Glassy**. They are unbound by default. While typing, they keep the text you have written; otherwise they open chat in that channel. Pressing the key of the channel you are already in closes an empty chat box, like Escape.
 
 ### Chat tabs and history
 

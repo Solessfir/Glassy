@@ -63,23 +63,41 @@ for action, target in pairs(CHAT_BINDINGS) do
     or _G[target.."_MESSAGE"] or _G["CHAT_MSG_"..target] or target
 end
 
+-- What the box sends to, as Blizzard resolved it.
+local function chatKey(editBox)
+  return table.concat({tostring(editBox:GetChatType()), tostring(editBox:GetChannelTarget()), tostring(editBox:GetTellTarget())}, ":")
+end
+
 -- Blizzard's own prefix handling keeps the typed text, so switching works like typing "/p " in front of it.
-local function switchChat(editBox, target)
+-- With `toggle`, a switch that leaves an empty box in the same chat closes it like Escape.
+-- The switch decides, as Blizzard turns Party into Instance in a dungeon group and Reply into a whisper.
+-- Escape would also throw away typed text, so a draft stays.
+-- A refused switch (locked chat, a channel not joined, Reply with no whispers yet) leaves the box as it was.
+function EditBoxMixin:SwitchChat(target, toggle)
   if isChatMessagingLocked() then
     return
   end
+  local before = toggle and self:GetText() == "" and chatKey(self)
+  local switched
   if type(target) == "number" then
-    editBox:HandleChatType(editBox:GetText(), "/"..target, 0)
+    switched = self:HandleChatType(self:GetText(), "/"..target, 0)
   else
-    editBox:ProcessChatType(editBox:GetText(), target, 0)
+    -- Reply reports success even with no one to reply to.
+    switched = self:ProcessChatType(self:GetText(), target, 0)
+      and (target ~= "REPLY" or ChatFrameUtil.GetLastTellTarget() ~= nil)
+  end
+  if before and switched and chatKey(self) == before then
+    -- The script rather than the method, in case another addon replaced it.
+    local onEscape = self:GetScript("OnEscapePressed")
+    if onEscape then onEscape(self) else self:ClearChat() end
   end
 end
 
--- Runs from Bindings.xml when no edit box has focus.
+-- Runs from Bindings.xml when no edit box has focus, so it only opens or resumes the box.
 function GlassySwitchChat(target) -- luacheck: ignore 111
   local editBox = ChatFrameUtil.GetActiveWindow() or ChatFrameUtil.OpenChat()
   if editBox then
-    switchChat(editBox, target)
+    EditBoxMixin.SwitchChat(editBox, target)
   end
 end
 
@@ -236,7 +254,7 @@ function EditBoxMixin:Init(parent, useParentWidth)
     -- Key bindings never fire while the box has focus, so look up chat bindings here.
     local chatTarget = CHAT_BINDINGS[GetBindingAction(CreateKeyChordStringUsingMetaKeyState(key)) or ""]
     if chatTarget then
-      switchChat(editBox, chatTarget)
+      editBox:SwitchChat(chatTarget, true)
       return
     end
     if IsAltKeyDown() and not IsControlKeyDown() then

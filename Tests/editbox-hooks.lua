@@ -7,6 +7,7 @@ dofile(hookFile or "libs/AceHook-3.0/AceHook-3.0.lua")
 local AceHook = LibStub("AceHook-3.0")
 local Core = {Libs = {AceHook = AceHook, LibEasing = {}}, Components = {}}
 local Constants = {ACTIONS = {}, EVENTS = {}}
+ChatFrameUtil = {}
 
 local function newEditBox()
   local scripts = {}
@@ -89,4 +90,56 @@ for _, pratFirst in ipairs({false, true}) do
   assert(not editBox:IsVisible(), "The input should follow the Glassy container's visibility")
   editBox.glassyHooks:UnhookAll()
 end
+-- A chat shortcut pressed in the box toggles: when the switch leaves an empty box in the same chat, it closes.
+local escaped, box
+-- Mirrors Blizzard's redirects: Party goes to Instance in a dungeon group, Reply to a whisper to the last teller.
+local REDIRECTS = {PARTY = "INSTANCE_CHAT", REPLY = "WHISPER"}
+local function chatBox(chatType, channel, tell, text)
+  local b
+  b = Mixin({
+    GetChatType = function () return chatType end,
+    GetChannelTarget = function () return channel or 0 end,
+    GetTellTarget = function () return tell end,
+    GetText = function () return text or "" end,
+    GetScript = function (_, name) return name == "OnEscapePressed" and function () escaped = true end end,
+    ProcessChatType = function (_, _, target)
+      if target == "REPLY" then
+        if not ChatFrameUtil.GetLastTellTarget() then return true end
+        tell = "Bob"
+      end
+      chatType = REDIRECTS[target] or target
+      return true
+    end,
+    HandleChatType = function (_, _, command)
+      local joined = tonumber(command:sub(2)) <= 3
+      if joined then chatType, channel = "CHANNEL", tonumber(command:sub(2)) end
+      return joined
+    end,
+  }, Core.Components.EditBoxMixin)
+  escaped = false
+  return b
+end
+local function check(b, target, closes, message)
+  b:SwitchChat(target, true)
+  assert(escaped == closes, message)
+  return b
+end
+check(chatBox("GUILD"), "GUILD", true, "The same chat shortcut did not close the open box")
+check(chatBox("GUILD", nil, nil, "brb"), "GUILD", false, "The same chat shortcut threw away a draft")
+assert(check(chatBox("GUILD"), "PARTY", false, "Another chat shortcut closed the box"):GetChatType() == "INSTANCE_CHAT")
+check(chatBox("INSTANCE_CHAT"), "PARTY", true, "Party did not close a box Blizzard redirected to the instance")
+check(chatBox("CHANNEL", 2), 2, true, "The same channel shortcut did not close the open box")
+assert(check(chatBox("CHANNEL", 2), 3, false, "Another channel shortcut closed the box"):GetChannelTarget() == 3)
+check(chatBox("CHANNEL", 2), 5, false, "A shortcut for a channel not joined closed the box")
+ChatFrameUtil.GetLastTellTarget = function () end
+check(chatBox("SAY"), "REPLY", false, "Reply with no whispers yet closed the box")
+ChatFrameUtil.GetLastTellTarget = function () return "Bob", "WHISPER" end
+check(chatBox("WHISPER", nil, "Bob"), "REPLY", true, "Reply did not close a box already whispering the last teller")
+check(chatBox("WHISPER", nil, "Ann"), "REPLY", false, "Reply closed a box whispering someone else")
+-- The binding runs only while no box has focus, so it opens or resumes the box and never closes it.
+box = chatBox("GUILD")
+ChatFrameUtil.GetActiveWindow = function () return box end
+GlassySwitchChat("GUILD")
+assert(not escaped, "The binding closed the box instead of resuming it")
+
 print("PASS: native hooks preserved; Prat works in both load orders; input follows Glassy visibility and keeps its chat association.")
