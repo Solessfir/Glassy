@@ -1,7 +1,5 @@
-# 1.9.12 (2026-11-19)
+# 1.9.13 (2026-11-20)
 
-## Fixes
+## What's new
 
-- Fixed clicks on chat tabs sometimes going to a link in a message hidden underneath, such as opening a guild message instead of switching tabs.
-- Fixed hidden messages above or below the chat showing link tooltips and opening links.
-- Fixed chat tab labels getting cut off with wider fonts.
+- Pressing the key of the chat you are already in now closes an empty chat box, like Escape. Text you have typed is kept.

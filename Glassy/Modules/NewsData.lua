@@ -4,6 +4,14 @@ local Core = unpack(select(2, ...))
 -- luacheck: push ignore 631
 Core.NewsEntries = {
   {
+    name = "1.9.13 (2026-11-20)",
+    items = {[[
+What's new
+
+- Pressing the key of the chat you are already in now closes an empty chat box, like Escape. Text you have typed is kept.
+    ]]}
+  },
+  {
     name = "1.9.12 (2026-11-19)",
     items = {[[
 Fixes
