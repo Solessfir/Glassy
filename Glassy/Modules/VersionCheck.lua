@@ -42,7 +42,9 @@ local function groupChannel()
 end
 
 function VersionCheck:OnEnable()
-  if not C_ChatInfo or not C_ChatInfo.SendAddonMessage then
+  local latest = Core.NewsEntries and Core.NewsEntries[1]
+  if not C_ChatInfo or not C_ChatInfo.SendAddonMessage
+    or (latest and latest.name == Core.Version.." (unreleased)") then
     return
   end
   C_ChatInfo.RegisterAddonMessagePrefix(PREFIX)

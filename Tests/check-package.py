@@ -51,8 +51,10 @@ for line in toc.splitlines():
     if line and not line.startswith("#"):
         check_file(package / line.replace("\\", "/"))
 for name in ("LICENSE", "README.md", "Media/Icon.tga", "Glassy/Assets/snapToBottomIcon.tga",
-             "Glassy/Assets/Emotes/twemoji_smile.tga"):
+             "Glassy/Assets/topFadeMask.tga", "Glassy/Assets/Emotes/twemoji_smile.tga"):
     check_file(package / name)
+for name in ("tabBackground", "tabBevel", "tabBorder", "tabPill", "tabPillBorder", "tabShine"):
+    check_file(package / f"Glassy/Assets/Tabs/{name}.tga")
 for name in ("Tests", "tests", "DEVELOPMENT.md", ".git", ".github", ".travis.yml", ".luacheckrc", ".pkgmeta"):
     assert not (package / name).exists(), f"Development file in package: {name}"
 print(f"PASS: Glassy {version} ({release_date}), metadata, {len(visited)} referenced files, and clean package contents")

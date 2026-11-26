@@ -9,23 +9,14 @@ _Classic twist_
 _Same, but different…_
 ![Glassy Preview Two](https://i.imgur.com/sPsDhPV.gif)
 
-## Required addons for the full experience
-
-- **[Prat 3.0](https://www.curseforge.com/wow/addons/prat-3-0) is mandatory for player class icons, item-link icons, and restoring chat history after a reload or login.** Enable Prat's **LinkInfoIcons** module for icons and **History** for saved chat. Prat also supplies advanced name/channel formatting, substitutions, URL links, filters, and highlights.
-
-  **Required setup:** Open `/prat` → **Module Control** → set **Editbox** to **Don't load**, then `/reload`. Leaving it enabled breaks Glassy's input layout: the typing box can appear far below chat, look missing, and stretch the mover outline. Keep Prat itself enabled for icons and history.
-
-This is a feature requirement, not an addon-loading requirement: Glassy can run on its own, but it does not generate those icons or save chat history between sessions. Its own scrolling, retained session history, timestamps, emotes, search, and copy window work without Prat.
-
 ## Install
 
 **Downloads:** [GitHub Releases](https://github.com/Solessfir/Glassy/releases) · [CurseForge](https://www.curseforge.com/wow/addons/glassy) · [Wago Addons](https://addons.wago.io/addons/glassy).
 
 1. Download the packaged addon ZIP from [GitHub Releases](https://github.com/Solessfir/Glassy/releases), not GitHub's **Source code** archives.
 2. Extract the `Glassy` folder into your client's `Interface/AddOns` folder, with `Glassy.toc` directly inside `Interface/AddOns/Glassy`. Use `_classic_era_` for Era/Hardcore, `_anniversary_` for Burning Crusade Anniversary, `_classic_` for Mists of Pandaria Classic, `_forever_` for WoW Forever, or `_retail_` for Retail.
-3. Install Prat if you want the features listed above.
-4. Restart WoW or reload after replacing an existing installation, then enter `/gl`.
-5. Open **About** and check its **Compatibility** section for detected addons and conflicting Prat modules.
+3. Restart WoW or reload after replacing an existing installation, then enter `/gl`.
+4. Open **About → Compatibility** if you use another chat addon.
 
 ### Upgrading from Glass
 
@@ -33,19 +24,20 @@ Close WoW before migrating. Install Glassy, then copy `WTF/Account/<account>/Sav
 
 ## Features
 
-- Keep chat out of the way until you need it. Messages fade smoothly and return when you hover or start typing.
-- Make it fit your UI with separate fonts and outlines for tabs, messages, and the edit box, plus colors, backgrounds, spacing, opacity, and animations.
-- Background edge fades use a percentage of chat width, so they stay proportional when resized.
-- Keep tabs and the Combat Log organized with reordering, highlighting, and customizable text colors and font size.
-- Find and share conversations with retained history, timestamps, phrase filtering, per-tab copying, and a live search through each tab's messages. Restoring chat after a reload or login needs Prat's History module.
-- See smileys such as `:)` and codes such as `:smile:` as small Twemoji faces. Codes such as `:thumbsup:`, `:fire:`, `:skull:` and `:100:` add hands and symbols. Off by default. No other addon is needed.
-- Keep track of busy tabs with an optional unread count, and keep character whisper tabs open across reloads and logins. Battle.net whisper tabs are not kept, because the game hides their names from addons.
-- Track a recipe someone linked by right-clicking it (Retail and WoW Forever).
-- Match EllesmereUI automatically: its window skin, accent color, and UI font when it is installed, with every Glassy setting in its options panel.
-- Type without giving up familiar shortcuts or your WoW keybindings.
-- Adjust edit-box fade-in and fade-out timing separately from message fades.
-- Use the same addon across current WoW clients, with ten interface languages included.
-- Hear about a newer release when someone in your guild or group already has it.
+- Chat fades until you hover or type. Optional top-edge fade.
+- Adjustable fonts, colors, spacing, opacity, and animations.
+- Seven tab styles, flexible alignment, class accents, and unread counts.
+- Optional Guild and Party tab presets.
+- Detach tabs or group them into a second window.
+- Optional Social, Channels, Voice, and chat menu buttons.
+- Restore, search, copy, filter, and timestamp chat.
+- Customize channel labels, player names, levels, and link icons.
+- Copy URLs, track linked recipes, and Alt-click names to invite.
+- Separate whisper windows with an unread inbox.
+- Three edit-box styles, an emote picker, and slash aliases.
+- Move Glassy in Blizzard Edit Mode on supported clients.
+- Integrates with EllesmereUI and Details! Chat Tab Embed.
+- Supports current WoW clients and ten interface languages.
 
 ## Commands
 
@@ -58,6 +50,11 @@ Open Glassy through `/gl` or **Options → AddOns → Glassy**. Both show the sa
 | `/gl debug` | Open a copyable layout report for troubleshooting. |
 | `/gl news` | Open the version history. |
 | `/gl demo` | Toggle demo mode: sample chat to preview styles and animations. |
+| `/alias rld /reload` | Create a shortcut so `/rld` reloads the UI. |
+| `/unalias rld` | Remove the `/rld` shortcut. |
+| `/listaliases` | List saved shortcuts. |
+
+Create, edit, or remove aliases under **Edit box → Behavior**. For example, enter `/rld = /reload` in **Alias definition** and accept it. Aliases can include arguments and respect WoW's command restrictions. Use `/gl alias`, `/gl unalias`, and `/gl listaliases` if another addon owns the standalone commands.
 
 ## Shortcuts
 
@@ -77,6 +74,7 @@ The same reference is available in the **Shortcuts** section under **/gl → Abo
 | Ctrl+Y | Insert the text last removed by Ctrl+U or Ctrl+K. |
 | Ctrl+A / C / X / V | Select all / copy / cut / paste. |
 | Alt+Up / Down | Browse older / newer sent messages and commands. |
+| Tab | Complete a unique player name from recent chat, where the client supports addon completion. |
 | Alt + key | Use your WoW keybinding. Release Alt to resume typing. |
 | Shift-click a quest or item | Insert its link while chat is active. |
 
@@ -92,12 +90,14 @@ Keys for switching the channel (Say, Yell, Party, Raid, Instance, Guild, Officer
 | Click a tab | Switch chat windows. |
 | Drag a tab | Reorder it, including General and Combat Log. |
 | Unlock a non-primary tab | Detach it into its own Glassy chat window; Blizzard retains that window's position and dimensions. |
+| Right-click a detached tab and choose **Move to secondary window** | Put the tab beside the tabs in another detached window. |
 | Right-click a tab | Open its menu, including Channels, Search messages, Settings, and the frame mover. |
 | Shift-click a tab | Open that tab's contents for copying; press Ctrl+C to copy to the clipboard. |
 | Mouse wheel over chat | Scroll through retained messages one message at a time. |
 | Shift + mouse wheel over chat | Scroll within a long message. |
 | Click the return-to-bottom arrow | Return to the newest messages. |
 | Hover over an item link | Show its tooltip. |
+| Alt-click a player name | Invite that character to your group. |
 | Right-click a linked recipe | Track or untrack it (Retail and WoW Forever). |
 | Right-click a channel name, then **Move to New Window** | Move that channel into its own tab. |
 | Right-click a player name, then **Copy Character Name** | Open the name in Glassy's copy window; press Ctrl+C to copy it. |
@@ -107,30 +107,38 @@ See [latest release notes](LATEST.md) and the [changelog](CHANGELOG.md) for deta
 
 ## Customization
 
+Open Blizzard Edit Mode on supported clients to drag the Glassy chat frame. The position is saved to your Glassy profile, and the mover has a **Glassy settings** shortcut. Turn off the integration under **General → Frame**. The manual mover is also available with `/gl lock`.
+
+Open **Tabs → Presets** to create a dedicated Guild or Party tab. General keeps its current filters.
+
+Under **Profiles → New profile**, use **Start from** to copy appearance and behavior settings into a separate profile. Chat history and native tab filters stay with the character. Tab order, the selected tab, and per-tab timestamps start at their defaults. Choose **Use existing profile** to share future changes across characters.
+
+To group tabs, detach them first, then move one into the other window from its tab menu. Use **Separate tab** to return a tab to its own window or **Ungroup secondary window** on the original tab to separate the group. Groups of regular chat tabs are saved per character. Temporary tabs can join a group for the current session.
+
+Enable **Tabs → Whispers → Dedicated whisper windows** in Glassy or EllesmereUI, then click **Whispers** by the chat pane. Select a name to open its own movable window. Start a conversation with `/w Name-Realm` or the game's **Whisper** action. **Open on incoming whisper** shows the reply window without taking keyboard focus. With **Save chat history** enabled, character conversations survive reloads. Battle.net conversations in the inbox are session-only, and restricted or censored whispers stay in regular chat.
+
 Use `/gl` to configure:
 
 - Frame dimensions and position, shared or per-character profiles, and portable profile import and export.
 - Fonts, sizes, outlines, message spacing, indentation, and inline-icon alignment.
 - Header, message, and input backgrounds with color and opacity controls, plus optional gradient separators.
 - Message hold time, optional reveal while typing, fade durations, slide movement, and easing.
-- Edit-box position and dynamic message-space movement.
-- Tab appearance, unread counts, kept whisper tabs, Combat Log visibility, and filter-bar layout.
-- Timestamp formats, colors, and enabled chat windows.
-- Scrollback limits and emotes.
+- Edit-box style and position. Find **Emote picker** and player-name completion under **Edit box → Typing**.
+- Tab appearance and position, class-color accents, optional native chat buttons, unread counts, kept whisper tabs, and Combat Log layout.
+- Timestamp formats, colors, and per-window controls under **Messages → Timestamps**.
+- **First names only** under **Messages → Chat formatting** and **Date separators** under **Messages → History**. Date separators appear after Glassy restores history on login or reload.
 
 Glassy keeps its visible renderer bounded to 128 messages; the separate **Scrollback lines** setting controls retained history available for copying.
 
 ## Compatibility setup
 
+### Details!
+
+Enable **Chat Tab Embed** in Details! and choose a dedicated tab in the main chat dock. Glassy shows the meters when that tab is selected. Turn off this integration under **Tabs → Integrations**.
+
 ### Prat 3.0
 
-Use Prat for message content and persistent history. Let Glassy handle the chat interface.
-
-Recommended Prat modules: **ChannelNames, Highlight, History, Invites, LinkInfoIcons, PlayerNames, and UrlCopy**.
-
-Disable these Prat UI modules to avoid overlapping controls: **Buttons, ChatTabs, CopyChat, Editbox, Fading, Font, Frames, HoverTips, OriginalButtons, Paragraph, Scroll, Search, and SideTabs**.
-
-Disable Prat **Timestamps** and configure timestamps in Glassy instead. Leave Prat **History** enabled if you want restored messages after reload/login. Glassy's **Scrollback lines** setting controls its retained line limit; Prat's **Set Chat Lines** value is not used.
+Prat 3.0 is compatible and optional. **About → Compatibility** shows active overlaps and chat history migration steps.
 
 ### ElvUI
 
@@ -158,7 +166,7 @@ See [Development and releases](DEVELOPMENT.md).
 
 ## Credits and license
 
-Original Glass by mixxorz (Mitchel Cabuloy). Fork maintained by Solessfir. Recipe tracking, chat search, and several fixes are adapted from Glass Forever by Nelson Abrantes (Rethz).
+Original Glass by mixxorz (Mitchel Cabuloy). Fork maintained by Solessfir. Recipe tracking, chat search, tab styles, and several fixes are adapted from Glass Forever by Nelson Abrantes (Rethz).
 
 [MIT License](LICENSE). Original copyright notices retained. Prat and ElvUI are separate projects and are not bundled with this fork.
 
