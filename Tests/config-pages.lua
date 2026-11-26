@@ -2,11 +2,15 @@ unpack = unpack or table.unpack
 
 local config = {}
 local profileTransfer = {}
+local slashAliases = {}
+local tabPresets, ellesmere = {}, {}
+function ellesmere:IsActive() return true end
 local function action()
   return {}
 end
 
 local core = {
+  Version = "1.9.14",
   Libs = {
     AceConfig = {},
     AceConfigDialog = {},
@@ -21,6 +25,9 @@ local core = {
     if name == "ProfileTransfer" then
       return profileTransfer
     end
+    if name == "SlashAliases" then return slashAliases end
+    if name == "TabPresets" then return tabPresets end
+    if name == "Ellesmere" then return ellesmere end
     return {}
   end,
   Localize = function (_, text) return text end,
@@ -43,6 +50,7 @@ for _, file in ipairs({
   "ConfigChatPages",
   "ConfigMessagePages",
   "ConfigSupportPages",
+  "TabPresets",
 }) do
   assert(loadfile("Glassy/Modules/"..file..".lua"))("Glassy", addonVars)
 end
@@ -88,6 +96,113 @@ assert(not chatPagesSource:find("hoverHighlightStrength", 1, true), "Obsolete ho
 assert(config.Pages.shortcuts().args.commands == nil, "Commands are still nested inside Shortcuts")
 assert(config.Pages.commands().args.commandOpen ~= nil, "Commands section is empty")
 assert(not messagePagesSource:find("combatLogHoverHighlightStrength", 1, true), "Combat Log still has a separate hover highlight")
+
+core.db = {profile = {tabStyle = "minimal", slashAliasesEnabled = true}, global = {slashAliases = {}}}
+core.defaults = {profile = {
+  frameWidth = 600, frameHeight = 250, positionAnchor = {point = "BOTTOMLEFT", xOfs = 0, yOfs = 0},
+  textLeftPadding = 4, backgroundFadeLeftPercent = 0, backgroundFadeRightPercent = 60,
+  chatButtons = false, chatButtonsSide = "right",
+  tabMessageSpacing = 2, editBoxFontSize = 13, editBoxVerticalPadding = 0.45,
+  editBoxFadeInDuration = 0.2, editBoxFadeOutDuration = 0.6,
+  editBoxEasing = "OutCubic", editBoxBackgroundEasing = "OutCubic", editBoxAnchor = {yOfs = -2},
+  messageFontSize = 13, messageLeading = 3, messageLinePadding = 0.25, iconTextureYOffset = 4,
+  chatHoldTime = 10, chatFadeInDuration = 0.4, chatFadeOutDuration = 0.6, chatFadeEasing = "OutCubic",
+  chatSlideInDuration = 0.3, chatSlideInEasing = "OutCubic", scrollbackLines = 500,
+}}
+local mediaFonts = {Friz = "Fonts\\Friz.ttf"}
+core.Libs.LSM.HashTable = function () return mediaFonts end
+core.Libs.LSM.Fetch = function () return mediaFonts.Friz end
+core.Dispatch = function () end
+local tabAppearance = config.Pages.tabs().args.appearance.args
+assert(#tabAppearance.tabStyle.sorting == 7)
+core.db.profile.tabFont = "Friz"
+assert(tabAppearance.tabFont.get() == "Friz" and tabAppearance.tabFont.values()["Use UI font"] == mediaFonts.Friz)
+assert(mediaFonts["Use UI font"] == nil, "The inherited choice must not mutate the shared media registry")
+tabAppearance.tabFont.set(nil, "Use UI font")
+assert(core.db.profile.tabFont == "" and tabAppearance.tabFont.get() == "Use UI font")
+assert(not tabAppearance.tabSelectionAnimation.disabled())
+tabAppearance.tabStyle.set(nil, "classic")
+assert(tabAppearance.tabSelectionAnimation.disabled())
+local detailsEmbed = config.Pages.tabs().args.integrations.args.detailsChatEmbed
+detailsEmbed.set(nil, true)
+assert(detailsEmbed.get() and core.db.profile.detailsChatEmbed)
+detailsEmbed.set(nil, false)
+assert(not detailsEmbed.get())
+local whisperOptions = config.Pages.tabs().args.whispers.args
+assert(whisperOptions.whisperWindowsAutoOpen.disabled() and not whisperOptions.keepWhisperTabs.disabled())
+whisperOptions.dedicatedWhisperWindows.set(nil, true)
+assert(whisperOptions.dedicatedWhisperWindows.get() and not whisperOptions.whisperWindowsAutoOpen.disabled()
+  and whisperOptions.keepWhisperTabs.disabled())
+whisperOptions.whisperWindowsAutoOpen.set(nil, true)
+assert(whisperOptions.whisperWindowsAutoOpen.get())
+whisperOptions.dedicatedWhisperWindows.set(nil, false)
+assert(not whisperOptions.dedicatedWhisperWindows.get() and whisperOptions.whisperWindowsAutoOpen.disabled())
+local aliasOption = config.Pages.editBox().args.behavior.args.slashAliasesEnabled
+assert(aliasOption.get() and not config.Pages.commands().args.slashAliasesEnabled)
+aliasOption.set(nil, false)
+assert(not aliasOption.get())
+
+local pratModules = {History = true, Timestamps = true, Editbox = true}
+local pratScrollback = false
+core.IsPratModuleEnabled = function (_, name, option)
+  return pratModules[name] and (option ~= "scrollback" or pratScrollback)
+end
+local settingsRefreshes = 0
+core.Libs.AceConfigRegistry = {NotifyChange = function (_, app)
+  assert(app == "Glassy")
+  settingsRefreshes = settingsRefreshes + 1
+end}
+local aliasControls = config.Pages.editBox().args.behavior.args
+assert(aliasControls.aliasDefinition.disabled(), "Disabling alias execution also disables editing")
+aliasOption.set(nil, true)
+assert(aliasControls.savedAlias.values()[""] == "New alias" and aliasControls.removeAlias.disabled())
+function slashAliases:ParseDefinition(input)
+  if input == "/rld = /reload" then return "rld", "/reload" end
+  return nil, "Invalid alias"
+end
+function slashAliases:Set(input)
+  local name, expansion = self:ParseDefinition(input)
+  core.db.global.slashAliases[name] = expansion
+end
+function slashAliases:Remove(name) core.db.global.slashAliases[name] = nil end
+assert(aliasControls.aliasDefinition.validate(nil, "invalid") == "Invalid alias")
+assert(aliasControls.aliasDefinition.validate(nil, "/rld = /reload") == true)
+aliasControls.aliasDefinition.set(nil, "/rld = /reload")
+assert(aliasControls.savedAlias.values().rld == "/rld → /reload")
+aliasControls.savedAlias.set(nil, "rld")
+assert(aliasControls.aliasDefinition.get() == "/rld = /reload" and not aliasControls.removeAlias.disabled())
+aliasControls.removeAlias.func()
+assert(aliasControls.savedAlias.get() == "" and aliasControls.aliasDefinition.get() == "" and aliasControls.removeAlias.disabled())
+settingsRefreshes = 0
+local profile = core.db.profile
+profile.shortChannelNames, profile.channelFullNames, profile.channelShortLabels = true, {}, {}
+local channels = config.Pages.messages().args.channelAbbreviations.args
+channels.channelToEdit.set(nil, "CHANNEL2")
+channels.channelShortLabels.set(nil, " Trade ")
+assert(profile.channelShortLabels.CHANNEL2 == "Trade" and settingsRefreshes == 1)
+channels.channelShortLabels.set(nil, "|cff000000Trade")
+assert(channels.channelShortLabels.get() == "Trade")
+channels.channelFullNames.set(nil, true)
+assert(profile.channelFullNames.CHANNEL2 and channels.channelShortLabels.disabled())
+channels.channelFullNames.set(nil, false)
+channels.channelToEdit.set(nil, "GUILD")
+assert(channels.channelShortLabels.get() == "", "Numbered aliases must not affect the guild label")
+pratModules.ChannelNames = true
+assert(channels.channelToEdit.disabled() and channels.channelFullNames.disabled())
+pratModules.ChannelNames = nil
+local compatibility = config.Pages.compatibility().args
+assert(compatibility.pratStatus.name():find("Prat is optional", 1, true))
+assert(compatibility.pratSupported.hidden() and compatibility.pratUiModules.hidden())
+Prat = {Version = "3"}
+assert(not compatibility.pratSupported.hidden() and not compatibility.pratUiModules.hidden())
+assert(compatibility.pratSupported.args.details.name():find("Timestamps", 1, true))
+assert(not compatibility.pratSupported.args.details.name():find("History", 1, true))
+assert(compatibility.pratSupported.args.history.hidden())
+pratScrollback = true
+assert(compatibility.pratSupported.args.details.name():find("History", 1, true))
+assert(not compatibility.pratSupported.args.history.hidden())
+assert(compatibility.pratUiModules.args.current.name():find("Editbox", 1, true))
+Prat = nil
 
 ---@diagnostic disable-next-line: undefined-global
 local initFile = assert(io.open("Glassy/init.lua", "r"))
@@ -144,4 +259,63 @@ end
 config:RegisterBlizzardOptions()
 assert(config.blizzardOptions == panel.frame, "Legacy clients must register through AceConfig")
 
-print("PASS: config core and page modules load in TOC order and register every settings page")
+strmatch = string.match
+securecallfunction = function (callback, ...) return callback(...) end
+dofile("libs/LibStub/LibStub.lua")
+dofile("libs/CallbackHandler-1.0/CallbackHandler-1.0.lua")
+dofile("libs/AceConfig-3.0/AceConfigRegistry-3.0/AceConfigRegistry-3.0.lua")
+local registry = LibStub("AceConfigRegistry-3.0")
+core.Libs.AceConfigRegistry = registry
+core.Libs.AceDBOptions.GetOptionsTable = function ()
+  return {type = "group", name = "Profiles", args = {
+    current = {type = "description", name = "Active profile"},
+    new = {validate = function () return true end},
+    choose = {type = "select", name = "Existing profiles", get = function () return "Default" end},
+    reset = {type = "execute", name = "Reset profile"},
+    copyfrom = {type = "select", name = "Copy from", get = false},
+    delete = {type = "select", name = "Delete a profile", get = false},
+  }}
+end
+core.db.GetProfiles = function () return {"Default"} end
+core.db.GetCurrentProfile = function () return "Default" end
+core.db.sv = {profileKeys = {}}
+setmetatable(core.db.profile, {__index = core.defaults.profile})
+_G.FCF_GetChatWindowInfo = function () return "General" end
+assert(loadfile("Glassy/Localization.lua"))("Glassy", addonVars)
+local root = config:GetOptions()
+core:LocalizeOptions(root)
+registry:ValidateOptionsTable(root, "Glassy")
+registry:RegisterOptionsTable("Glassy", root)
+assert(root.args.general.args.section3.order < root.args.general.args.section2.order)
+assert(root.args.tabs.args.layout.order < root.args.tabs.args.presets.order
+  and root.args.tabs.args.presets.order < root.args.tabs.args.appearance.order)
+assert(root.args.messages.args.section2.args.chatAlwaysVisible
+  and root.args.messages.args.timestamps.args.timestampsEnabled and root.args.messages.args.links.args.chatInvites)
+assert(root.args.editBox.args.typing.args.completePlayerNames and root.args.editBox.args.behavior.args.slashAliasesEnabled)
+
+local labels = {}
+local function registerWidget(_, _, label)
+  labels[#labels + 1] = label
+  return nil, 40
+end
+local widgetNames = {"SectionHeader", "Toggle", "Slider", "Dropdown", "Checkbox", "ColorPicker", "Button"}
+local widgets = {}
+for _, name in ipairs(widgetNames) do widgets[name] = registerWidget end
+_G.EllesmereUI = {Widgets = widgets, IsSearchPrebuild = function () return true end}
+assert(loadfile("Glassy/Modules/EllesmereOptions.lua"))("Glassy", {core, constants, {lower = string.lower}})
+local modules = ellesmere:BuildOptionModules(root)
+for index, key in ipairs({"general", "tabs", "messages", "editBox", "profile", "about"}) do
+  local module = modules[index]
+  assert(module.key == key and module.buildPage(module.pages[1], {}, 0) > 0,
+    "EllesmereUI renders every shared page in the same order")
+end
+local positions = {}
+for index, label in ipairs(labels) do positions[label] = index end
+assert(positions["Layout"] < positions["Presets"] and positions["Presets"] < positions["Create Guild tab"])
+assert(positions["Timestamps"] < positions["Time format"] and positions["Use existing profile"] < positions["New profile"])
+profile.chatButtons, profile.chatButtonsSide = true, "left"
+modules[2].onReset()
+assert(profile.chatButtons == false and profile.chatButtonsSide == "right",
+  "Reset includes both the native chat-buttons toggle and its placement")
+
+print("PASS: shared settings validate in AceConfig and all pages render in EllesmereUI order")

@@ -8,10 +8,11 @@ local L = function(text) return Core:Localize(text) end
 local importedProfile
 local importText = ""
 local newProfileName = ""
+local createProfileName = ""
+local startFrom = ""
 
 local PROFILE_OPTION_KEYS = {
   "current",
-  "new",
   "reset",
   "choose",
   "copyfrom",
@@ -47,7 +48,25 @@ local function profileExists(name)
       return true
     end
   end
+  for _, profileName in pairs(Core.db.sv.profileKeys or {}) do
+    if profileName == name then return true end
+  end
   return false
+end
+
+local function profileLabels(excludeCurrent)
+  local labels = {}
+  for _, name in ipairs(Core.db:GetProfiles()) do
+    if not excludeCurrent or name ~= Core.db:GetCurrentProfile() then
+      local characters = {}
+      for character, profileName in pairs(Core.db.sv.profileKeys or {}) do
+        if profileName == name then characters[#characters + 1] = character end
+      end
+      table.sort(characters)
+      labels[name] = #characters > 0 and name.." ("..table.concat(characters, ", ")..")" or name
+    end
+  end
+  return labels
 end
 
 local function applyImportedProfile(profile)
@@ -65,46 +84,107 @@ local function getProfileOptions()
     end
   end
   args.current.order = 10
-  args.new.order = 20
-  args.reset.order = 30
-  args.choose.order = 40
-  args.copyfrom.order = 50
-  args.delete.order = 60
-  args.currentNewSpacer = {
-    name = "",
-    type = "description",
-    order = 15,
-    width = 0.1,
+  local function validateNewName(_, value)
+    local name = trim(value)
+    if name == "" then return L("Enter a profile name.") end
+    if not shared.args.new.validate(nil, name) then return shared.args.new.usage end
+    if profileExists(name) then return L("A profile with that name already exists.") end
+    return true
+  end
+  args.new = {
+    name = "New profile",
+    type = "group",
+    inline = true,
+    order = 20,
+    args = {
+      name = {
+        name = "New profile name",
+        desc = "Enter a unique name. Creating a profile keeps the source profile unchanged.",
+        type = "input",
+        order = 1,
+        width = 1.4,
+        get = function () return createProfileName end,
+        validate = validateNewName,
+        set = function (_, value) createProfileName = trim(value) end,
+      },
+      startFrom = {
+        name = "Start from",
+        desc = "Copy Glassy settings into a separate profile. Chat history and native filters are unchanged. Tab order, selected tab, and per-tab timestamps start from defaults.",
+        type = "select",
+        order = 2,
+        width = 1.8,
+        values = function ()
+          local values = profileLabels()
+          values[""] = L("Defaults")
+          return values
+        end,
+        get = function () return startFrom end,
+        set = function (_, value) startFrom = value end,
+      },
+      create = {
+        name = "Create and use profile",
+        type = "execute",
+        order = 3,
+        width = 1.3,
+        disabled = function ()
+          return validateNewName(nil, createProfileName) ~= true or
+            startFrom ~= "" and profileLabels()[startFrom] == nil
+        end,
+        func = function ()
+          local name = trim(createProfileName)
+          local valid = validateNewName(nil, name)
+          if valid ~= true then C:Print(valid) return end
+          local settings
+          if startFrom ~= "" then
+            if not profileLabels()[startFrom] then return end
+            local source = startFrom == Core.db:GetCurrentProfile() and Core.db.profile or Core.db.profiles[startFrom]
+            settings = copyTable(source)
+            -- Native chat frame IDs can refer to different tabs on another character.
+            settings.selectedTab, settings.tabOrder, settings.timestampFrames = nil, nil, nil
+          end
+          Core.db:SetProfile(name)
+          if settings then
+            mergeTable(Core.db.profile, settings)
+            C:RefreshConfig()
+          end
+          createProfileName = ""
+          startFrom = ""
+          Core.Libs.AceConfigRegistry:NotifyChange("Glassy")
+        end,
+      },
+    },
   }
-  args.newResetSpacer = {
-    name = "",
-    type = "description",
-    order = 25,
-    width = 0.08,
+  args.reset.order = 1
+  args.reset.confirm = function ()
+    return string.format(L("Reset profile '%s'? All characters using it will lose its current settings."), Core.db:GetCurrentProfile())
+  end
+  args.choose.order = 15
+  args.choose.name = "Use existing profile"
+  args.choose.desc = "Use an existing profile directly. Changes are shared with every character using that profile."
+  args.choose.values = function () return profileLabels() end
+  args.choose.width = "full"
+  args.copyfrom.order = 2
+  args.copyfrom.name = "Replace current from"
+  args.copyfrom.desc = "Overwrite the current profile with another profile's settings, affecting every character sharing the current profile."
+  args.copyfrom.values = function () return profileLabels(true) end
+  args.copyfrom.confirm = function (_, source)
+    return string.format(L("Replace profile '%s' with settings from '%s'? All characters using the current profile will receive these settings."), Core.db:GetCurrentProfile(), source)
+  end
+  args.delete.order = 3
+  args.delete.values = function () return profileLabels(true) end
+  args.manage = {
+    name = "Manage profiles",
+    type = "group",
+    inline = true,
+    order = 40,
+    args = {reset = args.reset, copyfrom = args.copyfrom, delete = args.delete},
   }
-  args.profileRowsSpacer = {
-    name = " ",
-    type = "description",
-    order = 35,
-    width = "full",
-  }
-  args.chooseCopySpacer = {
-    name = "",
-    type = "description",
-    order = 45,
-    width = 0.1,
-  }
-  args.copyDeleteSpacer = {
-    name = "",
-    type = "description",
-    order = 55,
-    width = 0.1,
-  }
+  args.reset, args.copyfrom, args.delete = nil, nil, nil
   args.transfer = {
     name = "Import and export",
     type = "group",
     inline = true,
-    order = 70,
+    order = 30,
     args = {
       exportProfile = {
         name = "Export current profile",
@@ -147,6 +227,7 @@ local function getProfileOptions()
         order = 20,
         width = 1.4,
         get = function () return newProfileName end,
+        validate = validateNewName,
         set = function (_, value) newProfileName = value end,
       },
       importNew = {
@@ -156,17 +237,13 @@ local function getProfileOptions()
         order = 21,
         width = 1.1,
         disabled = function ()
-          local name = trim(newProfileName)
-          return importedProfile == nil or name == "" or profileExists(name)
+          return importedProfile == nil or validateNewName(nil, newProfileName) ~= true
         end,
         func = function ()
           local name = trim(newProfileName)
-          if name == "" then
-            C:Print(L("Enter a profile name."))
-            return
-          end
-          if profileExists(name) then
-            C:Print(L("A profile with that name already exists."))
+          local reason = validateNewName(nil, name)
+          if reason ~= true then
+            C:Print(reason)
             return
           end
           Core.db:SetProfile(name)
@@ -184,7 +261,7 @@ local function getProfileOptions()
         disabled = function () return importedProfile == nil end,
         confirm = function ()
           return string.format(
-            L("Replace profile '%s'? Its current settings will be lost."),
+            L("Replace profile '%s'? All characters using it will receive the imported settings."),
             Core.db:GetCurrentProfile()
           )
         end,

@@ -25,7 +25,14 @@ local function stubFrame()
   local frame = setmetatable({alpha = 1, scripts = {}}, {__index = function () return noop end})
   function frame:SetAlpha(alpha) self.alpha = alpha end
   function frame:GetFrameLevel() return 1 end
-  function frame:GetWidth() return 600 end
+  function frame:GetWidth() return rawget(self, "width") or 600 end
+  function frame:SetWidth(width) self.width = width end
+  function frame:SetHeight(height) self.height = height end
+  function frame:SetSize(width, height) self.width, self.height = width, height end
+  function frame:SetPoint(...)
+    self.points = rawget(self, "points") or {}
+    self.points[#self.points + 1] = {...}
+  end
   function frame:SetScript(name, callback) self.scripts[name] = callback end
   function frame:HookScript(name, callback) self.scripts[name] = callback end
   function frame:SetText(text) self.text = text end
@@ -53,8 +60,11 @@ for _, kind in ipairs({"SectionHeader", "Toggle", "Slider", "Dropdown", "Checkbo
   widgets[kind] = widget(kind)
 end
 local spec, activeModule, refreshes = nil, nil, {}
+local shownTooltip
 EllesmereUI = {
   Widgets = widgets, CONTENT_PAD = 45,
+  ShowWidgetTooltip = function (_, text) shownTooltip = text end,
+  HideWidgetTooltip = function () shownTooltip = nil end,
   RegisterPlugin = function (id, value) assert(id == "Glassy"); spec = value; return true end,
   GetPluginModuleKey = function (_, key) return "plugin:Glassy:"..key end,
   GetActiveModule = function () return activeModule end,
@@ -65,11 +75,12 @@ EllesmereUI = {
 
 -- A small options tree that uses every AceConfig feature Glassy's settings use.
 local db = {enabled = true, size = 12, mode = "b", frames = {ChatFrame1 = true}, color = {0.1, 0.2, 0.3, 0.4}, text = "old"}
-local profiles = {current = "Default"}
+local profiles = {current = "Default", available = {Default = "Default", Raid = "Raid"}}
 local handler = {
-  GetProfile = function (_, info) assert(info.handler and info.arg == "common"); return profiles.current end,
-  SetProfile = function (_, _, value) profiles.current = value end,
-  List = function (_, info) assert(info.arg == "common"); return {Default = "Default", Raid = "Raid"} end,
+  GetProfile = function (_, info) assert(info.handler and info.arg == "common" and info[0] == "Glassy" and info.uiName == "AceConfigDialog-3.0"); return profiles.current end,
+  SetProfile = function (_, _, value) profiles.current = value; profiles.available[value] = value end,
+  List = function (_, info) assert(info.arg == "common"); return profiles.available end,
+  CopyProfile = function (_, _, value) profiles.copied = value end,
 }
 local printed
 local options = {
@@ -79,7 +90,7 @@ local options = {
       type = "group", name = "General", order = 1,
       args = {
         appearance = {
-          type = "group", name = "Appearance", inline = true, order = 1,
+          type = "group", name = "Appearance", desc = "Appearance settings", inline = true, order = 1,
           get = function (info) return db[info[#info]] end,
           set = function (info, value) db[info[#info]] = value end,
           args = {
@@ -88,25 +99,38 @@ local options = {
               disabled = function () return not db.enabled end},
             secret = {type = "toggle", name = "Hidden", order = 3, hidden = true},
             mode = {type = "select", name = "Mode", order = 4, values = {a = "Alpha", b = "Beta"}, sorting = {"b", "a"}},
+            always = {type = "toggle", name = "Always available", order = 4.5, disabled = false},
             font = {type = "select", name = "Font", order = 5, dialogControl = "LSM30_Font",
-              values = {Friz = "Fonts\\Friz.ttf"}, get = function () return "Friz" end, set = noop},
+              values = {[""] = "Use UI font", Friz = "Fonts\\Friz.ttf"}, get = function () return "Friz" end, set = noop},
             last = {type = "description", name = "Last", order = -1},
           },
         },
         frames = {type = "multiselect", name = "Windows", order = 2, values = {ChatFrame1 = "General", ChatFrame3 = "Trade"},
           get = function (_, key) return db.frames[key] end, set = function (_, key, value) db.frames[key] = value end},
-        color = {type = "color", name = "Color", order = 3, hasAlpha = true,
+        color = {type = "color", name = "Color", desc = "Choose the text color", order = 3, hasAlpha = true,
           get = function () return unpack(db.color) end, set = function (_, ...) db.color = {...} end},
-        text = {type = "input", name = "Text", order = 4, get = function () return db.text end,
+        text = {type = "input", name = "Text", desc = "Edit this text", usage = "Enter valid text", order = 4, get = function () return db.text end,
           set = function (_, value) db.text = value end,
-          validate = function (_, value) return value ~= "bad" or "Rejected" end},
+          validate = function (_, value)
+            if value == "invalid" then return false end
+            return value ~= "bad" or "Rejected"
+          end, confirm = function (_, value) return value == "confirmed" and "Save text?" end},
+        command = {type = "group", name = "", inline = true, order = 5, args = {
+          command = {type = "description", name = "/glassy", order = 1},
+          explanation = {type = "description", name = "Open settings", order = 2},
+          hidden = {type = "description", name = "Hidden help", order = 3, hidden = true},
+        }},
       },
     },
     profile = {
       type = "group", name = "Profiles", order = 2, handler = handler,
+      confirm = function (_, value) return value == "Confirmed" and "Create profile?" end,
       args = {
         choose = {type = "select", name = "Profile", arg = "common", values = "List", get = "GetProfile", set = "SetProfile",
           confirm = function (_, value) return value == "Raid" and "Switch to Raid?" end},
+        new = {type = "input", name = "New", arg = "common", order = 3, get = false, set = "SetProfile"},
+        copyfrom = {type = "select", name = "Copy from", arg = "common", order = 4, get = false, set = "CopyProfile", values = "List"},
+        literal = {type = "description", name = "List", order = 5},
         reset = {type = "execute", name = "Reset", order = 2, func = function () db.text = "reset" end, confirm = true,
           confirmText = "Really reset?"},
       },
@@ -152,14 +176,21 @@ end
 
 assert(build(1) > 0)
 assert(row("Appearance").kind == "SectionHeader" and not row("Hidden"), "Inline groups become sections; hidden options are skipped")
+assert(row("Appearance").args[1] == "Appearance settings", "Group headings keep their descriptions")
+local commandHelp
+for _, frame in ipairs(frames) do
+  if frame.text == "/glassy  Open settings" then commandHelp = true end
+  assert(not tostring(frame.text):find("Hidden help", 1, true), "Hidden descriptions stay out of merged help rows")
+end
+assert(commandHelp, "Command help keeps its inline description layout")
 local toggle = row("Enabled")
 assert(toggle.args[1]() == true and toggle.args[3] == "Turns it on", "Inherited getters and tooltips are used")
 local slider = row("Size")
-assert(slider.args[1] == 6 and slider.args[2] == 24 and slider.args[3] == 1, "Sliders use the soft range")
+assert(slider.args[1] == 1 and slider.args[2] == 100 and slider.args[3] == 1, "Sliders retain the complete allowed range for typed values")
 assert(slider.alpha == 1, "Enabled rows are not dimmed")
 local dropdown = row("Mode")
 assert(dropdown.args[1].b == "Beta" and dropdown.args[4][1] == "b", "Dropdowns keep the option's sorting")
-assert(row("Font").args[1].Friz == "Friz", "Font pickers list font names")
+assert(row("Font").args[1].Friz == "Friz" and row("Font").args[1][""] == "Use UI font", "Font pickers preserve the inherited font label")
 assert(row("Windows").kind == "SectionHeader" and row("General").kind == "Checkbox" and row("Trade"))
 local color = row("Color")
 local r, _, _, a = color.args[1]()
@@ -174,6 +205,15 @@ assert(refreshes[1] == "force" and refreshes[2] == "invalidate plugin:Glassy:pro
   "A toggle rebuilds the visible page and drops the other cached pages")
 build(1)
 assert(row("Size").alpha < 1, "Disabled rows are dimmed")
+row("Size").args[5](18)
+assert(db.size == 12, "Disabled callbacks cannot change settings")
+options.args.general.args.appearance.disabled = true
+build(1)
+assert(row("Always available").alpha == 1, "A child can override inherited disabled state")
+options.args.general.args.appearance.disabled = nil
+row("Enabled").args[2](true)
+runTimers()
+build(1)
 
 -- EllesmereUI's search pre-build pass hands out stand-in frames, so no real frames may be created then.
 local prebuild = true
@@ -191,10 +231,26 @@ runTimers()
 assert(db.size == 18 and refreshes[#refreshes] == "fast", "Slider drags never rebuild the page")
 row("Trade").args[2](true)
 assert(db.frames.ChatFrame3 == true, "Multiselect checkboxes write their own key")
+options.args.general.args.frames.confirm = function (_, key, value)
+  assert(key == "ChatFrame3" and value == false)
+  return "Disable Trade?"
+end
+row("Trade").args[2](false)
+assert(db.frames.ChatFrame3 and popup.text == "Disable Trade?", "Multiselect confirmations receive the changed key and value")
+options.args.general.args.frames.disabled = true
+popup.data()
+assert(db.frames.ChatFrame3, "A pending confirmation cannot apply a setting that became disabled")
+options.args.general.args.frames.disabled = nil
+popup.data()
+assert(db.frames.ChatFrame3 == false)
 
 -- Text inputs validate before they are saved.
 local input
 for _, frame in ipairs(frames) do if frame.scripts.OnEnterPressed then input = frame end end
+db.text = "changed elsewhere"
+input.scripts.OnEditFocusLost(input)
+assert(db.text == "changed elsewhere", "Untouched inputs never overwrite a newly selected alias or profile")
+db.text = "old"
 input.text = "bad"
 input.scripts.OnEnterPressed(input)
 assert(db.text == "old" and printed == "Rejected", "Invalid input is reported and not saved")
@@ -207,6 +263,27 @@ input.text = "new"
 input.scripts.OnTextChanged(input, true)
 accept.scripts.OnClick(accept)
 assert(db.text == "new", "Accept saves text without Enter, since other buttons never take its focus")
+input.text = "invalid"
+input.scripts.OnTextChanged(input, true)
+input.scripts.OnEnterPressed(input)
+assert(printed == "Enter valid text" and db.text == "new", "Boolean validation failures report the option usage")
+input.text = "confirmed"
+input.scripts.OnTextChanged(input, true)
+input.scripts.OnEnterPressed(input)
+assert(db.text == "new" and popup.text == "Save text?", "Inputs honor confirmations")
+popup.data()
+assert(db.text == "confirmed")
+assert(input.points[1][1] == "BOTTOMLEFT" and input.points[2][1] == "RIGHT", "Single-line inputs fit between row margins and Accept")
+local inputTooltip
+for _, frame in ipairs(frames) do
+  if frame.scripts.OnEnter then
+    frame.scripts.OnEnter(frame)
+    if shownTooltip == "Edit this text" then inputTooltip = true end
+  end
+end
+assert(inputTooltip, "Input descriptions are available as tooltips")
+row("Color").scripts.OnEnter()
+assert(shownTooltip == "Choose the text color", "Color descriptions are available as tooltips")
 
 -- Handler method names, info.arg, and confirmations work like AceConfig.
 build(2)
@@ -216,6 +293,21 @@ profile.args[3]("Raid")
 assert(profiles.current == "Default" and popup.text == "Switch to Raid?", "Confirmations wait for the player")
 popup.data()
 assert(profiles.current == "Raid")
+local newProfile
+for _, frame in ipairs(frames) do if frame.scripts.OnEnterPressed then newProfile = frame end end
+newProfile.text = "Confirmed"
+newProfile.scripts.OnEnterPressed(newProfile)
+assert(profiles.current == "Raid" and popup.text == "Create profile?", "New profiles inherit their handler and confirmation")
+popup.data()
+assert(profiles.current == "Confirmed")
+build(2)
+assert(row("Profile").args[1].Confirmed == "Confirmed", "Profile lists are rebuilt after creating a profile")
+assert(row("Copy from").args[2]() == nil, "Copy profile controls have no persistent selection")
+row("Copy from").args[3]("Raid")
+assert(profiles.copied == "Raid", "Copy actions preserve inherited handlers")
+local literal
+for _, frame in ipairs(frames) do if frame.text == "List" then literal = true end end
+assert(literal, "Literal labels never invoke matching handler methods")
 row("Reset").args[1]()
 assert(popup.text == "Really reset?")
 popup.data()

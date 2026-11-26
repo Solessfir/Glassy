@@ -297,6 +297,8 @@ local function getGeneralOptions()
 end
 
 local function getTabOptions()
+  local presets = Core:GetModule("TabPresets"):GetOptions()
+  presets.order = 2
   local function whisperOption(key, name, desc, order, disabled)
     return {
       name = name,
@@ -358,6 +360,7 @@ local function getTabOptions()
           },
         },
       },
+      presets = presets,
       appearance = {
         name = "Appearance",
         type = "group",

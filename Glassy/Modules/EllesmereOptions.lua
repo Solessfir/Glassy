@@ -16,9 +16,9 @@ local StaticPopupDialogs = StaticPopupDialogs
 ----
 -- Mirrors Glassy's AceConfig options in the EllesmereUI options panel, so both panels always offer the same settings.
 -- Options are evaluated the way AceConfigDialog evaluates them: inherited handlers, getters and setters,
--- cascading hidden and disabled states, and the info table AceConfig passes to every callback.
+-- inherited hidden and disabled states, and the info table AceConfig passes to every callback.
 
-local INHERITED = {get = true, set = true, func = true, validate = true, confirm = true, handler = true}
+local INHERITED = {get = true, set = true, func = true, validate = true, confirm = true, handler = true, hidden = true, disabled = true}
 local DISCRETE_TYPES = {toggle = true, select = true, multiselect = true, execute = true, input = true}
 local DISABLED_ALPHA = 0.35
 local ROW_GAP = 4
@@ -57,7 +57,8 @@ local function makeInfo(chain, path)
   for index, key in ipairs(path) do info[index] = key end
   info.options, info.option, info.arg, info.type = chain[1], option, option.arg, option.type
   info.handler = inherited(chain, "handler")
-  info.uiType, info.uiName, info.appName = "dialog", APP, APP
+  info[0] = APP
+  info.uiType, info.uiName, info.appName = "dialog", "AceConfigDialog-3.0", APP
   return info
 end
 
@@ -73,17 +74,12 @@ end
 local function field(chain, path, name, ...)
   local value = INHERITED[name] and inherited(chain, name) or chain[#chain][name]
   if value == nil or value == false and (name == "get" or name == "set") then return nil end
+  if type(value) == "string" and (name == "name" or name == "desc" or name == "usage") then return value end
   return resolve(value, makeInfo(chain, path), ...)
 end
 
 local function isFlagged(chain, path, name)
-  for depth = 1, #chain do
-    local subChain, subPath = {}, {}
-    for index = 1, depth do subChain[index] = chain[index] end
-    for index = 1, depth - 1 do subPath[index] = path[index] end
-    if chain[depth][name] ~= nil and resolve(chain[depth][name], makeInfo(subChain, subPath)) then return true end
-  end
-  return false
+  return field(chain, path, name) and true or false
 end
 
 local function textOf(chain, path, name)
@@ -135,6 +131,7 @@ function Ellesmere:ScheduleOptionsRefresh(force)
 end
 
 local function applyChange(self, chain, path, method, ...)
+  if isFlagged(chain, path, "disabled") or isFlagged(chain, path, "hidden") then return end
   local value = INHERITED[method] and inherited(chain, method) or nil
   if value == nil or value == false then return end
   resolve(value, makeInfo(chain, path), ...)
@@ -150,13 +147,23 @@ local function applyChange(self, chain, path, method, ...)
 end
 
 -- The search pre-build pass hands out stand-in frames that cannot parent real ones.
-local function dim(ctx, frame, disabled)
+local function tooltipOnFrame(ctx, frame, text)
+  if ctx.prebuild or not frame or not text then return end
+  local ui = _G.EllesmereUI
+  if not (ui.ShowWidgetTooltip and ui.HideWidgetTooltip) then return end
+  frame:EnableMouse(true)
+  frame:HookScript("OnEnter", function () ui.ShowWidgetTooltip(frame, text) end)
+  frame:HookScript("OnLeave", function () ui.HideWidgetTooltip() end)
+end
+
+local function dim(ctx, frame, disabled, tooltip)
   if not disabled or not frame or ctx.prebuild then return end
   frame:SetAlpha(DISABLED_ALPHA)
   local blocker = CreateFrame("Frame", nil, frame)
   blocker:SetAllPoints()
   blocker:SetFrameLevel(frame:GetFrameLevel() + 20)
   blocker:EnableMouse(true)
+  tooltipOnFrame(ctx, blocker, tooltip)
 end
 
 local function makeLabel(parent, size)
@@ -190,14 +197,19 @@ end
 -- Clicking another button never takes focus from a text box, so like AceConfig's own input an Accept button
 -- commits the text; Enter and leaving the box commit it too.
 local function inputRow(ctx, text, multiline, getText, commit)
-  local height = multiline and (math.max(3, tonumber(multiline) or 4) * 14 + 82) or 50
+  local height = multiline and (math.max(3, tonumber(multiline) or 4) * 14 + 82) or 78
   if ctx.prebuild then return ctx.y - height end
   local width = ctx.parent:GetWidth() - ctx.pad * 2
   local frame = CreateFrame("Frame", nil, ctx.parent)
   frame:SetPoint("TOPLEFT", ctx.parent, "TOPLEFT", ctx.pad, ctx.y)
   frame:SetSize(width, height)
   local label = makeLabel(frame, 14)
+  label:SetPoint("TOPLEFT", 20, -8)
+  label:SetWidth(width - 40)
   label:SetText(text)
+  local labelHeight = label:GetStringHeight()
+  height = height + math.max(0, labelHeight - 20)
+  frame:SetHeight(height)
 
   local accept = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
   accept:SetSize(90, 22)
@@ -206,10 +218,9 @@ local function inputRow(ctx, text, multiline, getText, commit)
 
   local editBox
   if multiline then
-    label:SetPoint("TOPLEFT", 20, -8)
     accept:SetPoint("BOTTOMRIGHT", -20, 8)
     local container = CreateFrame("Frame", nil, frame, "BackdropTemplate")
-    container:SetPoint("TOPLEFT", 20, -30)
+    container:SetPoint("TOPLEFT", 20, -labelHeight - 14)
     container:SetPoint("BOTTOMRIGHT", -20, 38)
     local scroll = CreateFrame("ScrollFrame", nil, container, "UIPanelScrollFrameTemplate")
     scroll:SetPoint("TOPLEFT", 6, -6)
@@ -227,20 +238,21 @@ local function inputRow(ctx, text, multiline, getText, commit)
       pcall(Ellesmere.skin.ScrollBar, scroll.ScrollBar)
     end
   else
-    label:SetPoint("LEFT", 20, 0)
-    accept:SetPoint("RIGHT", -20, 0)
+    accept:SetPoint("BOTTOMRIGHT", -20, 12)
     editBox = CreateFrame("EditBox", nil, frame, "InputBoxTemplate")
-    editBox:SetSize(240, 24)
+    editBox:SetHeight(24)
+    editBox:SetPoint("BOTTOMLEFT", 20, 11)
     editBox:SetPoint("RIGHT", accept, "LEFT", -12, 0)
     if Ellesmere.skin then pcall(Ellesmere.skin.EditBox, editBox) end
   end
   editBox:SetAutoFocus(false)
-  editBox:SetText(getText() or "")
+  local initialText = getText() or ""
+  editBox:SetText(initialText)
   -- Accept also clears focus, so remember the text it just submitted instead of reporting a rejection twice.
   local submitted
   local function submit()
     local value = editBox:GetText()
-    if value == (getText() or "") or value == submitted then return end
+    if value == initialText or value == (getText() or "") or value == submitted then return end
     submitted = value
     commit(value)
   end
@@ -268,7 +280,7 @@ local function valuesOf(chain, path)
   local labels = {}
   for key, label in pairs(values) do
     -- Font pickers list font names mapped to file paths; the names are what users choose.
-    labels[key] = option.dialogControl == "LSM30_Font" and key or label
+    labels[key] = option.dialogControl == "LSM30_Font" and key ~= "" and key or label
   end
   local sorting = option.sorting and resolve(option.sorting, makeInfo(chain, path))
   if type(sorting) == "table" then return labels, sorting end
@@ -309,7 +321,9 @@ local function renderOption(self, ctx, chain, path)
         local childChain, childPath = {unpack(chain)}, {unpack(path)}
         childChain[#childChain + 1] = entry.option
         childPath[#childPath + 1] = entry.key
-        texts[#texts + 1] = textOf(childChain, childPath, "name")
+        if not entry.option.dialogHidden and not isFlagged(childChain, childPath, "hidden") then
+          texts[#texts + 1] = textOf(childChain, childPath, "name")
+        end
       end
       if onlyDescriptions and #texts > 1 then
         ctx.y = descriptionRow(ctx, table.concat(texts, "  "), "medium")
@@ -317,18 +331,19 @@ local function renderOption(self, ctx, chain, path)
       end
     end
     if name ~= "" then
-      local _, headerHeight = W:SectionHeader(ctx.parent, name, ctx.y)
+      local _, headerHeight = W:SectionHeader(ctx.parent, name, ctx.y, tooltip)
       ctx.y = ctx.y - headerHeight
     end
     renderGroup(self, ctx, chain, path)
     return
   elseif kind == "header" then
-    frame, height = W:SectionHeader(ctx.parent, name, ctx.y)
+    frame, height = W:SectionHeader(ctx.parent, name, ctx.y, tooltip)
   elseif kind == "description" then
     local y
     y, frame = descriptionRow(ctx, name, option.fontSize)
     ctx.y = y
-    dim(ctx, frame, disabled)
+    tooltipOnFrame(ctx, frame, tooltip)
+    dim(ctx, frame, disabled, tooltip)
     return
   elseif kind == "toggle" then
     frame, height = W:Toggle(ctx.parent, name, ctx.y,
@@ -336,8 +351,9 @@ local function renderOption(self, ctx, chain, path)
       confirmedSetter(self, chain, path),
       tooltip)
   elseif kind == "range" then
-    local minimum = option.softMin or option.min or 0
-    local maximum = option.softMax or option.max or 100
+    -- EllesmereUI uses one range for both dragging and typed values.
+    local minimum = option.min or option.softMin or 0
+    local maximum = option.max or option.softMax or 100
     frame, height = W:Slider(ctx.parent, name, ctx.y, minimum, maximum, option.step or option.bigStep or 1,
       function () return field(chain, path, "get") end,
       function (value) applyChange(self, chain, path, "set", value) end,
@@ -351,15 +367,17 @@ local function renderOption(self, ctx, chain, path)
   elseif kind == "multiselect" then
     frame, height = W:SectionHeader(ctx.parent, name, ctx.y, tooltip)
     ctx.y = ctx.y - height
-    dim(ctx, frame, disabled)
+    dim(ctx, frame, disabled, tooltip)
     local labels, order = valuesOf(chain, path)
     for _, key in ipairs(order) do
       local row, rowHeight = W:Checkbox(ctx.parent, tostring(labels[key]), ctx.y,
         function () return field(chain, path, "get", key) and true or false end,
-        function (value) applyChange(self, chain, path, "set", key, value) end,
+        function (value)
+          confirmThen(chain, path, function () applyChange(self, chain, path, "set", key, value) end, key, value)
+        end,
         tooltip)
       ctx.y = ctx.y - rowHeight
-      dim(ctx, row, disabled)
+      dim(ctx, row, disabled, tooltip)
     end
     return
   elseif kind == "color" then
@@ -367,31 +385,35 @@ local function renderOption(self, ctx, chain, path)
       function () return field(chain, path, "get") end,
       function (r, g, b, a) applyChange(self, chain, path, "set", r, g, b, a) end,
       option.hasAlpha)
+    tooltipOnFrame(ctx, frame, tooltip)
   elseif kind == "execute" then
     frame, height = W:Button(ctx.parent, name, ctx.y, function ()
       confirmThen(chain, path, function () applyChange(self, chain, path, "func") end)
     end)
+    tooltipOnFrame(ctx, frame, tooltip)
   elseif kind == "input" then
     local y
     y, frame = inputRow(ctx, name, option.multiline,
       function () local value = field(chain, path, "get"); return type(value) == "string" and value or "" end,
       function (value)
         local valid = field(chain, path, "validate", value)
-        if type(valid) == "string" then
-          Core:GetModule("Config"):Print(valid)
+        if valid == false or type(valid) == "string" then
+          local message = type(valid) == "string" and valid or textOf(chain, path, "usage")
+          Core:GetModule("Config"):Print(message ~= "" and message or name..": Invalid value")
           return
         end
-        if valid ~= false then applyChange(self, chain, path, "set", value) end
+        confirmThen(chain, path, function () applyChange(self, chain, path, "set", value) end, value)
       end)
     ctx.y = y
-    dim(ctx, frame, disabled)
+    tooltipOnFrame(ctx, frame, tooltip)
+    dim(ctx, frame, disabled, tooltip)
     return
   else
     return
   end
 
   ctx.y = ctx.y - (height or 0)
-  dim(ctx, frame, disabled)
+  dim(ctx, frame, disabled, tooltip)
 end
 
 renderGroup = function (self, ctx, chain, path)

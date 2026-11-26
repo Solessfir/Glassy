@@ -95,6 +95,7 @@ Glassy\Modules\ChatLinks.lua
 Glassy\Modules\Demo.lua
 Glassy\Modules\ProfileTransfer.lua
 Glassy\Modules\SlashAliases.lua
+Glassy\Modules\TabPresets.lua
 Glassy\Modules\Config.lua
 Glassy\Modules\ConfigProfiles.lua
 Glassy\Modules\ConfigChatPages.lua
