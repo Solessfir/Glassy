@@ -32,6 +32,24 @@ local function updateMessageSeparator(self)
   self.messageSeparator:SetSeparatorColor(Core:GetThemeColor("tabMessageSeparatorColor"))
 end
 
+function ChatDockMixin:UpdatePosition()
+  local bottom = Core.db.profile.tabBarPosition == "bottom"
+  local parent = self.glassyParent
+  self:ClearAllPoints()
+  self:SetPoint(bottom and "BOTTOMLEFT" or "TOPLEFT", parent, bottom and "BOTTOMLEFT" or "TOPLEFT")
+  local overflowList = self.overflowButton and self.overflowButton.list
+  if overflowList then
+    overflowList:ClearAllPoints()
+    overflowList:SetPoint(bottom and "BOTTOMLEFT" or "LEFT", self.overflowButton, bottom and "TOPRIGHT" or "RIGHT")
+    if overflowList.SetClampedToScreen then overflowList:SetClampedToScreen(true) end
+  end
+  if self.messageSeparator then
+    self.messageSeparator:ClearAllPoints()
+    self.messageSeparator:SetPoint(bottom and "TOPLEFT" or "BOTTOMLEFT")
+    self.messageSeparator:SetPoint(bottom and "TOPRIGHT" or "BOTTOMRIGHT")
+  end
+end
+
 function ChatDockMixin:SaveSelectedTab(chatFrame)
   if (
     chatFrame and
@@ -144,6 +162,7 @@ function ChatDockMixin:SelectVisibleFallback()
 end
 
 function ChatDockMixin:UpdateTabVisualStates()
+  if self.UpdateTabSelection then self:UpdateTabSelection() end
   for _, chatFrame in ipairs(GENERAL_CHAT_DOCK.DOCKED_CHAT_FRAMES) do
     local tab = _G[chatFrame:GetName().."Tab"]
     if tab and tab.UpdateVisualState then
@@ -187,6 +206,7 @@ function ChatDockMixin:SetTyping(visible)
 end
 
 function ChatDockMixin:Init(parent)
+  self.glassyParent = parent
   self.state = {
     editBoxVisible = false,
     mouseOver = false,
@@ -291,6 +311,7 @@ function ChatDockMixin:Init(parent)
     self.messageSeparator:SetPoint("BOTTOMLEFT")
     self.messageSeparator:SetPoint("BOTTOMRIGHT")
   end
+  self:UpdatePosition()
 
   -- Overlap the message background by one physical pixel to avoid a subpixel seam.
   local backgroundColor = Core.db.profile.headerBackgroundColor
@@ -320,6 +341,8 @@ function ChatDockMixin:Init(parent)
         self:SetTyping(visible)
       end),
       Core:Subscribe(UPDATE_CONFIG, function (key)
+        if key == "tabBarPosition" then self:UpdatePosition() end
+        if key == "tabBarAlignment" or key == "frameWidth" then self:UpdateTabOrder() end
         if key == "combatLogVisibility" then
           self:UpdateCombatLogVisibility()
         end
@@ -347,6 +370,11 @@ function ChatDockMixin:Init(parent)
 
         if key == "chatShowWhileTyping" then
           self:SetTyping(self.state.editBoxVisible)
+        end
+
+        if key == "tabStyle" or key == "tabSelectionAnimation" then
+          if self.ResetTabSelection then self:ResetTabSelection() end
+          self:UpdateTabVisualStates()
         end
 
         if key == "tabTextColor" or key == "tabHighlightTextColor" then

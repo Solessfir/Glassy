@@ -14,13 +14,10 @@ local CreateSlidingMessageFramePool = Core.Components.CreateSlidingMessageFrameP
 -- luacheck: push ignore 113
 local BNToastFrame = BNToastFrame
 local ChatAlertFrame = ChatAlertFrame
-local ChatFrameChannelButton = ChatFrameChannelButton
-local ChatFrameMenuButton = ChatFrameMenuButton
 local C_Timer = C_Timer
 local CreateFrame = CreateFrame
 local GetCVar = C_CVar and C_CVar.GetCVar or GetCVar
 local NUM_CHAT_WINDOWS = NUM_CHAT_WINDOWS
-local QuickJoinToastButton = QuickJoinToastButton
 local SetCVar = C_CVar and C_CVar.SetCVar or SetCVar
 local UIParent = UIParent
 -- luacheck: pop
@@ -89,6 +86,7 @@ end
 
 function UIManager:ReleaseChatWindow(chatFrame)
   local window = self:GetChatWindow(chatFrame)
+  if window and window.secondaryGroup then self:SeparateChatTab(chatFrame) end
   if window == nil or not window.temporary then
     return false
   end
@@ -109,8 +107,12 @@ end
 function UIManager:CreateDetachedLayout(window)
   local chatFrame = window.chatFrame
   local container = CreateFrame("Frame", nil, UIParent)
-  container:SetPoint("TOPLEFT", chatFrame, "TOPLEFT", 0, Constants.DOCK_HEIGHT)
-  container:SetPoint("BOTTOMRIGHT", chatFrame, "BOTTOMRIGHT")
+  local function updatePosition()
+    local bottom = Core.db.profile.tabBarPosition == "bottom"
+    container:SetPoint("TOPLEFT", chatFrame, "TOPLEFT", 0, bottom and 0 or Constants.DOCK_HEIGHT)
+    container:SetPoint("BOTTOMRIGHT", chatFrame, "BOTTOMRIGHT", 0, bottom and -Constants.DOCK_HEIGHT or 0)
+  end
+  updatePosition()
   container:SetFrameStrata(chatFrame:GetFrameStrata())
   container:SetFrameLevel(chatFrame:GetFrameLevel() + 1)
 
@@ -121,6 +123,9 @@ function UIManager:CreateDetachedLayout(window)
   }
   window.detachedLayout = layout
   self.container:AddHoverRegion(container)
+  layout.positionSubscription = Core:Subscribe(Constants.EVENTS.UPDATE_CONFIG, function (key)
+    if key == "tabBarPosition" then updatePosition() end
+  end)
 
   container:SetScript("OnSizeChanged", function ()
     if chatFrame.isDocked or layout.resizeScheduled then
@@ -135,19 +140,14 @@ function UIManager:CreateDetachedLayout(window)
         window.slidingMessageFrame and
         window.slidingMessageFrame.chatFrame == chatFrame
       ) then
-        local editBox = window.editBox
-        if editBox then
-          editBox:SetGlassyParent(container, true)
-        end
-        window.slidingMessageFrame:SetLayout(
-          container,
-          container:GetWidth(),
-          container:GetHeight(),
-          editBox or false,
-          container
-        )
-        if self.combatLogBar and self.combatLogBar.slidingMessageFrame == window.slidingMessageFrame then
-          self.combatLogBar:UpdateLayout()
+        local group = window.secondaryGroup
+        if group then
+          if group.host == window then self:LayoutSecondaryChatGroup(group) end
+        else
+          self:ApplyDetachedChatLayout(window, layout)
+          if self.combatLogBar and self.combatLogBar.slidingMessageFrame == window.slidingMessageFrame then
+            self.combatLogBar:UpdateLayout()
+          end
         end
       end
     end)
@@ -155,9 +155,27 @@ function UIManager:CreateDetachedLayout(window)
   return layout
 end
 
+function UIManager:ApplyDetachedChatLayout(window, layout, group)
+  local container, editBox = layout.container, window.editBox
+  if editBox then
+    editBox.glassySecondaryChatGroup = group
+    editBox:SetGlassyParent(container, true)
+  end
+  window.slidingMessageFrame:SetLayout(container, container:GetWidth(), container:GetHeight(),
+    editBox or false, container, group)
+end
+
 function UIManager:RefreshChatFrameLayout(chatFrame)
   local window = self:GetChatWindow(chatFrame)
   if window == nil then
+    return
+  end
+  if window.secondaryGroup then
+    if chatFrame.isDocked then
+      self:SeparateChatTab(chatFrame)
+    else
+      self:LayoutSecondaryChatGroup(window.secondaryGroup)
+    end
     return
   end
 
@@ -165,6 +183,7 @@ function UIManager:RefreshChatFrameLayout(chatFrame)
   local editBox = window.editBox
   local layout = window.detachedLayout
   if chatFrame.isDocked then
+    if editBox then editBox.glassySecondaryChatGroup = nil end
     local mainWindow = self:GetChatWindow(_G.ChatFrame1)
     editBox = mainWindow and mainWindow.editBox or editBox
     if editBox then
@@ -188,17 +207,7 @@ function UIManager:RefreshChatFrameLayout(chatFrame)
     chatFrame.buttonFrame.minimizeButton:Hide()
   end
 
-  if editBox then
-    editBox:SetGlassyParent(layout.container, true)
-  end
-
-  slidingMessageFrame:SetLayout(
-    layout.container,
-    layout.container:GetWidth(),
-    layout.container:GetHeight(),
-    editBox or false,
-    layout.container
-  )
+  self:ApplyDetachedChatLayout(window, layout)
   if self.combatLogBar and self.combatLogBar.slidingMessageFrame == slidingMessageFrame then
     self.combatLogBar:SetGlassyParent(layout.container, true, layout.dock)
   end
@@ -214,6 +223,7 @@ function UIManager:ScheduleChatFrameLayout(chatFrame)
   C_Timer.After(0, function ()
     self.layoutUpdates[chatFrame] = nil
     self:RefreshChatFrameLayout(chatFrame)
+    if _G.Details then self:RefreshDetailsEmbed() end
   end)
 end
 
@@ -342,13 +352,7 @@ function UIManager:ConfigureNativeChat()
     end
   end
 
-  -- Hide other chat elements
-  if Constants.ENV == "retail" and QuickJoinToastButton then
-    QuickJoinToastButton:Hide()
-  end
-
-  if ChatFrameChannelButton then ChatFrameChannelButton:Hide() end
-  if ChatFrameMenuButton then ChatFrameMenuButton:Hide() end
+  self.chatButtons = Core.Components.CreateChatButtons(self.container, self.dock)
 
   -- New version alert
   --@non-debug@
@@ -415,6 +419,13 @@ function UIManager:HookChatWindowLifecycle()
   hookLayoutChange("FCF_DockFrame")
   hookLayoutChange("FCF_UnDockFrame")
   hookLayoutChange("FCF_StopDragging")
+  if type(_G.FCF_SetTabPosition) == "function" and not self:IsHooked("FCF_SetTabPosition") then
+    self:SecureHook("FCF_SetTabPosition", function (chatFrame)
+      local window = self:GetChatWindow(chatFrame)
+      local group = window and window.secondaryGroup
+      if group then group.host.detachedLayout.dock:ScheduleTabOrder() end
+    end)
+  end
 end
 
 function UIManager:OnEnable()
@@ -424,6 +435,8 @@ function UIManager:OnEnable()
   self:InitializeCombatLog()
   self:ConfigureNativeChat()
   self:HookChatWindowLifecycle()
+  self:InitializeDetailsEmbed()
+  C_Timer.After(0, function () self:RestoreSecondaryChatGroups() end)
 
   -- Poll hover state at a low rate. Message queues use the work-driven render frame above.
   self.mouseoverTicker = C_Timer.NewTicker(0.05, function ()

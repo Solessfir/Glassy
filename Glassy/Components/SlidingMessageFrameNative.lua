@@ -55,7 +55,7 @@ function SlidingMessageFrameMixin:HookChatFrameVisibility(chatFrame)
         return
       end
       self.hooks[chatFrame].Show(frame)
-    elseif not frame.isDocked then
+    elseif not frame.isDocked or self.detailsEmbedHost then
       self.hooks[chatFrame].Show(frame)
     end
     self:ApplyPendingDynamicEditBoxLayout()
@@ -72,7 +72,7 @@ function SlidingMessageFrameMixin:HookChatFrameVisibility(chatFrame)
     end
     self.hooks[chatFrame].SetShown(
       chatFrame,
-      (self.state.isCombatLog or not chatFrame.isDocked) and shown or false
+      (self.state.isCombatLog or not chatFrame.isDocked or self.detailsEmbedHost) and shown or false
     )
     if shown then
       self:ApplyPendingDynamicEditBoxLayout()
@@ -123,6 +123,8 @@ function SlidingMessageFrameMixin:ResetForChatFrame(chatFrame)
   self.layoutHeight = nil
   self.layoutEditBox = nil
   self.detachedContainer = nil
+  self.detachedGroup = nil
+  self.glassyNativeShown = nil
 end
 
 function SlidingMessageFrameMixin:ConfigureScrollback(chatFrame)
@@ -178,7 +180,7 @@ function SlidingMessageFrameMixin:ConfigureNativeLayout(chatFrame)
         layoutParent,
         "BOTTOMLEFT",
         0,
-        0
+        Helpers.getMessageBottomInset()
       )
       self.hooks[chatFrame].SetWidth(chatFrame, self:GetNativeLayoutWidth())
     end
@@ -206,7 +208,7 @@ function SlidingMessageFrameMixin:ConfigureNativeLayout(chatFrame)
 
     if self.combatLogLayoutSubscription == nil then
       self.combatLogLayoutSubscription = Core:Subscribe(UPDATE_CONFIG, function (key)
-        if key == "frameWidth" or key == "combatLogBarLayout" then
+        if key == "frameWidth" or key == "combatLogBarLayout" or key == "tabBarPosition" or key == "tabMessageSpacing" then
           applyCombatLogLayout()
         end
       end)
@@ -221,7 +223,10 @@ function SlidingMessageFrameMixin:InitializeScrollFrame()
     Mixin(self.gapBackground, Core.Components.GradientBackgroundMixin)
     self.gapBackground:SetAlpha(0)
     self.gapBackground:SetScript("OnUpdate", function () self:UpdateGapBackground() end)
-    self:HookScript(self, "OnShow", function () self.gapBackground:Show() end)
+    self:HookScript(self, "OnShow", function ()
+      self.gapBackground:Show()
+      self:UpdateTopFade()
+    end)
     self:HookScript(self, "OnHide", function () self.gapBackground:Hide() end)
   end
   self.gapBackground:SetParent(self:GetParent())
@@ -256,6 +261,7 @@ function SlidingMessageFrameMixin:InitializeScrollFrame()
 
   -- The wheel steps one message at a time; Shift pans within a message taller than the view.
   self:SetScript("OnMouseWheel", function (_, delta)
+    if self.detailsEmbedHost then return end
     self:CancelDynamicEditBoxLayout(true)
     if IsShiftKeyDown() then
       self:SetScrollPosition(self.state.scrollIndex, self.state.messageOffset + delta * 20)
@@ -365,7 +371,7 @@ function SlidingMessageFrameMixin:SubscribeToEvents()
         self.state.mouseOver = true
         self:CancelMessageHideTimer(true)
 
-        if not self.state.scrollAtBottom then
+        if not self.state.scrollAtBottom and not self.detailsEmbedHost then
           self.overlay:Show()
         end
 
@@ -388,6 +394,10 @@ function SlidingMessageFrameMixin:SubscribeToEvents()
         self:SetTyping(visible)
       end),
       Core:Subscribe(UPDATE_CONFIG, function (key)
+        if key == "topFade" then
+          self:UpdateTopFade()
+        end
+
         if key == "combatLogVisibility" and self.state.isCombatLog then
           self:ApplyCombatLogVisibility()
         end
@@ -422,6 +432,7 @@ function SlidingMessageFrameMixin:SubscribeToEvents()
           key == "frameWidth" or
           key == "frameHeight" or
           key == "tabMessageSpacing" or
+          key == "tabBarPosition" or
           key == "textLeftPadding" or
           key == "messageLeading" or
           key == "messageLinePadding" or

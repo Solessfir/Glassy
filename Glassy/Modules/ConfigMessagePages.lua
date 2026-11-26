@@ -567,6 +567,17 @@ local function getMessageOptions()
               Core:Dispatch(UpdateConfig("chatShowWhileTyping"))
             end,
           },
+          topFade = {
+            name = "Fade at the top",
+            desc = "Fade older messages as they move past the top edge while viewing the latest chat. Scrollback stays fully visible.\nDefault: off",
+            type = "toggle",
+            order = 2.4,
+            get = function () return Core.db.profile.topFade end,
+            set = function (_, enabled)
+              Core.db.profile.topFade = enabled
+              Core:Dispatch(UpdateConfig("topFade"))
+            end,
+          },
         },
       },
       animation = {
@@ -727,10 +738,15 @@ local function getCombatLogOptions()
         args = {
           combatLogBarPosition = {
             name = "Position",
-            desc = "Places the Combat Log filter bar above or below the main Glassy tabs, or hides it. The bar appears only while the Combat Log tab is selected.\nDefault: Below tabs",
+            desc = "Choose where the Combat Log filters appear while the Combat Log tab is selected.",
             type = "select",
             order = 1.1,
-            values = COMBAT_LOG_BAR_POSITIONS,
+            values = function ()
+              if Core.db.profile.tabBarPosition == "bottom" then
+                return {ABOVE = L("Above chat"), BELOW = L("Inside chat"), HIDDEN = COMBAT_LOG_BAR_POSITIONS.HIDDEN}
+              end
+              return COMBAT_LOG_BAR_POSITIONS
+            end,
             get = function ()
               return Core.db.profile.combatLogBarPosition
             end,

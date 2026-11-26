@@ -185,6 +185,7 @@ function ChatDockMixin:LayoutDockedTabs(orderedFrames, keepSelectedVisible, gap)
       tab:SetFrameStrata(self:GetFrameStrata())
       tab:ClearAllPoints()
       tab:SetPoint("LEFT", child, "LEFT", totalWidth, 0)
+      tab.glassyDockOffset = totalWidth
 
       offsets[chatFrame] = totalWidth
       totalWidth = totalWidth + tab:GetWidth()
@@ -215,6 +216,20 @@ function ChatDockMixin:LayoutDockedTabs(orderedFrames, keepSelectedVisible, gap)
   end
 
   child:SetWidth(math.max(1, totalWidth, availableWidth))
+
+  local alignment = Core.db.profile.tabBarAlignment
+  local leading = math.max(0, availableWidth - totalWidth)
+    * (alignment == "right" and 1 or (alignment == "center" and 0.5 or 0))
+  if leading > 0 then
+    for _, chatFrame in ipairs(orderedFrames) do
+      local tab = _G[chatFrame:GetName().."Tab"]
+      if tab then
+        tab:ClearAllPoints()
+        tab:SetPoint("LEFT", child, "LEFT", offsets[chatFrame] + leading, 0)
+        tab.glassyDockOffset = offsets[chatFrame] + leading
+      end
+    end
+  end
 
   local scrollOffset = self.scrollFrame:GetHorizontalScroll()
   local maximumScroll = math.max(0, totalWidth - availableWidth)
@@ -360,6 +375,7 @@ function ChatDockMixin:StartTabDrag(tab, button)
     remainingFrames = remainingFrames,
     tab = tab,
   }
+  self:UpdateTabVisualStates()
 
   self:LayoutDockedTabs(remainingFrames, false, {
     index = draggedIndex,

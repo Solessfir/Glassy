@@ -140,7 +140,9 @@ tab.glassyHovered = false
 -- Unread counts grow the tab only while it is unselected, and selecting it clears them.
 text.ClearAllPoints, text.SetPoint = noop, noop
 text.GetStringWidth = function () return 40 end
-local count = {SetPoint = noop}
+local count = {}
+function count:ClearAllPoints() self.points = {} end
+function count:SetPoint(...) self.points = self.points or {}; self.points[#self.points + 1] = {...} end
 function count:SetTextColor() end
 function count:SetText(value) self.value = value end
 function count:SetShown(shown) self.shown = not not shown end
@@ -186,13 +188,14 @@ tab.chatFrame.isTemporary = nil
 GENERAL_CHAT_DOCK = nil
 
 -- Whisper tabs place Blizzard's conversation icon before the name and widen the tab for it.
-local iconPoints, textPoints = {}, {}
+local iconPoints, textPoints, textAnchors = {}, {}, {}
 tab.conversationIcon = {
   IsShown = function () return true end, GetWidth = function () return 16 end,
   ClearAllPoints = function () iconPoints = {} end,
   SetPoint = function (_, ...) iconPoints[#iconPoints + 1] = {...} end,
 }
-text.SetPoint = function (_, point, x) textPoints[point] = x end
+text.ClearAllPoints = function () textPoints, textAnchors = {}, {} end
+text.SetPoint = function (_, point, ...) textPoints[point] = select(1, ...); textAnchors[point] = {...} end
 tab:UpdateTextLayout()
 assert(#iconPoints == 1 and iconPoints[1][1] == "LEFT" and iconPoints[1][3] == "LEFT" and iconPoints[1][5] == 0,
   "The icon keeps one centered anchor instead of Blizzard's two")
@@ -213,6 +216,52 @@ local savedText = tab.Text
 tab.Text = nil
 assert(tab:GetLayoutWidth() == 47, "Tabs without a FontString fall back to GetTextWidth")
 tab.Text = savedText
+
+-- Styled padding must follow the same geometry for names, icons, and unread counts.
+assert(loadfile("Glassy/Components/ChatTabStyle.lua"))("Glassy", {core, constants})
+profile.textLeftPadding = 37
+for _, layout in ipairs({
+  {"framed", 12, 0}, {"solid", 12, 0}, {"glossy", 12, 0}, {"classic", 12, 0},
+  {"underline", 9, 2}, {"pill", 16, 0},
+}) do
+  local style, padding, y = unpack(layout)
+  profile.tabStyle = style
+  tab:SetUnreadCount(0)
+  tab:UpdateTextLayout()
+  assert(tab.width == 40 + padding * 2 + 2, style .. " uses symmetric padding")
+  assert(textAnchors.LEFT[1] == padding and textAnchors.LEFT[2] == y, style .. " positions the label")
+  assert(textAnchors.RIGHT[1] == -padding and textAnchors.RIGHT[2] == y, style .. " reserves the right padding")
+
+  tab.conversationIcon = {
+    IsShown = function () return true end, GetWidth = function () return 16 end,
+    ClearAllPoints = function () iconPoints = {} end,
+    SetPoint = function (_, ...) iconPoints[#iconPoints + 1] = {...} end,
+  }
+  tab:SetUnreadCount(12)
+  assert(tab.width == 16 + 3 + 40 + padding * 2 + 2 + 4 + 12, style .. " includes the icon and count")
+  assert(textAnchors.LEFT[1] == padding + 16 + 3 and textAnchors.LEFT[2] == y, style .. " leaves room for the icon")
+  assert(textAnchors.RIGHT[1] == -padding - 4 - 12 and textAnchors.RIGHT[2] == y, style .. " keeps the label clear of the count")
+  assert(#iconPoints == 1 and iconPoints[1][4] == padding and iconPoints[1][5] == y, style .. " aligns the icon with the label")
+  local countAnchor = count.points[#count.points]
+  assert(countAnchor[1] == "RIGHT" and countAnchor[2] == tab and countAnchor[3] == "RIGHT"
+    and countAnchor[4] == -padding and countAnchor[5] == y, style .. " aligns the count with the label")
+  tab:SetUnreadCount(0)
+  assert(tab.width == 16 + 3 + 40 + padding * 2 + 2 and textAnchors.RIGHT[1] == -padding,
+    style .. " releases the unread count space")
+  tab.conversationIcon = nil
+end
+for _, style in ipairs({"minimal", "unknown"}) do
+  profile.tabStyle = style
+  tab:SetUnreadCount(1)
+  tab:UpdateTextLayout()
+  assert(tab.width == 40 + 37 + 5 + 2 + 4 + 6, style .. " preserves the Minimal width")
+  assert(textAnchors.LEFT[1] == 37 and textAnchors.LEFT[2] == 0, style .. " preserves the left padding preference")
+  assert(textAnchors.RIGHT[1] == -5 and textAnchors.RIGHT[2] == 0, style .. " preserves the Minimal label anchor")
+  local countAnchor = count.points[#count.points]
+  assert(countAnchor[4] == -5 and countAnchor[5] == 0, style .. " preserves the Minimal count anchor")
+end
+tab:SetUnreadCount(0)
+profile.tabStyle, profile.textLeftPadding = nil, 0
 
 local alertText = {
   ClearAllPoints = noop, SetPoint = noop, GetLineHeight = function () return 13 end,

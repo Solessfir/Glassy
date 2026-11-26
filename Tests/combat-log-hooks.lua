@@ -100,6 +100,7 @@ local detachedContainer = frame("DetachedContainer")
 local primaryContainer = frame("PrimaryContainer")
 uiManager.container = primaryContainer
 local layout = core.Components.CreateSlidingMessageFrame()
+layout.SetHeight = function (self, height) self.renderedHeight = height end
 layout.state = {incomingMessages = {}, incomingScrollbackMessages = {}, isCombatLog = false, messages = {}}
 layout.config = {height = 1, width = 1, overflowHeight = 60}
 layout.slider = frame("Slider")
@@ -110,6 +111,15 @@ layout:SetLayout(detachedContainer, 320, 200, false, detachedContainer)
 assert(layout.parent == detachedContainer and layout.config.width == 320 and layout.config.height == 176)
 core.db.profile.tabMessageSpacing = 20
 assert(layout:GetMessageFrameHeight() == 156, "Tab offset did not reduce the message area")
+core.db.profile.tabBarPosition = "bottom"
+local helpers = core.Components.SlidingMessageFrameHelpers
+assert(helpers.getMessageTopInset(false) == 0 and helpers.getMessageBottomInset() == 44)
+layout.layoutEditBox = {GetReusableMessageHeight = function () return 30 end}
+assert(layout:GetMessageFrameHeight() == 156, "Bottom tabs must keep the edit box reserve out of the transcript")
+layout:RefreshLayout(false)
+assert(layout.renderedHeight == 156, "Incoming lines must clip above a bottom tab bar")
+layout.layoutEditBox = false
+core.db.profile.tabBarPosition = "top"
 core.db.profile.tabMessageSpacing = 0
 local persistentMessage = frame("PersistentMessage")
 persistentMessage.shown = true
@@ -226,6 +236,19 @@ for _, environment in ipairs({"retail", "classic"}) do
       assert(native:IsShown() == combatLog, "Classic/regular chat visibility changed")
       native:Hide()
       assert(not smf:IsShown())
+      if not combatLog then
+        smf.detailsEmbedHost = true
+        native:SetShown(true)
+        assert(native:IsShown() and smf:IsShown(), "Classic must keep the selected Details! parent shown")
+        native:Hide()
+        assert(not native:IsShown() and not smf:IsShown(), "Leaving the tab hides its Details! parent")
+        native:Show()
+        assert(native:IsShown(), "Native Show must also support a Details! host")
+        native:Hide()
+        smf.detailsEmbedHost = nil
+        native:SetShown(true)
+        assert(not native:IsShown() and smf:IsShown(), "Disabling Details! restores the regular Classic visibility path")
+      end
     end
     smf:UnhookAll()
   end
@@ -263,7 +286,12 @@ MenuUtil = {
 }
 local minimizedFrame, minimizedSide
 FCF_MinimizeFrame = function (chatFrame, side) minimizedFrame, minimizedSide = chatFrame, side end
-core.GetModule = function () return {Show = function () copied = copied + 1 end} end
+core.GetModule = function (_, name)
+  if name == "UIManager" then
+    return {IsSecondaryTabSelected = noop, GetSecondaryChatTargets = function () return {} end, SelectSecondaryTab = noop}
+  end
+  return {Show = function () copied = copied + 1 end}
+end
 loadComponent("ChatTab")
 GlassyTestTab = frame("GlassyTestTab")
 GlassyTestTab.Text, GlassyTestTab.glow = frame("Text"), frame("Glow")

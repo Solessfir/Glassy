@@ -147,6 +147,22 @@ local function scenario(env, width, reverse, hidden, staleAnchor)
   dock:LayoutDockedTabs(dock:GetOrderedDockFrames(), false, {index = 2, width = 40})
   assert(dock.scrollFrame.points.BOTTOMLEFT == nil)
   assert(dock.scrollFrame.scroll >= 0)
+  core.db.profile.tabBarPosition = "bottom"
+  dock:UpdatePosition()
+  assert(dock.points.BOTTOMLEFT[3] == "BOTTOMLEFT" and dock.messageSeparator.points.TOPLEFT)
+  assert(dock.overflowButton.list.points.BOTTOMLEFT[3] == "TOPRIGHT", "Overflow opens above a bottom dock")
+  core.db.profile.tabBarPosition = "top"
+  dock:UpdatePosition()
+  assert(dock.points.TOPLEFT[3] == "TOPLEFT" and not dock.points.BOTTOMLEFT and dock.messageSeparator.points.BOTTOMLEFT)
+  local order = dock:GetOrderedDockFrames()
+  local first = _G[order[1]:GetName().."Tab"]
+  core.db.profile.tabBarAlignment = "center"
+  dock:LayoutDockedTabs(order)
+  local space = math.max(0, width - (#order * 40 + #order - 1))
+  assert(first.points.LEFT[4] == space / 2, "Center alignment must fall back when tabs overflow")
+  core.db.profile.tabBarAlignment = "right"
+  dock:LayoutDockedTabs(order)
+  assert(first.points.LEFT[4] == space, "Right alignment must use the spare width")
   dock:UnhookAll()
 end
 for _, env in ipairs({"retail", "classic"}) do

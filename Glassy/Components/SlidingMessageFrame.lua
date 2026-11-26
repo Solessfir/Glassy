@@ -34,7 +34,7 @@ local MESSAGE_UPDATE_BATCH_SIZE = 16
 local DEFAULT_UNREAD_ROW_HEIGHT = 24
 
 local function getBaseMessageTopInset(isCombatLog)
-  local inset = Constants.DOCK_HEIGHT
+  local inset = Core.db.profile.tabBarPosition == "bottom" and 0 or Constants.DOCK_HEIGHT
   if isCombatLog and Core.db.profile.combatLogBarPosition == "BELOW" then
     inset = inset + Constants.COMBAT_LOG_BAR_HEIGHT
   end
@@ -42,8 +42,14 @@ local function getBaseMessageTopInset(isCombatLog)
 end
 
 local function getMessageTopInset(isCombatLog)
+  if Core.db.profile.tabBarPosition == "bottom" then return getBaseMessageTopInset(isCombatLog) end
   local offset = tonumber(Core.db.profile.tabMessageSpacing) or Core.defaults.profile.tabMessageSpacing
   return getBaseMessageTopInset(isCombatLog) + offset
+end
+
+local function getMessageBottomInset()
+  if Core.db.profile.tabBarPosition ~= "bottom" then return 0 end
+  return Constants.DOCK_HEIGHT + (tonumber(Core.db.profile.tabMessageSpacing) or Core.defaults.profile.tabMessageSpacing)
 end
 
 local function getScrollbackLimit()
@@ -131,7 +137,7 @@ local function getMessageFrameHeight(isCombatLog, frameHeight, editBox)
   end
   ---@cast editBox GlassyChatEditBox?
   local reusableHeight = 0
-  if Core.db.profile.editBoxAnchor.position == "BELOW" and editBox then
+  if Core.db.profile.tabBarPosition ~= "bottom" and Core.db.profile.editBoxAnchor.position == "BELOW" and editBox then
     if type(editBox.GetReusableMessageHeight) == "function" then
       reusableHeight = editBox:GetReusableMessageHeight()
     else
@@ -142,13 +148,14 @@ local function getMessageFrameHeight(isCombatLog, frameHeight, editBox)
       end
     end
   end
-  return math.max(1, frameHeight - getMessageTopInset(isCombatLog) + reusableHeight)
+  return math.max(1, frameHeight - getMessageTopInset(isCombatLog) - getMessageBottomInset() + reusableHeight)
 end
 
 
 Core.Components.SlidingMessageFrameHelpers = {
   getBaseMessageTopInset = getBaseMessageTopInset,
   getMessageTopInset = getMessageTopInset,
+  getMessageBottomInset = getMessageBottomInset,
   getScrollbackLimit = getScrollbackLimit,
   getRenderedMessageLimit = getRenderedMessageLimit,
   getSlideEasing = getSlideEasing,
@@ -161,6 +168,45 @@ Core.Components.SlidingMessageFrameHelpers = {
   keepCombatLogTracking = keepCombatLogTracking,
   getMessageFrameHeight = getMessageFrameHeight,
 }
+
+-- Stored heights and slide offsets stay readable even when the anchored UI geometry is secret.
+function SlidingMessageFrameMixin:UpdateTopFade()
+  local enabled = Core.db.profile.topFade == true and not self.state.isCombatLog
+    and self.state.scrollAtBottom and not self.state.jumpingToBottom
+  if not enabled and not self.glassyTopFadeActive then return end
+  if not self:IsShown() then return end
+
+  local rowHeight = (tonumber(Core.db.profile.messageFontSize) or 12) * 1.75
+  local zone = math.min(rowHeight * 4, math.max(0, self.config.height - rowHeight * 2))
+  local owner = enabled and zone > 0 and self or nil
+  self.glassyTopFadeActive = owner ~= nil
+  self.glassyTopFadeHeight = zone
+  if self.gapBackground then
+    Core.Components.SetTopFadeMask(self.gapBackground, owner, zone)
+  end
+
+  local bottom = self.config.height - (self.state.slideOffset or 0)
+  local messages = self.state.messages
+  for index = #messages, 1, -1 do
+    local message = messages[index]
+    message:SetTopMask(owner, zone)
+    local height = message.glassyHeight
+    local alpha = 1
+    if owner and bottom and height then
+      local top = bottom - height
+      if index < #messages then
+        local depth = top + math.min(height / 2, rowHeight)
+        local progress = math.max(0, math.min(1, depth / zone))
+        alpha = progress * progress * (3 - 2 * progress)
+      end
+      bottom = top
+    else
+      -- A secret row hides every older position; leave their text opacity alone.
+      bottom = nil
+    end
+    message:SetTopAlpha(alpha)
+  end
+end
 
 -- Secret text has no readable height, so scrolling pins one message to the bottom of the view and chains the
 -- rest off it instead of tracking pixel offsets. scrollIndex counts from the newest message.
@@ -184,12 +230,14 @@ function SlidingMessageFrameMixin:LayoutMessages()
   link(anchorIndex)
   for index = anchorIndex - 1, 1, -1 do link(index) end
   for index = anchorIndex + 1, #messages do link(index) end
+  self:UpdateTopFade()
 end
 
 function SlidingMessageFrameMixin:SetSlideOffset(offset)
   self.state.slideOffset = offset
   self.slider:ClearAllPoints()
   self.slider:SetPoint("TOPLEFT", self.viewport, "TOPLEFT", 0, offset - (self.state.messageOffset or 0))
+  self:UpdateTopFade()
 end
 
 -- Distance from the pinned message to the newest one, or nil when a secret row hides it.
@@ -244,7 +292,7 @@ function SlidingMessageFrameMixin:SetScrollPosition(index, offset)
     self.state.unreadMessages = false
     self.overlay:Hide()
     self.overlay:HideNewMessageAlert()
-  else
+  elseif not self.detailsEmbedHost then
     self.overlay:Show()
   end
 end
@@ -354,7 +402,7 @@ function SlidingMessageFrameMixin:SetTyping(visible)
 
   self.state.editBoxVisible = editBoxVisible
   self.state.typing = typing
-  if editBoxVisible and not self.state.scrollAtBottom then
+  if not self.detailsEmbedHost and editBoxVisible and not self.state.scrollAtBottom then
     self.overlay:Show()
   elseif not editBoxVisible and not self.state.mouseOver and not self.state.scrollAtBottom then
     self.overlay:HideDelay(Core.db.profile.chatHoldTime)
@@ -728,10 +776,12 @@ function SlidingMessageFrameMixin:Update(incoming, reverse)
   else
     -- Otherwise show "Unread messages" notification
     self.state.unreadMessages = true
-    self.overlay:Show()
-    self.overlay:ShowNewMessageAlert()
-    if not self.state.mouseOver and not self.state.editBoxVisible then
-      self.overlay:HideDelay(Core.db.profile.chatHoldTime)
+    if not self.detailsEmbedHost then
+      self.overlay:Show()
+      self.overlay:ShowNewMessageAlert()
+      if not self.state.mouseOver and not self.state.editBoxVisible then
+        self.overlay:HideDelay(Core.db.profile.chatHoldTime)
+      end
     end
   end
 

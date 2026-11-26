@@ -30,18 +30,24 @@ local function profileOption(key, option, updateKey)
 end
 
 function C.CreateFontOption(setting, order)
+  local inheritedFont = L("Use UI font")
   return {
     name = "Font",
     type = "select",
     order = order,
     dialogControl = "LSM30_Font",
-    values = LSM:HashTable("font"),
+    values = function ()
+      local fonts = {}
+      for name, path in pairs(LSM:HashTable("font")) do fonts[name] = path end
+      fonts[inheritedFont] = LSM:Fetch("font", Core.db.profile.font)
+      return fonts
+    end,
     get = function ()
       local selected = Core.db.profile[setting]
-      return selected and selected ~= "" and selected or Core.db.profile.font
+      return selected and selected ~= "" and LSM:HashTable("font")[selected] and selected or inheritedFont
     end,
     set = function (_, input)
-      Core.db.profile[setting] = input
+      Core.db.profile[setting] = input == inheritedFont and "" or input
       Core:Dispatch(UpdateConfig("font"))
     end,
   }
@@ -70,11 +76,125 @@ local function getGeneralOptions()
     type = "group",
     order = 1,
     args = {
-      section2 = {
-        name = "Appearance",
+      section3 = {
+        name = "Frame",
         type = "group",
         inline = true,
-        order = 3,
+        order = 1,
+        args = {
+          frameWidth = {
+            name = "Width",
+            desc = "Sets the width of the chat frame in pixels.\nDefault: "..Core.defaults.profile.frameWidth..
+              "\nMin: 100\nMax: 9999",
+            type = "range",
+            order = 1,
+            min = 100,
+            max = 9999,
+            softMin = 300,
+            softMax = 800,
+            step = 1,
+            get = function ()
+              return Core.db.profile.frameWidth
+            end,
+            set = function (info, input)
+              Core.db.profile.frameWidth = input
+              Core:Dispatch(UpdateConfig("frameWidth"))
+            end
+          },
+          frameHeight = {
+            name = "Height",
+            desc = "Sets the height of the chat frame in pixels.\nDefault: "..Core.defaults.profile.frameHeight..
+              "\nMin: "..MIN_FRAME_HEIGHT.."\nMax: 9999",
+            type = "range",
+            order = 2,
+            min = MIN_FRAME_HEIGHT,
+            max = 9999,
+            softMin = 200,
+            softMax = 800,
+            step = 1,
+            get = function ()
+              return Core.db.profile.frameHeight
+            end,
+            set = function (info, input)
+              Core.db.profile.frameHeight = input
+              Core:Dispatch(UpdateConfig("frameHeight"))
+            end
+          },
+          frameAnchor = {
+            name = "Anchor",
+            desc = "Choose the screen corner used as the reference point for the horizontal and vertical offsets.\nDefault: "..
+              ANCHORS[Core.defaults.profile.positionAnchor.point],
+            type = "select",
+            order = 3,
+            values = ANCHORS,
+            get = function ()
+              return Core.db.profile.positionAnchor.point
+            end,
+            set = function (_, input)
+              Core.db.profile.positionAnchor.point = input
+              Core:Dispatch(UpdateConfig("framePosition"))
+            end
+          },
+          frameXOfs = {
+            name = "Horizontal offset",
+            desc = "Moves the chat frame horizontally from its selected screen anchor. Positive values move it right; negative values move it left.\nDefault: "..
+              Core.defaults.profile.positionAnchor.xOfs.."\nMin: -9999\nMax: 9999",
+            type = "range",
+            order = 4,
+            min = -9999,
+            max = 9999,
+            softMin = -2000,
+            softMax = 2000,
+            step = 1,
+            get = function ()
+              return Core.db.profile.positionAnchor.xOfs
+            end,
+            set = function (_, input)
+              Core.db.profile.positionAnchor.xOfs = input
+              Core:Dispatch(UpdateConfig("framePosition"))
+            end
+          },
+          frameYOfs = {
+            name = "Vertical offset",
+            desc = "Moves the chat frame vertically from its selected screen anchor. Positive values move it up; negative values move it down.\nDefault: "..
+              Core.defaults.profile.positionAnchor.yOfs.."\nMin: -9999\nMax: 9999",
+            type = "range",
+            order = 5,
+            min = -9999,
+            max = 9999,
+            softMin = -2000,
+            softMax = 2000,
+            step = 1,
+            get = function ()
+              return Core.db.profile.positionAnchor.yOfs
+            end,
+            set = function (_, input)
+              Core.db.profile.positionAnchor.yOfs = input
+              Core:Dispatch(UpdateConfig("framePosition"))
+            end
+          },
+          unlockFrame = {
+            name = function()
+              return isMoverUnlocked() and "Lock frame" or "Unlock frame"
+            end,
+            desc = function()
+              if isMoverUnlocked() then
+                return "Save the current position and hide the draggable Edit Mode overlay."
+              end
+              return "Show the draggable Edit Mode overlay used to reposition the Glassy chat frame."
+            end,
+            type = "execute",
+            func = toggleMover,
+            width = 1,
+            order = 6,
+          },
+        },
+      },
+      section2 = {
+        name = "Shared appearance",
+        type = "group",
+        inline = true,
+        order = 2,
         args = {
           tabHighlightTextColor = {
             name = "Hover label color",
@@ -125,19 +245,6 @@ local function getGeneralOptions()
               Core:Dispatch(UpdateConfig("textLeftPadding"))
             end,
           },
-          chatAlwaysVisible = {
-            name = "Always visible",
-            desc = "Keep chat messages, tabs, and headers visible instead of fading them out.\nDefault: off",
-            type = "toggle",
-            order = 4.1,
-            get = function ()
-              return Core.db.profile.chatAlwaysVisible
-            end,
-            set = function (_, input)
-              Core.db.profile.chatAlwaysVisible = input
-              Core:Dispatch(UpdateConfig("chatAlwaysVisible"))
-            end,
-          },
           backgroundFadeLeftPercent = {
             name = "Left fade percent",
             desc = "Controls how gradually Glassy backgrounds fade at the left edge. Shorter distances create a sharper fade; 0 disables it.\nDefault: "..
@@ -178,120 +285,6 @@ local function getGeneralOptions()
           },
         },
       },
-      section3 = {
-        name = "Frame",
-        type = "group",
-        inline = true,
-        order = 4,
-        args = {
-          frameWidth = {
-            name = "Width",
-            desc = "Sets the width of the chat frame in pixels.\nDefault: "..Core.defaults.profile.frameWidth..
-              "\nMin: 100\nMax: 9999",
-            type = "range",
-            order = 4.4,
-            min = 100,
-            max = 9999,
-            softMin = 300,
-            softMax = 800,
-            step = 1,
-            get = function ()
-              return Core.db.profile.frameWidth
-            end,
-            set = function (info, input)
-              Core.db.profile.frameWidth = input
-              Core:Dispatch(UpdateConfig("frameWidth"))
-            end
-          },
-          frameHeight = {
-            name = "Height",
-            desc = "Sets the height of the chat frame in pixels.\nDefault: "..Core.defaults.profile.frameHeight..
-              "\nMin: "..MIN_FRAME_HEIGHT.."\nMax: 9999",
-            type = "range",
-            order = 4.5,
-            min = MIN_FRAME_HEIGHT,
-            max = 9999,
-            softMin = 200,
-            softMax = 800,
-            step = 1,
-            get = function ()
-              return Core.db.profile.frameHeight
-            end,
-            set = function (info, input)
-              Core.db.profile.frameHeight = input
-              Core:Dispatch(UpdateConfig("frameHeight"))
-            end
-          },
-          frameXOfs = {
-            name = "Horizontal offset",
-            desc = "Moves the chat frame horizontally from its selected screen anchor. Positive values move it right; negative values move it left.\nDefault: "..
-              Core.defaults.profile.positionAnchor.xOfs.."\nMin: -9999\nMax: 9999",
-            type = "range",
-            order = 4.2,
-            min = -9999,
-            max = 9999,
-            softMin = -2000,
-            softMax = 2000,
-            step = 1,
-            get = function ()
-              return Core.db.profile.positionAnchor.xOfs
-            end,
-            set = function (_, input)
-              Core.db.profile.positionAnchor.xOfs = input
-              Core:Dispatch(UpdateConfig("framePosition"))
-            end
-          },
-          frameYOfs = {
-            name = "Vertical offset",
-            desc = "Moves the chat frame vertically from its selected screen anchor. Positive values move it up; negative values move it down.\nDefault: "..
-              Core.defaults.profile.positionAnchor.yOfs.."\nMin: -9999\nMax: 9999",
-            type = "range",
-            order = 4.3,
-            min = -9999,
-            max = 9999,
-            softMin = -2000,
-            softMax = 2000,
-            step = 1,
-            get = function ()
-              return Core.db.profile.positionAnchor.yOfs
-            end,
-            set = function (_, input)
-              Core.db.profile.positionAnchor.yOfs = input
-              Core:Dispatch(UpdateConfig("framePosition"))
-            end
-          },
-          frameAnchor = {
-            name = "Anchor",
-            desc = "Choose the screen corner used as the reference point for the horizontal and vertical offsets.\nDefault: "..
-              ANCHORS[Core.defaults.profile.positionAnchor.point],
-            type = "select",
-            order = 4.1,
-            values = ANCHORS,
-            get = function ()
-              return Core.db.profile.positionAnchor.point
-            end,
-            set = function (_, input)
-              Core.db.profile.positionAnchor.point = input
-              Core:Dispatch(UpdateConfig("framePosition"))
-            end
-          },
-          unlockFrame = {
-            name = function()
-              return isMoverUnlocked() and "Lock frame" or "Unlock frame"
-            end,
-            desc = function()
-              if isMoverUnlocked() then
-                return "Save the current position and hide the draggable Edit Mode overlay."
-              end
-              return "Show the draggable Edit Mode overlay used to reposition the Glassy chat frame."
-            end,
-            type = "execute",
-            func = toggleMover,
-            width = 1,
-            order = 4.6,
-          },
-        }
-      },
     }
   }
 end
@@ -312,33 +305,96 @@ local function getTabOptions()
     }
   end
 
+  local function chatButtonsDisabled()
+    return not Core.db.profile.chatButtons
+  end
+
   return {
     name = "Tabs",
     type = "group",
     order = 1.5,
     args = {
-      whispers = {
-        name = "Whispers",
+      layout = {
+        name = "Layout",
         type = "group",
         inline = true,
-        order = 5,
+        order = 1,
         args = {
-          dedicatedWhisperWindows = whisperOption("dedicatedWhisperWindows", "Dedicated whisper windows",
-            "Read and reply to character and Battle.net whispers in a separate inbox. Restricted messages stay in game chat. Default: off.", 1),
-          whisperWindowsAutoOpen = whisperOption("whisperWindowsAutoOpen", "Open on incoming whisper",
-            "Open a conversation for a new whisper without focusing the reply box. Default: off.", 2,
-            function () return not Core.db.profile.dedicatedWhisperWindows end),
-          keepWhisperTabs = whisperOption("keepWhisperTabs", "Keep whisper tabs",
-            "Reopen character whisper tabs with their last 100 messages after a reload or login. Applies when dedicated windows are off. Default: on.", 3,
-            function () return Core.db.profile.dedicatedWhisperWindows end),
+          tabBarPosition = profileOption("tabBarPosition", {
+            name = "Tab bar position", type = "select", order = 1,
+            values = {top = L("Above chat"), bottom = L("Below chat")},
+            sorting = {"top", "bottom"},
+          }),
+          tabBarAlignment = profileOption("tabBarAlignment", {
+            name = "Tab alignment", type = "select", order = 2,
+            values = {left = L("Left"), center = L("Center"), right = L("Right")},
+            sorting = {"left", "center", "right"},
+          }),
+          tabMessageSpacing = {
+            name = "Gap from messages",
+            desc = "Adds space between the tab bar and the messages.\nDefault: "..
+              Core.defaults.profile.tabMessageSpacing.." px\nMin: 0\nMax: "..MAX_TAB_MESSAGE_OFFSET,
+            type = "range",
+            order = 3,
+            min = 0,
+            max = MAX_TAB_MESSAGE_OFFSET,
+            softMin = 0,
+            softMax = 20,
+            step = 1,
+            get = function ()
+              return Core.db.profile.tabMessageSpacing
+            end,
+            set = function (_, input)
+              Core.db.profile.tabMessageSpacing = input
+              Core:Dispatch(UpdateConfig("tabMessageSpacing"))
+            end,
+          },
         },
       },
       appearance = {
         name = "Appearance",
         type = "group",
         inline = true,
-        order = 1,
+        order = 3,
         args = {
+          tabStyle = {
+            name = "Tab style",
+            desc = "Choose the appearance of the chat tabs.",
+            type = "select",
+            order = 0.5,
+            values = {
+              minimal = L("Minimal"), framed = L("Framed"), solid = L("Solid"),
+              underline = L("Underline"), pill = L("Pill"), glossy = L("Glossy"), classic = L("Classic"),
+            },
+            sorting = {"minimal", "framed", "solid", "underline", "pill", "glossy", "classic"},
+            get = function () return Core.db.profile.tabStyle end,
+            set = function (_, style)
+              Core.db.profile.tabStyle = style
+              Core:Dispatch(UpdateConfig("tabStyle"))
+            end,
+          },
+          tabSelectionAnimation = {
+            name = "Selected tab animation",
+            desc = "Slide the highlight from the previous tab or grow it from the center of the newly selected tab.",
+            type = "select",
+            order = 0.6,
+            values = {none = L("Off"), slide = L("Slide"), grow = L("Grow")},
+            sorting = {"none", "slide", "grow"},
+            disabled = function () return Core.db.profile.tabStyle == "classic" end,
+            get = function () return Core.db.profile.tabSelectionAnimation end,
+            set = function (_, animation)
+              Core.db.profile.tabSelectionAnimation = animation
+              Core:Dispatch(UpdateConfig("tabSelectionAnimation"))
+            end,
+          },
+          tabAccentClassColor = profileOption("tabAccentClassColor", {
+            name = "Class color accent",
+            desc = "Use your character's class color for the selected tab accent.",
+            type = "toggle",
+            order = 0.7,
+            disabled = function () return Core.db.profile.tabStyle == "classic" end,
+          }, "tabHighlightTextColor"),
+          tabFont = C.CreateFontOption("tabFont", 1),
           tabFontSize = {
             name = "Font size",
             type = "range",
@@ -356,34 +412,7 @@ local function getTabOptions()
               Core:Dispatch(UpdateConfig("tabFontSize"))
             end,
           },
-          tabFont = C.CreateFontOption("tabFont", 1),
           tabFontFlags = C.CreateFontOutlineOption("tabFontFlags", 1.002),
-          chatTabTooltips = {
-            name = "Tooltips",
-            desc = "Show interaction hints when hovering over chat tabs.\nDefault: off",
-            type = "toggle",
-            order = 1.7,
-            get = function ()
-              return Core.db.profile.chatTabTooltips
-            end,
-            set = function (_, input)
-              Core.db.profile.chatTabTooltips = input
-              Core:Dispatch(UpdateConfig("chatTabTooltips"))
-            end,
-          },
-          tabUnreadCount = {
-            name = "Unread count",
-            desc = "Show how many messages arrived in a docked tab since you last viewed it.\nDefault: off",
-            type = "toggle",
-            order = 1.71,
-            get = function ()
-              return Core.db.profile.tabUnreadCount
-            end,
-            set = function (_, input)
-              Core.db.profile.tabUnreadCount = input
-              Core:Dispatch(UpdateConfig("tabUnreadCount"))
-            end,
-          },
           headerBackgroundColor = {
             name = "Background",
             desc = "Choose the color and opacity behind the chat tabs and Combat Log filter bar.\nDefault: black at 50% opacity.",
@@ -414,23 +443,104 @@ local function getTabOptions()
               Core:Dispatch(UpdateConfig("tabMessageSeparatorColor"))
             end,
           },
-          tabMessageSpacing = {
-            name = "Vertical offset",
-            desc = "Adds space below the chat tabs while keeping the bottom of the message area fixed.\nDefault: "..
-              Core.defaults.profile.tabMessageSpacing.." px\nMin: 0\nMax: "..MAX_TAB_MESSAGE_OFFSET,
-            type = "range",
-            order = 1.6,
-            min = 0,
-            max = MAX_TAB_MESSAGE_OFFSET,
-            softMin = 0,
-            softMax = 20,
-            step = 1,
+        },
+      },
+      behavior = {
+        name = "Tab behavior",
+        type = "group",
+        inline = true,
+        order = 4,
+        args = {
+          tabUnreadCount = {
+            name = "Unread count",
+            desc = "Show how many messages arrived in a docked tab since you last viewed it.\nDefault: off",
+            type = "toggle",
+            order = 1,
             get = function ()
-              return Core.db.profile.tabMessageSpacing
+              return Core.db.profile.tabUnreadCount
             end,
             set = function (_, input)
-              Core.db.profile.tabMessageSpacing = input
-              Core:Dispatch(UpdateConfig("tabMessageSpacing"))
+              Core.db.profile.tabUnreadCount = input
+              Core:Dispatch(UpdateConfig("tabUnreadCount"))
+            end,
+          },
+          chatTabTooltips = {
+            name = "Tooltips",
+            desc = "Show interaction hints when hovering over chat tabs.\nDefault: off",
+            type = "toggle",
+            order = 2,
+            get = function ()
+              return Core.db.profile.chatTabTooltips
+            end,
+            set = function (_, input)
+              Core.db.profile.chatTabTooltips = input
+              Core:Dispatch(UpdateConfig("chatTabTooltips"))
+            end,
+          },
+        },
+      },
+      whispers = {
+        name = "Whispers",
+        type = "group",
+        inline = true,
+        order = 5,
+        args = {
+          dedicatedWhisperWindows = whisperOption("dedicatedWhisperWindows", "Dedicated whisper windows",
+            "Read and reply to character and Battle.net whispers in a separate inbox. Restricted messages stay in game chat. Default: off.", 1),
+          whisperWindowsAutoOpen = whisperOption("whisperWindowsAutoOpen", "Open on incoming whisper",
+            "Open a conversation for a new whisper without focusing the reply box. Default: off.", 2,
+            function () return not Core.db.profile.dedicatedWhisperWindows end),
+          keepWhisperTabs = whisperOption("keepWhisperTabs", "Keep whisper tabs",
+            "Reopen character whisper tabs with their last 100 messages after a reload or login. Applies when dedicated windows are off. Default: on.", 3,
+            function () return Core.db.profile.dedicatedWhisperWindows end),
+        },
+      },
+      chatButtons = {
+        name = "Chat buttons",
+        type = "group",
+        inline = true,
+        order = 7,
+        args = {
+          chatButtons = profileOption("chatButtons", {
+            name = "Show chat buttons",
+            desc = "Show the game's Social, Channels, Voice, and chat menu buttons alongside the tabs where the client provides them.",
+            type = "toggle",
+            order = 1,
+          }),
+          chatButtonsSide = profileOption("chatButtonsSide", {
+            name = "Button position",
+            type = "select",
+            order = 2,
+            values = {left = L("Left"), right = L("Right"), topleft = L("Top left"), topright = L("Top right"),
+              bottomleft = L("Bottom left"), bottomright = L("Bottom right")},
+            sorting = {"left", "right", "topleft", "topright", "bottomleft", "bottomright"},
+            disabled = chatButtonsDisabled,
+          }),
+          chatButtonsOffsetX = profileOption("chatButtonsOffsetX", {
+            name = "Horizontal offset", type = "range", order = 3, min = -50, max = 50, step = 1,
+            disabled = chatButtonsDisabled,
+          }),
+          chatButtonsOffsetY = profileOption("chatButtonsOffsetY", {
+            name = "Vertical offset", type = "range", order = 4, min = -50, max = 50, step = 1,
+            disabled = chatButtonsDisabled,
+          }),
+        },
+      },
+      integrations = {
+        name = "Integrations",
+        type = "group",
+        inline = true,
+        order = 8,
+        args = {
+          detailsChatEmbed = {
+            name = "Details! Chat Tab Embed",
+            desc = "Show Details! meters in their docked chat tab. Choose the tab in Details! settings.",
+            type = "toggle",
+            order = 1,
+            get = function () return Core.db.profile.detailsChatEmbed end,
+            set = function (_, enabled)
+              Core.db.profile.detailsChatEmbed = enabled
+              Core:Dispatch(UpdateConfig("detailsChatEmbed"))
             end,
           },
         },

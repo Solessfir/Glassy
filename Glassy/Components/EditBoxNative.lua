@@ -259,6 +259,12 @@ function EditBoxMixin:Init(parent, useParentWidth)
     self:ShowEntry(false)
   end)
 
+  super(self).HookScript(self, "OnEditFocusGained", function (editBox)
+    if editBox.glassySecondaryChatGroup then
+      Core:GetModule("UIManager"):SelectSecondaryTab(editBox.chatFrame)
+    end
+  end)
+
   local altInputWatcher = CreateFrame("Frame")
   altInputWatcher:Hide()
   altInputWatcher:SetScript("OnUpdate", function (watcher)
@@ -407,7 +413,8 @@ function EditBoxMixin:Init(parent, useParentWidth)
       key == "frameWidth" or
       key == "editBoxFontSize" or
       key == "editBoxVerticalPadding" or
-      key == "editBoxAnchor"
+      key == "editBoxAnchor" or
+      key == "tabBarPosition"
     ) then
       self:UpdateDynamicMessageArea()
     end

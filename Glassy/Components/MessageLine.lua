@@ -14,6 +14,45 @@ local canaccessvalue = canaccessvalue
 -- luacheck: pop
 
 local MessageLineMixin = {}
+local TOP_FADE_MASK = "Interface\\AddOns\\Glassy\\Glassy\\Assets\\topFadeMask"
+
+local function setTopFadeMask(self, owner, height)
+  if not self.leftBg then return end
+  if not owner then
+    if self.glassyTopMasked then
+      self.leftBg:RemoveMaskTexture(self.glassyTopMask)
+      self.centerBg:RemoveMaskTexture(self.glassyTopMask)
+      self.rightBg:RemoveMaskTexture(self.glassyTopMask)
+      self.glassyTopMasked = nil
+    end
+    return
+  end
+  if not self.glassyTopMask then
+    self.glassyTopMask = self:CreateMaskTexture()
+    self.glassyTopMask:SetTexture(TOP_FADE_MASK, "CLAMP", "CLAMP")
+  end
+  if self.glassyTopMaskOwner ~= owner or self.glassyTopMaskHeight ~= height then
+    self.glassyTopMask:ClearAllPoints()
+    self.glassyTopMask:SetPoint("TOPLEFT", owner, "TOPLEFT")
+    self.glassyTopMask:SetPoint("BOTTOMRIGHT", owner, "TOPRIGHT", 0, -height)
+    self.glassyTopMaskOwner = owner
+    self.glassyTopMaskHeight = height
+  end
+  if not self.glassyTopMasked then
+    self.leftBg:AddMaskTexture(self.glassyTopMask)
+    self.centerBg:AddMaskTexture(self.glassyTopMask)
+    self.rightBg:AddMaskTexture(self.glassyTopMask)
+    self.glassyTopMasked = true
+  end
+end
+
+function MessageLineMixin:SetTopAlpha(alpha)
+  if self.glassyTopAlpha == alpha then return end
+  self.glassyTopAlpha = alpha
+  self.text:SetAlpha(alpha)
+end
+
+MessageLineMixin.SetTopMask = setTopFadeMask
 
 local function getLeftTextPadding()
   return math.max(0, tonumber(Core.db.profile.textLeftPadding) or Core.defaults.profile.textLeftPadding)
@@ -132,7 +171,7 @@ function MessageLineMixin:Init()
 
   -- Lines clipped by the viewport still receive hyperlink events.
   local function isVisibleUnderMouse()
-    return self:GetParent():GetParent():IsMouseOver()
+    return (self.glassyTopAlpha or 1) > 0 and self:GetParent():GetParent():IsMouseOver()
   end
 
   self:SetScript("OnHyperlinkClick", function (_, link, text, button)
@@ -259,6 +298,8 @@ local function CreateMessageLinePool(parent)
     function (_, message)
       -- Reset all animations and timers
       message:QuickHide()
+      message:SetTopAlpha(1)
+      message:SetTopMask(nil)
       message.text:ClearText()
       message.glassyDisplayText = nil
       message.glassySecretText = nil
@@ -276,3 +317,4 @@ end
 
 Core.Components.CreateMessageLine = CreateMessageLine
 Core.Components.CreateMessageLinePool = CreateMessageLinePool
+Core.Components.SetTopFadeMask = setTopFadeMask

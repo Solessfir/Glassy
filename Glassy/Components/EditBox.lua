@@ -189,6 +189,7 @@ end
 
 function EditBoxMixin:GetReusableMessageHeight()
   if (
+    Core.db.profile.tabBarPosition == "bottom" or
     Core.db.profile.editBoxAnchor.position ~= "BELOW" or
     self.glassyEntryVisible
   ) then

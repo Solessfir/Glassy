@@ -84,6 +84,18 @@ frame.detachedContainer = {}
 ui.window = {detachedLayout = {dock = dock}}
 update(frame)
 assert(background.alpha == 0.5, "Detached tabs must fill their own gap")
+local group = {host = {detachedLayout = {dock = dock}}}
+ui.window.secondaryGroup, ui.window.detachedLayout.dock = group, {IsVisible = function () return false end}
+update(frame)
+assert(background.alpha == 0.5, "Grouped tabs must take their background from the shared dock")
+frame.detachedGroup = group
+frame.SetShown = function () error("A grouped renderer must defer visibility to its group") end
+function ui:UpdateSecondaryChatVisibility(current)
+  assert(current == group)
+  self.groupVisibilityUpdated = true
+end
+core.Components.SlidingMessageFrameMixin.SetGlassyShown(frame, false)
+assert(frame.glassyNativeShown == false and ui.groupVisibilityUpdated)
 print("PASS: tab gap background geometry, fades, transparency, and detached windows")
 
 local resizing = {

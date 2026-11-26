@@ -73,10 +73,33 @@ if Menu and Menu.ModifyMenu and MenuUtil and ToggleChannelFrame then
 
       local chatFrameName = owner:GetName():gsub("Tab$", "")
       local chatFrame = _G[chatFrameName]
-      if chatFrame and not chatFrame.isDocked and FCF_MinimizeFrame then
+      local manager = Core:GetModule("UIManager")
+      local grouped = chatFrame and manager:IsSecondaryTabSelected(chatFrame) ~= nil
+      local groupHost = grouped and manager:IsSecondaryWindowHost(chatFrame)
+      if chatFrame and not chatFrame.isDocked and FCF_MinimizeFrame and (not grouped or groupHost) then
         insertBefore(DISPLAY, MenuUtil.CreateButton(MINIMIZE, function ()
           FCF_MinimizeFrame(chatFrame, string.upper(chatFrame.buttonSide or "right"))
         end))
+      end
+
+      if chatFrame then
+        local targets = manager:GetSecondaryChatTargets(chatFrame)
+        if #targets > 0 then
+          local submenu = MenuUtil.CreateButton(L("Move to secondary window"))
+          for _, target in ipairs(targets) do
+            local tab = _G[target:GetName().."Tab"]
+            local label = tab and tab.Text and tab.Text:GetText()
+            if (_G.canaccessvalue and not _G.canaccessvalue(label)) or type(label) ~= "string" or label == "" then
+              label = target:GetName()
+            end
+            submenu:CreateButton(label, function () manager:MoveChatToSecondaryWindow(chatFrame, target) end)
+          end
+          insertBefore(DISPLAY, submenu)
+        end
+        if grouped then
+          local label = groupHost and "Ungroup secondary window" or "Separate tab"
+          insertBefore(DISPLAY, MenuUtil.CreateButton(L(label), function () manager:SeparateChatTab(chatFrame) end))
+        end
       end
 
       insertBefore(CHAT_CONFIGURATION, MenuUtil.CreateButton(CHAT_CHANNELS, function ()
@@ -92,12 +115,28 @@ if Menu and Menu.ModifyMenu and MenuUtil and ToggleChannelFrame then
   end)
 end
 
-local function getLeftTextPadding()
-  return math.max(0, tonumber(Core.db.profile.textLeftPadding) or Core.defaults.profile.textLeftPadding)
+local function getContentPadding()
+  if Core.Components.GetChatTabContentPadding then
+    local padding, y = Core.Components.GetChatTabContentPadding()
+    if padding then return padding, padding, y, true end
+  end
+  local left = math.max(0, tonumber(Core.db.profile.textLeftPadding) or Core.defaults.profile.textLeftPadding)
+  return left, Constants.TEXT_RIGHT_PADDING, 0
 end
 
 local UNREAD_COUNT_GAP = 4
 local CONVERSATION_ICON_GAP = 3
+
+local function getSolidTextColor()
+  local getAccent = Core.Components.GetChatTabAccent
+  local accent = getAccent and getAccent() or Core:GetThemeColor("tabHighlightTextColor") or Colors.apache
+  local function linear(value)
+    return value <= 0.04045 and value / 12.92 or ((value + 0.055) / 1.055) ^ 2.4
+  end
+  local luminance = 0.2126 * linear(accent.r) + 0.7152 * linear(accent.g) + 0.0722 * linear(accent.b)
+  local value = luminance > 0.179 and 0 or 1
+  return value, value, value, 1
+end
 
 -- Whisper tabs carry Blizzard's conversation icon; it takes room before the name.
 function ChatTabMixin:GetIconWidth()
@@ -105,43 +144,51 @@ function ChatTabMixin:GetIconWidth()
   return icon and icon:IsShown() and icon:GetWidth() + CONVERSATION_ICON_GAP or 0
 end
 
+local function getUnreadWidth(tab)
+  return tab.unreadText and tab.unreadText:IsShown() and UNREAD_COUNT_GAP + tab.unreadText:GetStringWidth() or 0
+end
+
 function ChatTabMixin:GetLayoutWidth()
   local textWidth = self.Text and (self.Text.GetUnboundedStringWidth and self.Text:GetUnboundedStringWidth() or self.Text:GetStringWidth()) or self:GetTextWidth()
-  local width = self:GetIconWidth() + math.ceil(textWidth) + getLeftTextPadding() + Constants.TEXT_RIGHT_PADDING + 2
-  if self.unreadText and self.unreadText:IsShown() then
-    width = width + UNREAD_COUNT_GAP + self.unreadText:GetStringWidth()
-  end
-  return width
+  local leftPadding, rightPadding = getContentPadding()
+  return self:GetIconWidth() + math.ceil(textWidth) + leftPadding + rightPadding + getUnreadWidth(self) + 2
 end
 
 -- Blizzard anchors the icon to its own tab art and label offsets, which leaves it low beside Glassy's label.
-function ChatTabMixin:AnchorConversationIcon()
+function ChatTabMixin:AnchorConversationIcon(leftPadding, y)
   local icon = self.conversationIcon
   if not icon then return end
   local hooks = self.glassyHooks.hooks[icon]
   local setPoint = hooks and hooks.SetPoint or icon.SetPoint
   icon:ClearAllPoints()
-  setPoint(icon, "LEFT", self, "LEFT", getLeftTextPadding(), 0)
+  setPoint(icon, "LEFT", self, "LEFT", leftPadding, y)
 end
 
 function ChatTabMixin:UpdateTextLayout()
-  local leftPadding = getLeftTextPadding()
-  self:AnchorConversationIcon()
+  local leftPadding, rightPadding, y, styled = getContentPadding()
+  local reservedWidth = styled and getUnreadWidth(self) or 0
+  self:AnchorConversationIcon(leftPadding, y)
   self.Text:ClearAllPoints()
-  self.Text:SetPoint("LEFT", leftPadding + self:GetIconWidth(), 0)
-  self.Text:SetPoint("RIGHT", -Constants.TEXT_RIGHT_PADDING, 0)
+  self.Text:SetPoint("LEFT", leftPadding + self:GetIconWidth(), y)
+  self.Text:SetPoint("RIGHT", -rightPadding - reservedWidth, y)
+  if self.unreadText then
+    self.unreadText:ClearAllPoints()
+    self.unreadText:SetPoint("RIGHT", self, "RIGHT", -rightPadding, y)
+  end
   -- Blizzard insets the alert glow for its own tab art; span Glassy's icon, name, and count instead.
   if self.glow then
     self.glow:ClearAllPoints()
     self.glow:SetPoint("BOTTOMLEFT", self, "BOTTOMLEFT", leftPadding, -2)
-    self.glow:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -Constants.TEXT_RIGHT_PADDING, -2)
+    self.glow:SetPoint("BOTTOMRIGHT", self, "BOTTOMRIGHT", -rightPadding, -2)
   end
-  self:SetWidth(self:GetLayoutWidth())
+  self.glassyLayoutWidth = self:GetLayoutWidth()
+  self:SetWidth(self.glassyLayoutWidth)
+  if self.glassySecondaryDock then self.glassySecondaryDock:ScheduleTabOrder() end
 end
 
--- Counts messages that arrive while a docked tab is not selected; selecting it clears the count.
+-- Counts messages that arrive while a grouped tab is not selected; selecting it clears the count.
 function ChatTabMixin:AddUnreadMessage()
-  if not Core.db.profile.tabUnreadCount or not self.chatFrame.isDocked or self:IsSelected() then return end
+  if not Core.db.profile.tabUnreadCount or (not self.chatFrame.isDocked and not self.glassySecondaryDock) or self:IsSelected() then return end
   self:SetUnreadCount((self.glassyUnreadCount or 0) + 1)
 end
 
@@ -151,8 +198,6 @@ function ChatTabMixin:SetUnreadCount(count)
   if not shown and not self.unreadText then return end
   if not self.unreadText then
     self.unreadText = self:CreateFontString(nil, "OVERLAY", "GlassyChatDockFont")
-    -- Blizzard's tab resize widens the label past its text, so the count sits in the room added at the tab's right.
-    self.unreadText:SetPoint("RIGHT", self, "RIGHT", -Constants.TEXT_RIGHT_PADDING, 0)
   end
   local color = Core:GetThemeColor("tabHighlightTextColor") or Colors.apache
   self.unreadText:SetTextColor(color.r, color.g, color.b, color.a or 1)
@@ -162,13 +207,17 @@ function ChatTabMixin:SetUnreadCount(count)
   -- Only re-lay out the dock when the tab actually grows or shrinks.
   local width = self:GetLayoutWidth()
   if width ~= self.glassyLayoutWidth then
-    self.glassyLayoutWidth = width
     self:UpdateTextLayout()
-    if self.glassyDock then self.glassyDock:ScheduleTabOrder() end
+    if self.glassyDock and not self.glassySecondaryDock then self.glassyDock:ScheduleTabOrder() end
   end
 end
 
 function ChatTabMixin:IsSelected()
+  local manager = Core.GetModule and Core:GetModule("UIManager")
+  if manager and manager.IsSecondaryTabSelected then
+    local selected = manager:IsSecondaryTabSelected(self.chatFrame)
+    if selected ~= nil then return selected end
+  end
   local dock = _G.GENERAL_CHAT_DOCK
   if dock and self.chatFrame.isDocked then
     return dock.selected == self.chatFrame
@@ -178,20 +227,53 @@ end
 
 function ChatTabMixin:UpdateVisualState()
   -- Whisper tabs keep their own colors below, but their unread count still clears once they are read.
-  if (self.glassyUnreadCount or 0) > 0 and self:IsSelected() then self:SetUnreadCount(0) end
-  if self.chatFrame.isTemporary or self.glassyHooks.hooks[self.Text] == nil then
+  local selected = self:IsSelected()
+  if (self.glassyUnreadCount or 0) > 0 and selected then self:SetUnreadCount(0) end
+  local getStyle = Core.Components.GetChatTabStyle
+  local style = getStyle and getStyle() or "minimal"
+  self:SetClassicBackgroundShown(style == "classic")
+  if Core.Components.RenderChatTabStyle then
+    local state = selected and "selected" or (self.glassyHovered and "hover" or "normal")
+    if selected and self.glassySelectionAnimated then state = "hidden" end
+    Core.Components.RenderChatTabStyle(self, style, state)
+  end
+  local textHooks = self.glassyHooks and self.glassyHooks.hooks and self.glassyHooks.hooks[self.Text]
+  if not textHooks then
     return
   end
 
+  if self.chatFrame.isTemporary then
+    if style == "solid" and selected then
+      if not self.glassyTemporaryTextColor then
+        self.glassyTemporaryTextColor = {self.Text:GetTextColor()}
+      end
+      textHooks.SetTextColor(self.Text, getSolidTextColor())
+    elseif self.glassyTemporaryTextColor then
+      textHooks.SetTextColor(self.Text, unpack(self.glassyTemporaryTextColor))
+      self.glassyTemporaryTextColor = nil
+    end
+    return
+  end
+  self.glassyTemporaryTextColor = nil
+
   local color = Core:GetThemeColor("tabTextColor") or Colors.apache
-  if self:IsSelected() then
+  if selected then
     color = Core:GetThemeColor("tabHighlightTextColor") or Colors.apache
   end
   if self.glassyHovered then
     color = Core:GetThemeColor("tabHighlightTextColor") or Colors.apache
   end
+  if style == "minimal" and selected and Core.Components.GetChatTabAccent then
+    color = Core.Components.GetChatTabAccent()
+  end
 
-  self.glassyHooks.hooks[self.Text].SetTextColor(
+  if style == "solid" and selected then
+    textHooks.SetTextColor(self.Text, getSolidTextColor())
+    self.Text:SetAlpha(1)
+    return
+  end
+
+  textHooks.SetTextColor(
     self.Text,
     color.r,
     color.g,
@@ -202,15 +284,39 @@ function ChatTabMixin:UpdateVisualState()
 end
 
 function ChatTabMixin:ClearBackgroundTextures()
+  self.glassyClassicTextures = self.glassyClassicTextures or {}
+  local function clear(texture)
+    if not texture then return end
+    if not self.glassyClassicTextures[texture] then
+      self.glassyClassicTextures[texture] = {
+        atlas = texture.GetAtlas and texture:GetAtlas(),
+        file = texture.GetTexture and texture:GetTexture(),
+      }
+    end
+    texture:SetTexture(nil)
+  end
   for _, texName in ipairs(tabTexs) do
     for _, side in ipairs({"Left", "Middle", "Right"}) do
-      local texture = _G[self:GetName()..texName..side]
-      if texture then texture:SetTexture(nil) end
+      clear(_G[self:GetName()..texName..side])
     end
   end
   for _, key in ipairs(retailTabTexs) do
-    local texture = self[key]
-    if texture then texture:SetTexture(nil) end
+    clear(self[key])
+  end
+  self.glassyClassicShown = false
+end
+
+function ChatTabMixin:SetClassicBackgroundShown(shown)
+  if self.glassyClassicShown == shown or not self.glassyClassicTextures then return end
+  self.glassyClassicShown = shown
+  for texture, artwork in pairs(self.glassyClassicTextures) do
+    if not shown then
+      texture:SetTexture(nil)
+    elseif artwork.atlas then
+      texture:SetAtlas(artwork.atlas)
+    else
+      texture:SetTexture(artwork.file)
+    end
   end
 end
 
@@ -262,7 +368,13 @@ function ChatTabMixin:Init(slidingMessageFrame, dock)
     Utils.hookPresentation(self.glassyHooks, self.Text, "SetTextColor", function (...)
       -- Temporary chat frames retain their color
       if self.chatFrame.isTemporary then
-        self.glassyHooks.hooks[self.Text].SetTextColor(...)
+        if self.glassyTemporaryTextColor then
+          local _, r, g, b, a = ...
+          self.glassyTemporaryTextColor = {r, g, b, a or 1}
+          self:UpdateVisualState()
+        else
+          self.glassyHooks.hooks[self.Text].SetTextColor(...)
+        end
       else
         self:UpdateVisualState()
       end
@@ -279,7 +391,13 @@ function ChatTabMixin:Init(slidingMessageFrame, dock)
         GameTooltip:SetOwner(self, "ANCHOR_TOPLEFT")
         GameTooltip:SetText(self.Text:GetText() or self.chatFrame:GetName(), 1, 1, 1)
         GameTooltip:AddLine(L("Click to select"), 0.8, 0.8, 0.8)
-        GameTooltip:AddLine(L("Drag to reorder"), 0.8, 0.8, 0.8)
+        if self.chatFrame.isDocked then
+          GameTooltip:AddLine(L("Drag to reorder"), 0.8, 0.8, 0.8)
+        elseif self.glassySecondaryDock and not Core:GetModule("UIManager"):IsSecondaryWindowHost(self.chatFrame) then
+          GameTooltip:AddLine(L("Drag to separate the tab"), 0.8, 0.8, 0.8)
+        else
+          GameTooltip:AddLine(L("Drag to move the window"), 0.8, 0.8, 0.8)
+        end
         GameTooltip:AddLine(L("Shift-click to copy"), 0.8, 0.8, 0.8)
         GameTooltip:AddLine(L("Right-click for chat options"), 0.8, 0.8, 0.8)
         GameTooltip:Show()
@@ -313,6 +431,7 @@ function ChatTabMixin:Init(slidingMessageFrame, dock)
       FCF_StopAlertFlash(self.chatFrame)
 
       if button == "LeftButton" then
+        Core:GetModule("UIManager"):SelectSecondaryTab(self.chatFrame)
         dock:SaveSelectedTab(self.chatFrame)
       end
 
@@ -323,17 +442,26 @@ function ChatTabMixin:Init(slidingMessageFrame, dock)
   end
 
   local originalOnDragStart = self:GetScript("OnDragStart")
+  local originalOnDragStop = self:GetScript("OnDragStop")
   self:RegisterForDrag("LeftButton")
   self:SetScript("OnDragStart", function (tab, button)
     if GameTooltip:IsOwned(tab) then
       GameTooltip:Hide()
+    end
+    if self.glassySecondaryDock then
+      local manager = Core:GetModule("UIManager")
+      if not manager:IsSecondaryWindowHost(self.chatFrame) then manager:SeparateChatTab(self.chatFrame) end
     end
     if not dock:StartTabDrag(tab, button) and originalOnDragStart then
       originalOnDragStart(tab, button)
     end
   end)
   self:SetScript("OnDragStop", function (tab)
-    dock:StopTabDrag(tab)
+    if dock.tabDrag and dock.tabDrag.tab == tab then
+      dock:StopTabDrag(tab)
+    elseif originalOnDragStop then
+      originalOnDragStop(tab)
+    end
   end)
 
   -- Override context menu
@@ -408,7 +536,12 @@ function ChatTabMixin:Init(slidingMessageFrame, dock)
           dock:UpdateTabOrder()
         end
 
-        if key == "tabTextColor" or key == "tabHighlightTextColor" then
+        if key == "tabStyle" then
+          self:UpdateTextLayout()
+          if self.chatFrame.isDocked then dock:ScheduleTabOrder() end
+        end
+
+        if key == "tabStyle" or key == "tabTextColor" or key == "tabHighlightTextColor" then
           self:UpdateVisualState()
         end
 

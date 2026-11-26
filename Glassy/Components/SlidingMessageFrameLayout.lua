@@ -19,7 +19,8 @@ function SlidingMessageFrameMixin:UpdateGapBackground()
   local background = self.gapBackground
   local color = Core.db.profile.chatBackgroundColor
   local window = self.chatFrame and UIManager:GetChatWindow(self.chatFrame)
-  local dock = self.detachedContainer and window and window.detachedLayout and window.detachedLayout.dock
+  local layout = window and (window.secondaryGroup and window.secondaryGroup.host.detachedLayout or window.detachedLayout)
+  local dock = self.detachedContainer and layout and layout.dock
     or (not self.detachedContainer and UIManager.dock)
   local filled = dock and dock:IsVisible() and dock:GetAlpha() > 0 and color.a > 0 or false
   local coverage = filled and dock:GetAlpha() or 0
@@ -48,6 +49,9 @@ function SlidingMessageFrameMixin:UpdateGapBackground()
     background.glassyWidth = self:GetWidth()
     background.glassyLeftFade = Core.db.profile.backgroundFadeLeftPercent
     background.glassyRightFade = Core.db.profile.backgroundFadeRightPercent
+  end
+  if self.glassyTopFadeActive then
+    Core.Components.SetTopFadeMask(background, self, self.glassyTopFadeHeight)
   end
 end
 
@@ -95,6 +99,11 @@ function SlidingMessageFrameMixin:GetMessageFrameHeight()
 end
 
 function SlidingMessageFrameMixin:SetGlassyShown(shown)
+  self.glassyNativeShown = shown
+  if self.detachedGroup then
+    UIManager:UpdateSecondaryChatVisibility(self.detachedGroup)
+    return
+  end
   self:SetShown(shown)
   if self.detachedContainer then
     self.detachedContainer:SetShown(shown)
@@ -114,11 +123,14 @@ function SlidingMessageFrameMixin:UpdateViewportHeight(unreadRowHeight)
     viewHeight = math.max(1, viewHeight - reservedHeight)
   end
 
-  local overflow = self.state.scrollAtBottom and not self.state.jumpingToBottom and self.config.overflowHeight or 0
+  local overflow = Core.db.profile.tabBarPosition ~= "bottom" and self.state.scrollAtBottom
+    and not self.state.jumpingToBottom and self.config.overflowHeight or 0
   self:SetHeight(viewHeight + overflow)
   if self.slider then
     self.slider:SetHeight(viewHeight)
   end
+  if self.detailsEmbedHost then UIManager:ResizeDetailsEmbed(self) end
+  self:UpdateTopFade()
 end
 
 function SlidingMessageFrameMixin:ApplyDynamicEditBoxHeight(nextHeight)
@@ -218,12 +230,14 @@ function SlidingMessageFrameMixin:RefreshLayout(reprocessText)
   self:SetScrollPosition(1, 0)
 end
 
-function SlidingMessageFrameMixin:SetLayout(parent, width, height, editBox, detachedContainer)
+function SlidingMessageFrameMixin:SetLayout(parent, width, height, editBox, detachedContainer, detachedGroup)
   local previousDetachedContainer = self.detachedContainer
+  local previousDetachedGroup = self.detachedGroup
   self.layoutWidth = width
   self.layoutHeight = height
   self.layoutEditBox = editBox
   self.detachedContainer = detachedContainer
+  self.detachedGroup = detachedGroup
 
   self:SetParent(parent)
   if self.gapBackground then
@@ -233,18 +247,22 @@ function SlidingMessageFrameMixin:SetLayout(parent, width, height, editBox, deta
   end
   self:RefreshLayout(false)
 
-  if Constants.ENV ~= "retail" and not self.state.isCombatLog then
-    if detachedContainer and self:IsShown() then
+  if previousDetachedGroup and not detachedGroup and self.glassyNativeShown ~= nil then
+    self:SetShown(self.glassyNativeShown)
+  end
+
+  if Constants.ENV ~= "retail" and not self.state.isCombatLog and not detachedGroup then
+    if (detachedContainer or self.detailsEmbedHost) and self:IsShown() then
       self.hooks[self.chatFrame].Show(self.chatFrame)
     else
       self.hooks[self.chatFrame].Hide(self.chatFrame)
     end
   end
 
-  if previousDetachedContainer and previousDetachedContainer ~= detachedContainer then
+  if previousDetachedContainer and previousDetachedContainer ~= detachedContainer and not previousDetachedGroup then
     previousDetachedContainer:Hide()
   end
-  if detachedContainer then
+  if detachedContainer and not detachedGroup then
     detachedContainer:SetShown(self:IsShown())
   end
 end

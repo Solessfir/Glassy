@@ -29,7 +29,7 @@
 ## Category-zhTW: 對話
 
 ## SavedVariables: GlassyDB
-## OptionalDeps: EllesmereUI, Prat-3.0
+## OptionalDeps: EllesmereUI, Prat-3.0, Details
 ## X-Curse-Project-ID: 1695833
 ## X-Wago-ID: qGYZPRNg
 
@@ -68,7 +68,10 @@ Glassy\utils.lua
 Glassy\Components\GradientBackground.lua
 Glassy\Components\ChatDock.lua
 Glassy\Components\ChatDockTabs.lua
+Glassy\Components\ChatButtons.lua
 Glassy\Components\DetachedChatDock.lua
+Glassy\Components\ChatTabStyle.lua
+Glassy\Components\ChatTabSelection.lua
 Glassy\Components\ChatTab.lua
 Glassy\Components\CombatLogBar.lua
 Glassy\Components\EditBox.lua
@@ -103,6 +106,8 @@ Glassy\Modules\NewsData.lua
 Glassy\Modules\News.lua
 Glassy\Modules\TextProcessing.lua
 Glassy\Modules\UIManager.lua
+Glassy\Modules\SecondaryChatWindows.lua
+Glassy\Modules\DetailsEmbed.lua
 Glassy\Modules\ChatHistory.lua
 Glassy\Modules\VersionCheck.lua
 Glassy\Modules\WhisperWindows.lua
