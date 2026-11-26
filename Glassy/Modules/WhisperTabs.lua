@@ -1,4 +1,4 @@
-local Core, _, Utils = unpack(select(2, ...))
+local Core, Constants, Utils = unpack(select(2, ...))
 local WhisperTabs = Core:GetModule("WhisperTabs")
 
 -- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
@@ -38,7 +38,8 @@ local function readLines(chatFrame)
   return lines
 end
 
-function WhisperTabs:Save()
+function WhisperTabs:Save(preserveExisting)
+  if Core.db.profile.dedicatedWhisperWindows and not preserveExisting then return end
   local tabs = {}
   if Core.db.profile.keepWhisperTabs then
     eachWhisperFrame(function (chatFrame, target)
@@ -57,6 +58,7 @@ local function findWhisperFrame(target)
 end
 
 function WhisperTabs:Restore()
+  if Core.db.profile.dedicatedWhisperWindows then return end
   local tabs = Core.db.char.whisperTabs
   Core.db.char.whisperTabs = nil
   if not Core.db.profile.keepWhisperTabs or type(tabs) ~= "table" or not _G.FCF_OpenTemporaryWindow then return end
@@ -86,5 +88,13 @@ function WhisperTabs:OnEnable()
   end)
   C_Timer.After(RESTORE_DELAY, function ()
     self:Restore()
+  end)
+  Core:Subscribe(Constants.EVENTS.UPDATE_CONFIG, function (setting)
+    if setting ~= "dedicatedWhisperWindows" then return end
+    if not Core.db.profile.dedicatedWhisperWindows then
+      self:Restore()
+    elseif Core.db.char.whisperTabs == nil then
+      self:Save(true)
+    end
   end)
 end

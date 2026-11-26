@@ -42,13 +42,16 @@ Core:NewModule("ProfileTransfer")
 Core:NewModule("SlashAliases", "AceConsole-3.0")
 Core:NewModule("TextProcessing")
 Core:NewModule("UIManager", "AceHook-3.0")
+Core:NewModule("ChatHistory")
 Core:NewModule("VersionCheck")
+Core:NewModule("WhisperWindows")
 Core:NewModule("WhisperTabs")
 
 -- Default settings
 Core.defaults = {
   global = {
     slashAliases = {},
+    whisperWindowModes = {},
   },
   profile = {
     -- General
@@ -69,6 +72,8 @@ Core.defaults = {
     chatTabTooltips = false,
     tabUnreadCount = false,
     keepWhisperTabs = true,
+    dedicatedWhisperWindows = false,
+    whisperWindowsAutoOpen = false,
     tabMessageSeparatorColor = {
       r = 1,
       g = 209 / 255,
@@ -148,6 +153,8 @@ Core.defaults = {
     messageBlacklistEnabled = false,
     messageBlacklist = "",
     scrollbackLines = 500,
+    saveChatHistory = true,
+    chatHistoryDateSeparators = false,
     shortChannelNames = true,
     channelShortLabels = {["*"] = ""},
     channelFullNames = {["*"] = false, BN_WHISPER = true, BN_WHISPER_INFORM = true},

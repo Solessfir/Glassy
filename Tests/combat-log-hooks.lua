@@ -160,7 +160,7 @@ assert(overlayHides == 1 and not typingFrame.state.editBoxVisible, "Closed edit 
 
 local batched = core.Components.CreateSlidingMessageFrame()
 batched.state = {incomingMessages = {}, incomingScrollbackMessages = {}}
-for index = 1, 40 do batched.state.incomingMessages[index] = index end
+for index = 1, 40 do batched.state.incomingMessages[index] = {index} end
 local processed = {}
 batched.Update = function (_, incoming, reverse)
   assert(not reverse and #incoming <= 16, "Live messages exceeded the per-frame batch")

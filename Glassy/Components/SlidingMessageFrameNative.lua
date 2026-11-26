@@ -286,7 +286,13 @@ function SlidingMessageFrameMixin:HookNativeMessages(chatFrame, chatFrameWasShow
     local newestEntry = self.historyBuffer and self.historyBuffer:GetEntryAtIndex(1)
     local queued = self:AddMessageAt(getReceivedAt(newestEntry), ...)
     local tab = queued and not self.state.isCombatLog and _G[chatFrame:GetName().."Tab"]
-    if tab and tab.AddUnreadMessage then tab:AddUnreadMessage() end
+    if tab and tab.AddUnreadMessage then
+      if queued.whisperLineID then
+        queued.unreadTab = tab
+      else
+        tab:AddUnreadMessage()
+      end
+    end
   end, true)
 
   hookMessage(self, chatFrame, "Clear", function ()
@@ -302,6 +308,13 @@ function SlidingMessageFrameMixin:HookNativeMessages(chatFrame, chatFrameWasShow
 
   if self.historyBuffer and not self.state.isCombatLog then
     hookMessage(self, self.historyBuffer, "PushBack", function (_, message)
+      local receivedAt = self.state.restoringReceivedAt
+      self.state.restoringReceivedAt = nil
+      if receivedAt then
+        Helpers.restoredReceivedAt[message] = receivedAt
+      else
+        self.state.didNativeBackfill = true
+      end
       self:BackFillMessageAt(
         getReceivedAt(message),
         self.chatFrame,
@@ -336,8 +349,7 @@ function SlidingMessageFrameMixin:LoadInitialMessages(chatFrame)
     local messageCount = chatFrame:GetNumMessages()
     local firstMessage = math.max(1, messageCount - getRenderedMessageLimit() + 1)
     for i = firstMessage, messageCount do
-      local text, r, g, b = chatFrame:GetMessageInfo(i)
-      self:AddMessageAt(getReceivedAt(getHistoryEntry(chatFrame, i)), chatFrame, text, r, g, b)
+      self:AddMessageAt(getReceivedAt(getHistoryEntry(chatFrame, i)), chatFrame, chatFrame:GetMessageInfo(i))
     end
   end
 end

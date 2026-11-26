@@ -25,15 +25,16 @@ chatFrame("ChatFrame14", {isTemporary = true, inUse = true, chatType = "WHISPER"
 CHAT_FRAMES = {"ChatFrame1", "ChatFrame11", "ChatFrame12", "ChatFrame13", "ChatFrame14"}
 
 local module = {}
-local shutdown
+local shutdown, update
 local core = {
   db = {profile = {keepWhisperTabs = true}, char = {},
     RegisterCallback = function (_, event, callback) assert(event == "OnDatabaseShutdown"); shutdown = callback end},
   GetModule = function () return module end,
+  Subscribe = function (_, event, callback) assert(event == "UPDATE_CONFIG"); update = callback end,
 }
 local utils = {}
 assert(loadfile("Glassy/utils.lua"))("Glassy", {core, {}, utils})
-assert(loadfile("Glassy/Modules/WhisperTabs.lua"))("Glassy", {core, {}, utils})
+assert(loadfile("Glassy/Modules/WhisperTabs.lua"))("Glassy", {core, {EVENTS = {UPDATE_CONFIG = "UPDATE_CONFIG"}}, utils})
 module:OnEnable()
 shutdown()
 local saved = core.db.char.whisperTabs
@@ -49,6 +50,12 @@ FCF_OpenTemporaryWindow = function (chatType, target, source, select)
   return chatFrame("ChatFrame15", {isTemporary = true, inUse = true, chatType = "WHISPER", chatTarget = target})
 end
 CHAT_FRAMES = {"ChatFrame1"}
+core.db.profile.dedicatedWhisperWindows = true
+delayed()
+shutdown()
+assert(#opened == 0 and core.db.char.whisperTabs == saved, "Dedicated mode preserves native saved tabs")
+core.db.profile.dedicatedWhisperWindows = false
+update("dedicatedWhisperWindows")
 delayed()
 assert(#opened == 1 and opened[1] == "Elowen")
 local restored = _G.ChatFrame15.backfilled

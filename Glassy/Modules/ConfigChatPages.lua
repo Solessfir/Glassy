@@ -297,11 +297,42 @@ local function getGeneralOptions()
 end
 
 local function getTabOptions()
+  local function whisperOption(key, name, desc, order, disabled)
+    return {
+      name = name,
+      desc = desc,
+      type = "toggle",
+      order = order,
+      disabled = disabled,
+      get = function () return Core.db.profile[key] end,
+      set = function (_, enabled)
+        Core.db.profile[key] = enabled
+        Core:Dispatch(UpdateConfig(key))
+      end,
+    }
+  end
+
   return {
     name = "Tabs",
     type = "group",
     order = 1.5,
     args = {
+      whispers = {
+        name = "Whispers",
+        type = "group",
+        inline = true,
+        order = 5,
+        args = {
+          dedicatedWhisperWindows = whisperOption("dedicatedWhisperWindows", "Dedicated whisper windows",
+            "Read and reply to character and Battle.net whispers in a separate inbox. Restricted messages stay in game chat. Default: off.", 1),
+          whisperWindowsAutoOpen = whisperOption("whisperWindowsAutoOpen", "Open on incoming whisper",
+            "Open a conversation for a new whisper without focusing the reply box. Default: off.", 2,
+            function () return not Core.db.profile.dedicatedWhisperWindows end),
+          keepWhisperTabs = whisperOption("keepWhisperTabs", "Keep whisper tabs",
+            "Reopen character whisper tabs with their last 100 messages after a reload or login. Applies when dedicated windows are off. Default: on.", 3,
+            function () return Core.db.profile.dedicatedWhisperWindows end),
+        },
+      },
       appearance = {
         name = "Appearance",
         type = "group",
@@ -351,18 +382,6 @@ local function getTabOptions()
             set = function (_, input)
               Core.db.profile.tabUnreadCount = input
               Core:Dispatch(UpdateConfig("tabUnreadCount"))
-            end,
-          },
-          keepWhisperTabs = {
-            name = "Keep whisper tabs",
-            desc = "Reopen character whisper tabs, with their last 100 messages, after a reload or login. Battle.net whispers are not kept.\nDefault: on",
-            type = "toggle",
-            order = 1.72,
-            get = function ()
-              return Core.db.profile.keepWhisperTabs
-            end,
-            set = function (_, input)
-              Core.db.profile.keepWhisperTabs = input
             end,
           },
           headerBackgroundColor = {

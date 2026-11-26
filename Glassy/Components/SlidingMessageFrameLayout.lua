@@ -206,7 +206,7 @@ function SlidingMessageFrameMixin:RefreshLayout(reprocessText)
   self:SetWidth(self.config.width)
 
   for _, message in ipairs(self.state.messages) do
-    if reprocessText and message.sourceText then
+    if reprocessText and message.sourceText and not message.historyDateSeparator then
       local processedText = TP:ProcessText(message.sourceText, message.sourceFrame, message.receivedAt)
       message:SetDisplayText(processedText)
     end

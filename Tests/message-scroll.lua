@@ -5,7 +5,7 @@ GetTime = function () return 0 end
 C_Timer = {NewTimer = function () return {Cancel = noop} end}
 CreateFrame, CreateObjectPool, Mixin = noop, noop, noop
 
-local eases = {}
+local eases, formatted = {}, 0
 local core = {
   Libs = {AceHook = {}, LibEasing = {
     OutCubic = noop,
@@ -18,13 +18,15 @@ local core = {
   Components = {},
   db = {profile = {chatSlideInDuration = 0.5, chatHoldTime = 10, scrollbackLines = 500}},
   defaults = {profile = {scrollbackLines = 500}},
-  GetModule = function () return {ProcessText = function (_, text) return text end, QueueFrameForUpdate = noop} end,
+  GetModule = function () return {ProcessText = function (_, text) formatted = formatted + 1; return text end,
+    QueueFrameForUpdate = noop} end,
 }
 assert(loadfile("Glassy/Components/SlidingMessageFrame.lua"))("Glassy", {core, {DOCK_HEIGHT = 20, EVENTS = {}}, {}})
 
 -- Rows model the engine's anchor rule: a link that reaches back to its own row is an error.
 local function createRow(height)
-  local row = {glassyHeight = height, text = {ClearText = noop, SetFontObject = noop, SetTextColor = noop}}
+  local row = {glassyHeight = height, text = {ClearText = noop, SetFontObject = noop, SetTextColor = noop,
+    SetJustifyH = function (self, alignment) self.alignment = alignment end}}
   function row:IsChainedTo(target, relativePoint, point)
     return self.chained and self.target == target and self.relativePoint == relativePoint and self.point == point
   end
@@ -102,4 +104,15 @@ view:SetScrollPosition(3, 30)
 assert(view.slider.y == -30 and not view.state.scrollAtBottom)
 view:SetScrollPosition(1, 0)
 assert(view.state.scrollAtBottom and view.slider.y == 0)
+local pooledRow = createRow(20)
+view.messageFramePool.Acquire = function () return pooledRow end
+local separator = {nil, "1970-01-01", 0.5, 0.5, 0.5}
+separator.historyDateSeparator = true
+local before = formatted
+local row = view:CreateMessageFrame(separator)
+assert(row.historyDateSeparator and row.sourceText == "1970-01-01" and row.text.alignment == "CENTER" and formatted == before,
+  "Date separators use the display row without message formatting")
+row = view:CreateMessageFrame({nil, "ordinary message"})
+assert(not row.historyDateSeparator and row.text.alignment == "LEFT" and formatted == before + 1,
+  "Pooled date rows reset alignment and formatting for ordinary messages")
 print("PASS: per-message scrolling pins the read row and never needs secret heights")

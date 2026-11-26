@@ -65,7 +65,13 @@ local function getEditBoxEasing()
   return type(easing) == "function" and easing or LibEasing.OutCubic
 end
 
+local restoredReceivedAt = setmetatable({}, {__mode = "k"})
+
 local function getReceivedAt(entry)
+  if entry and restoredReceivedAt[entry] then
+    return restoredReceivedAt[entry]
+  end
+
   if entry and tonumber(entry.serverTime) then
     return tonumber(entry.serverTime)
   end
@@ -85,6 +91,20 @@ local function getHistoryEntry(chatFrame, messageIndex)
 
   local entryIndex = chatFrame:GetNumMessages() - messageIndex + 1
   return historyBuffer:GetEntryAtIndex(entryIndex)
+end
+
+local function getWhisperLineID(text, event, eventArgs)
+  if not Core.db.profile.dedicatedWhisperWindows then return end
+  if _G.canaccessvalue and not (_G.canaccessvalue(text) and _G.canaccessvalue(event)
+    and _G.canaccessvalue(eventArgs)) then return end
+  if (event == "CHAT_MSG_WHISPER" or event == "CHAT_MSG_WHISPER_INFORM"
+    or event == "CHAT_MSG_BN_WHISPER" or event == "CHAT_MSG_BN_WHISPER_INFORM")
+    and type(eventArgs) == "table" then
+    local lineID = eventArgs[11]
+    if (not _G.canaccessvalue or _G.canaccessvalue(lineID)) and type(lineID) == "number" and lineID > 0 then
+      return lineID
+    end
+  end
 end
 
 local function isCombatLogHidden()
@@ -134,7 +154,9 @@ Core.Components.SlidingMessageFrameHelpers = {
   getSlideEasing = getSlideEasing,
   getEditBoxEasing = getEditBoxEasing,
   getReceivedAt = getReceivedAt,
+  restoredReceivedAt = restoredReceivedAt,
   getHistoryEntry = getHistoryEntry,
+  getWhisperLineID = getWhisperLineID,
   isCombatLogHidden = isCombatLogHidden,
   keepCombatLogTracking = keepCombatLogTracking,
   getMessageFrameHeight = getMessageFrameHeight,
@@ -357,12 +379,19 @@ function SlidingMessageFrameMixin:CreateMessageFrame(messageArgs)
   local message = self.messageFramePool:Acquire()
   message.text:ClearText()
   message.text:SetFontObject("GlassyMessageFont")
-  local processedText, sourceText = TP:ProcessText(text, frame, messageArgs.receivedAt)
+  local processedText, sourceText
+  if messageArgs.historyDateSeparator then
+    processedText, sourceText = text, text
+  else
+    processedText, sourceText = TP:ProcessText(text, frame, messageArgs.receivedAt)
+  end
+  message.historyDateSeparator = messageArgs.historyDateSeparator
   message.sourceText = sourceText
   message.sourceFrame = frame
   message.receivedAt = messageArgs.receivedAt
   message.glassyPreview = messageArgs.glassyPreview
   message.text:SetTextColor(red, green, blue, 1)
+  message.text:SetJustifyH(message.historyDateSeparator and "CENTER" or "LEFT")
   message:SetDisplayText(processedText)
 
   -- Adjust height to contain text
@@ -442,20 +471,21 @@ function SlidingMessageFrameMixin:AddDemoMessage(text, red, green, blue)
   UIManager:QueueFrameForUpdate(self)
 end
 
-function SlidingMessageFrameMixin:AddMessageAt(receivedAt, ...)
+function SlidingMessageFrameMixin:AddMessageAt(receivedAt, frame, text, red, green, blue, _, _, _, event, eventArgs)
   if self.state.demo or (self.state.isCombatLog and isCombatLogHidden()) then
     return
   end
-  if TP:IsMessageBlacklisted(select(2, ...)) then
+  if TP:IsMessageBlacklisted(text) then
     return
   end
 
   -- Enqueue messages to be displayed
-  local args = {...}
+  local args = {frame, text, red, green, blue}
   args.receivedAt = receivedAt
+  args.whisperLineID = getWhisperLineID(text, event, eventArgs)
   table.insert(self.state.incomingMessages, args)
   UIManager:QueueFrameForUpdate(self)
-  return true
+  return args
 end
 
 function SlidingMessageFrameMixin:BackFillMessage(...)
@@ -482,17 +512,11 @@ function SlidingMessageFrameMixin:ReloadMessagesFromChatFrame()
   local messageCount = self.chatFrame:GetNumMessages()
   local firstMessage = math.max(1, messageCount - getRenderedMessageLimit() + 1)
   for index = firstMessage, messageCount do
-    local text, r, g, b = self.chatFrame:GetMessageInfo(index)
-    if text then
-      self:AddMessageAt(
-        getReceivedAt(getHistoryEntry(self.chatFrame, index)),
-        self.chatFrame,
-        text,
-        r,
-        g,
-        b
-      )
-    end
+    self:AddMessageAt(
+      getReceivedAt(getHistoryEntry(self.chatFrame, index)),
+      self.chatFrame,
+      self.chatFrame:GetMessageInfo(index)
+    )
   end
 end
 
@@ -593,9 +617,15 @@ function SlidingMessageFrameMixin:OnFrame()
   elseif #self.state.incomingMessages > 0 then
     local incoming = {}
     for _ = 1, math.min(MESSAGE_UPDATE_BATCH_SIZE, #self.state.incomingMessages) do
-      incoming[#incoming + 1] = table.remove(self.state.incomingMessages, 1)
+      local args = table.remove(self.state.incomingMessages, 1)
+      -- Wait until both the native chat frame and the dedicated inbox have received the event.
+      local hidden = args.whisperLineID and Core:GetModule("WhisperWindows"):HasCapturedLine(args.whisperLineID)
+      if not hidden then
+        if args.unreadTab then args.unreadTab:AddUnreadMessage() end
+        incoming[#incoming + 1] = args
+      end
     end
-    self:Update(incoming, false)
+    if #incoming > 0 then self:Update(incoming, false) end
   elseif #self.state.incomingScrollbackMessages > 0 then
     local incoming = {}
     for _ = 1, math.min(MESSAGE_UPDATE_BATCH_SIZE, #self.state.incomingScrollbackMessages) do

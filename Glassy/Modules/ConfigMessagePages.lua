@@ -438,12 +438,25 @@ local function getMessageOptions()
         inline = true,
         order = 6,
         args = {
+          saveChatHistory = chatOption("saveChatHistory", "Save chat history",
+            "Save recent chat per character. If Prat restores your chat, Glassy still saves a copy for when you switch.", 6),
+          chatHistoryDateSeparators = {
+            name = "Date separators",
+            desc = "Label each day in Glassy's restored chat history after login or reload.",
+            type = "toggle",
+            order = 6.1,
+            disabled = function ()
+              return Core.db.profile.saveChatHistory == false or Core:IsPratModuleEnabled("History", "scrollback")
+            end,
+            get = function () return Core.db.profile.chatHistoryDateSeparators end,
+            set = function (_, enabled) Core.db.profile.chatHistoryDateSeparators = enabled end,
+          },
           scrollbackLines = {
             type = "range",
             name = "Scrollback lines",
-            desc = "Number of recent messages retained in each chat tab for copying. Glassy keeps up to 128 rendered messages for on-screen scrolling.\nDefault: "..
+            desc = "Number of recent messages kept per tab for copying and saved history. Glassy keeps up to 128 rendered messages for on-screen scrolling.\nDefault: "..
               Core.defaults.profile.scrollbackLines.."\nMin: 50\nMax: 2000",
-            order = 6.1,
+            order = 6.2,
             min = 50,
             max = 2000,
             softMin = 128,
