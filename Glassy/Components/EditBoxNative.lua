@@ -115,7 +115,7 @@ function EditBoxMixin:SwitchChat(target, toggle)
 end
 
 -- Runs from Bindings.xml when no edit box has focus, so it only opens or resumes the box.
-function GlassySwitchChat(target) -- luacheck: ignore 111
+function _G.GlassySwitchChat(target)
   local editBox = ChatFrameUtil.GetActiveWindow() or ChatFrameUtil.OpenChat()
   if editBox then
     EditBoxMixin.SwitchChat(editBox, target)
@@ -139,6 +139,17 @@ local function hideExternalBackgrounds(editBox)
   -- Prat places its own backdrop inside Blizzard's edit box, so keep it hidden while Glassy supplies the styling.
   if editBox.pratFrame then
     editBox.pratFrame:Hide()
+  end
+end
+
+function EditBoxMixin:RestoreFocusedAlpha()
+  if self.glassyRestoringAlpha or not self:HasFocus() then return end
+  local alpha = self:GetAlpha()
+  if _G.canaccessvalue and not _G.canaccessvalue(alpha) then return end
+  if alpha < 1 then
+    self.glassyRestoringAlpha = true
+    self:SetAlpha(1)
+    self.glassyRestoringAlpha = nil
   end
 end
 
@@ -236,15 +247,19 @@ function EditBoxMixin:Init(parent, useParentWidth)
   self:SetHeight(self.header:GetLineHeight() + Ypadding * 2)
 
   local function applyTextInsets()
+    local headerWidth = self.header:GetStringWidth()
+    if _G.canaccessvalue and not _G.canaccessvalue(headerWidth) then return end
     Ypadding = self.header:GetLineHeight() * getVerticalPadding()
     self.glassyHooks.hooks[self].SetTextInsets(
       self,
-      self.header:GetStringWidth() + getLeftTextPadding(),
-      EDIT_BOX_RIGHT_PADDING, Ypadding, Ypadding
+      headerWidth + getLeftTextPadding(),
+      EDIT_BOX_RIGHT_PADDING + (self.glassyEmoteButton and self.glassyEmoteButton:IsShown() and 20 or 0), Ypadding, Ypadding
     )
   end
+  self.glassyApplyTextInsets = applyTextInsets
   Utils.hookPresentation(self.glassyHooks, self, "SetTextInsets", applyTextInsets, true)
   applyTextInsets()
+  self:InitGlassyAppearance()
 
   if self.dynamicMessageArea == nil then
     self.dynamicMessageArea = CreateFrame("Frame", nil, self.glassyParent)
@@ -256,14 +271,19 @@ function EditBoxMixin:Init(parent, useParentWidth)
 
   super(self).HookScript(self, "OnShow", function ()
     hideExternalBackgrounds(self)
+    self:SetAlpha(1)
     self:ShowEntry(false)
   end)
 
   super(self).HookScript(self, "OnEditFocusGained", function (editBox)
+    editBox:RestoreFocusedAlpha()
     if editBox.glassySecondaryChatGroup then
       Core:GetModule("UIManager"):SelectSecondaryTab(editBox.chatFrame)
     end
   end)
+
+  -- Immersion addons can fade the input itself while its native keyboard/controller focus remains active.
+  self.glassyHooks:SecureHook(self, "SetAlpha", function () self:RestoreFocusedAlpha() end)
 
   local altInputWatcher = CreateFrame("Frame")
   altInputWatcher:Hide()

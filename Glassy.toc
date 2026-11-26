@@ -75,6 +75,7 @@ Glassy\Components\ChatTabSelection.lua
 Glassy\Components\ChatTab.lua
 Glassy\Components\CombatLogBar.lua
 Glassy\Components\EditBox.lua
+Glassy\Components\EditBoxAppearance.lua
 Glassy\Components\EditBoxNative.lua
 Glassy\Components\FadingFrame.lua
 Glassy\Components\MainContainerFrame.lua

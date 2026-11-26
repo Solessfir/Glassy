@@ -188,6 +188,13 @@ local function getGeneralOptions()
             width = 1,
             order = 6,
           },
+          blizzardEditMode = profileOption("blizzardEditMode", {
+            name = "Blizzard Edit Mode",
+            desc = "Show the Glassy mover and settings shortcut when the game's Edit Mode is open.",
+            type = "toggle",
+            order = 7,
+            hidden = function () return not _G.EditModeManagerFrame end,
+          }),
         },
       },
       section2 = {
@@ -568,6 +575,12 @@ local function getEditBoxOptions()
         inline = true,
         order = 1,
         args = {
+          editBoxStyle = profileOption("editBoxStyle", {
+            name = "Style", type = "select", order = 0.5,
+            desc = "Choose a plain background, faded edges with a chat-colored line, or a rounded chat-colored border.",
+            values = {solid = L("Solid"), minimal = L("Minimal"), framed = L("Framed")},
+            sorting = {"solid", "minimal", "framed"},
+          }),
           editBoxFont = C.CreateFontOption("editBoxFont", 1),
           editBoxFontFlags = C.CreateFontOutlineOption("editBoxFontFlags", 1.05),
           editBoxFontSize = {
@@ -637,59 +650,7 @@ local function getEditBoxOptions()
               Core:Dispatch(UpdateConfig("editBoxMessageSeparatorColor"))
             end,
           },
-          editBoxFadeInDuration = {
-            name = "Fade in duration",
-            desc = "Controls how the edit-box background fades when chat opens or closes.\nDefault: "..
-              Core.defaults.profile.editBoxFadeInDuration.." seconds\nMin: 0\nMax: 5",
-            type = "range",
-            order = 1.26,
-            min = 0,
-            max = 5,
-            softMax = 3,
-            step = 0.05,
-            get = function ()
-              return Core.db.profile.editBoxFadeInDuration
-            end,
-            set = function (_, input)
-              Core.db.profile.editBoxFadeInDuration = input
-              Core:Dispatch(UpdateConfig("editBoxFadeInDuration"))
-            end,
-          },
-          editBoxFadeOutDuration = {
-            name = "Fade out duration",
-            desc = "Controls how the edit-box background fades when chat opens or closes.\nDefault: "..
-              Core.defaults.profile.editBoxFadeOutDuration.." seconds\nMin: 0\nMax: 5",
-            type = "range",
-            order = 1.27,
-            min = 0,
-            max = 5,
-            softMax = 3,
-            step = 0.05,
-            get = function ()
-              return Core.db.profile.editBoxFadeOutDuration
-            end,
-            set = function (_, input)
-              Core.db.profile.editBoxFadeOutDuration = input
-              Core:Dispatch(UpdateConfig("editBoxFadeOutDuration"))
-            end,
-          },
-          editBoxBackgroundEasing = {
-            name = "Background easing",
-            desc = "Controls how the edit-box background fades when chat opens or closes.\nDefault: "..
-              EASING_VALUES[Core.defaults.profile.editBoxBackgroundEasing],
-            type = "select",
-            order = 1.25,
-            values = EASING_VALUES,
-            sorting = EASING_SORTING,
-            get = function ()
-              return Core.db.profile.editBoxBackgroundEasing
-            end,
-            set = function (_, input)
-              Core.db.profile.editBoxBackgroundEasing = input
-              Core:Dispatch(UpdateConfig("editBoxBackgroundEasing"))
-            end,
-          },
-        }
+        },
       },
       section2 = {
         name = "Placement",
@@ -733,23 +694,6 @@ local function getEditBoxOptions()
               Core:Dispatch(UpdateConfig("editBoxAnchor"))
             end
           },
-          editBoxEasing = {
-            name = "Movement easing",
-            desc = "Controls how messages move when the chat entry field opens or closes.\nDefault: "..
-              EASING_VALUES[Core.defaults.profile.editBoxEasing],
-            type = "select",
-            order = 2.3,
-            width = 1,
-            values = EASING_VALUES,
-            sorting = EASING_SORTING,
-            get = function ()
-              return Core.db.profile.editBoxEasing
-            end,
-            set = function (_, input)
-              Core.db.profile.editBoxEasing = input
-              Core:Dispatch(UpdateConfig("editBoxEasing"))
-            end,
-          }
         },
       },
       typing = {
@@ -765,6 +709,11 @@ local function getEditBoxOptions()
             order = 1,
             disabled = function () return Core:IsPratModuleEnabled("PlayerNames") end,
           }, "messageFormatting"),
+          emotePickerEnabled = profileOption("emotePickerEnabled", {
+            name = "Emote picker", type = "toggle", order = 2,
+            desc = "Add a button that inserts Twemoji codes in the edit box. Enable emotes under Messages first.",
+            disabled = function () return not Core.db.profile.emojisEnabled end,
+          }),
         },
       },
       behavior = {
@@ -833,6 +782,83 @@ local function getEditBoxOptions()
             order = 4,
             disabled = function () return getSelectedAlias() == "" end,
             func = function () Core:GetModule("SlashAliases"):Remove(getSelectedAlias()) end,
+          },
+        },
+      },
+      animation = {
+        name = "Animation",
+        type = "group",
+        inline = true,
+        order = 5,
+        args = {
+          editBoxFadeInDuration = {
+            name = "Fade in duration",
+            desc = "Controls how the edit-box background fades when chat opens or closes.\nDefault: "..
+              Core.defaults.profile.editBoxFadeInDuration.." seconds\nMin: 0\nMax: 5",
+            type = "range",
+            order = 1,
+            min = 0,
+            max = 5,
+            softMax = 3,
+            step = 0.05,
+            get = function ()
+              return Core.db.profile.editBoxFadeInDuration
+            end,
+            set = function (_, input)
+              Core.db.profile.editBoxFadeInDuration = input
+              Core:Dispatch(UpdateConfig("editBoxFadeInDuration"))
+            end,
+          },
+          editBoxFadeOutDuration = {
+            name = "Fade out duration",
+            desc = "Controls how the edit-box background fades when chat opens or closes.\nDefault: "..
+              Core.defaults.profile.editBoxFadeOutDuration.." seconds\nMin: 0\nMax: 5",
+            type = "range",
+            order = 2,
+            min = 0,
+            max = 5,
+            softMax = 3,
+            step = 0.05,
+            get = function ()
+              return Core.db.profile.editBoxFadeOutDuration
+            end,
+            set = function (_, input)
+              Core.db.profile.editBoxFadeOutDuration = input
+              Core:Dispatch(UpdateConfig("editBoxFadeOutDuration"))
+            end,
+          },
+          editBoxBackgroundEasing = {
+            name = "Background easing",
+            desc = "Controls how the edit-box background fades when chat opens or closes.\nDefault: "..
+              EASING_VALUES[Core.defaults.profile.editBoxBackgroundEasing],
+            type = "select",
+            order = 3,
+            values = EASING_VALUES,
+            sorting = EASING_SORTING,
+            get = function ()
+              return Core.db.profile.editBoxBackgroundEasing
+            end,
+            set = function (_, input)
+              Core.db.profile.editBoxBackgroundEasing = input
+              Core:Dispatch(UpdateConfig("editBoxBackgroundEasing"))
+            end,
+          },
+          editBoxEasing = {
+            name = "Movement easing",
+            desc = "Controls how messages move when the chat entry field opens or closes.\nDefault: "..
+              EASING_VALUES[Core.defaults.profile.editBoxEasing],
+            type = "select",
+            order = 4,
+            width = 1,
+            values = EASING_VALUES,
+            sorting = EASING_SORTING,
+            get = function ()
+              return Core.db.profile.editBoxEasing
+            end,
+            set = function (_, input)
+              Core.db.profile.editBoxEasing = input
+              Core:Dispatch(UpdateConfig("editBoxEasing"))
+            end,
           },
         },
       },

@@ -50,6 +50,19 @@ local SHORTCODES = {
   skull = "skull", poop = "poop", eyes = "eyes", tada = "tada", ["100"] = "hundred",
 }
 
+-- Share the accepted text codes with the picker, keeping aliases out of its grid.
+TP.EMOTE_PICKS = {}
+local emoteCodes, pickedEmotes = {}, {}
+for code in pairs(SHORTCODES) do emoteCodes[#emoteCodes + 1] = code end
+table.sort(emoteCodes)
+for _, code in ipairs(emoteCodes) do
+  local name = SHORTCODES[code]
+  if not pickedEmotes[name] then
+    TP.EMOTE_PICKS[#TP.EMOTE_PICKS + 1] = {name, ":"..code..":"}
+    pickedEmotes[name] = true
+  end
+end
+
 -- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
 -- luacheck: push ignore 113
 local strjoin = strjoin
@@ -316,7 +329,7 @@ function TP:ProcessText(text, frame, receivedAt)
   if profile.timestampsEnabled and not Core:IsPratModuleEnabled("Timestamps") then
     processedText = processSafely(timestampProcessor, processedText, frame, receivedAt)
   end
-  if Core.db.profile.emojisEnabled then
+  if profile.emojisEnabled then
     processedText = processSafely(emojiProcessor, processedText)
   end
   return self:ProcessTextures(processedText), text

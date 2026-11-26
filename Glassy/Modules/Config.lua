@@ -80,7 +80,7 @@ local TIMESTAMP_FORMATS = SettingsValues.timestampFormats
 local EASING_VALUES = SettingsValues.easingValues
 
 local function isMoverUnlocked()
-  return _G.GlassyMoverFrame and _G.GlassyMoverFrame:IsShown()
+  return _G.GlassyMoverFrame and _G.GlassyMoverFrame.manuallyUnlocked
 end
 
 local function toggleMover()
@@ -669,6 +669,7 @@ function C:RefreshConfig()
   Core:Dispatch(UpdateConfig("tabBarPosition"))
   Core:Dispatch(UpdateConfig("tabBarAlignment"))
   Core:Dispatch(UpdateConfig("chatButtons"))
+  Core:Dispatch(UpdateConfig("blizzardEditMode"))
   Core:Dispatch(UpdateConfig("detailsChatEmbed"))
   Core:Dispatch(UpdateConfig("frameHeight"))
   Core:Dispatch(UpdateConfig("frameWidth"))
@@ -688,6 +689,8 @@ function C:RefreshConfig()
   Core:Dispatch(UpdateConfig("combatLogBarLayout"))
 
   -- Edit box
+  Core:Dispatch(UpdateConfig("editBoxStyle"))
+  Core:Dispatch(UpdateConfig("emotePickerEnabled"))
   Core:Dispatch(UpdateConfig("editBoxFontSize"))
   Core:Dispatch(UpdateConfig("editBoxVerticalPadding"))
   Core:Dispatch(UpdateConfig("editBoxBackgroundColor"))

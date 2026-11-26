@@ -115,6 +115,52 @@ function MoverFrameMixin:StopDragging()
   self.dragOffsetY = nil
 end
 
+function MoverFrameMixin:SavePosition()
+  local point, _, _, xOfs, yOfs = self:GetPoint(1)
+  if point then Core:Dispatch(SaveFramePosition({point = point, xOfs = xOfs, yOfs = yOfs})) end
+end
+
+function MoverFrameMixin:UpdateMoverVisibility()
+  local shown = self.manuallyUnlocked or self.blizzardEditing or false
+  self:SetShown(shown)
+  self:EnableMouse(shown)
+  self:SetMovable(shown)
+  if self.editModeSettings then self.editModeSettings:SetShown(self.blizzardEditing) end
+  if shown then self:ScheduleBoundsUpdate() end
+end
+
+function MoverFrameMixin:ConnectBlizzardEditMode()
+  local editMode = _G.EditModeManagerFrame
+  if not editMode then return end
+
+  local settings = CreateFrame("Button", nil, self.boundsFrame, "UIPanelButtonTemplate")
+  settings:SetPoint("TOPRIGHT", -5, -5)
+  settings:SetSize(140, 24)
+  settings:SetText(Core:Localize("Glassy settings"))
+  settings:SetScript("OnClick", function () Core:GetModule("Config"):OpenSettings() end)
+  self.editModeSettings = settings
+
+  local label = settings:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+  label:SetPoint("TOPLEFT", self.boundsFrame, "TOPLEFT", 8, -8)
+  label:SetText("Glassy")
+
+  local function update()
+    local editing = editMode:IsShown() and Core.db.profile.blizzardEditMode ~= false
+    if self.blizzardEditing and not editing and self.dragOffsetX then
+      self:StopDragging()
+      self:SavePosition()
+    end
+    self.blizzardEditing = editing
+    self:UpdateMoverVisibility()
+  end
+  editMode:HookScript("OnShow", update)
+  editMode:HookScript("OnHide", update)
+  Core:Subscribe(UPDATE_CONFIG, function (key)
+    if key == "blizzardEditMode" then update() end
+  end)
+  update()
+end
+
 function MoverFrameMixin:ScheduleBoundsUpdate()
   if self.boundsUpdateScheduled then
     return
@@ -265,6 +311,10 @@ function MoverFrameMixin:Init()
   end)
   self.boundsFrame:SetScript("OnDragStop", function ()
     self:StopDragging()
+    if self.blizzardEditing then
+      self:SavePosition()
+      Core.Libs.AceConfigRegistry:NotifyChange("Glassy")
+    end
   end)
   self.boundsFrame:SetScript("OnEnter", function ()
     self.bg:SetColorTexture(EDIT_MODE_BLUE_R, EDIT_MODE_BLUE_G, EDIT_MODE_BLUE_B, EDIT_MODE_HOVER_ALPHA)
@@ -276,24 +326,13 @@ function MoverFrameMixin:Init()
   if self.subscriptions == nil then
     self.subscriptions = {
       Core:Subscribe(LOCK_MOVER, function ()
-        self:Hide()
-        self:EnableMouse(false)
-        self:SetMovable(false)
-
-        local point, _, _, xOfs, yOfs = self:GetPoint(1)
-        local position = {
-          point = point,
-          xOfs = xOfs,
-          yOfs = yOfs
-        }
-
-        Core:Dispatch(SaveFramePosition(position))
+        self.manuallyUnlocked = false
+        self:UpdateMoverVisibility()
+        self:SavePosition()
       end),
       Core:Subscribe(UNLOCK_MOVER, function ()
-        self:Show()
-        self:EnableMouse(true)
-        self:SetMovable(true)
-        self:ScheduleBoundsUpdate()
+        self.manuallyUnlocked = true
+        self:UpdateMoverVisibility()
       end),
       Core:Subscribe(UPDATE_CONFIG, function (key)
         if (key == "frameWidth") then
@@ -329,6 +368,7 @@ function MoverFrameMixin:Init()
       end),
     }
   end
+  self:ConnectBlizzardEditMode()
 end
 
 Core.Components.CreateMoverFrame = function (name, parent)

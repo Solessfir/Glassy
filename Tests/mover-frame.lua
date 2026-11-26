@@ -24,6 +24,7 @@ local function newFrame(parent)
   function frame:GetFrameLevel() return 1 end
   function frame:ClearAllPoints() self.point = nil end
   function frame:SetPoint(...) self.point = {...} end
+  function frame:GetPoint() return unpack(self.point, 1, 5) end
   function frame:SetWidth(width) self.width = width end
   function frame:SetHeight(height) self.height = height end
   function frame:SetAllPoints() end
@@ -34,7 +35,13 @@ local function newFrame(parent)
   function frame:SetMovable() end
   function frame:StartMoving() end
   function frame:StopMovingOrSizing() end
-  function frame:Hide() end
+  function frame:Hide() self.shown = false end
+  function frame:SetShown(shown) self.shown = shown end
+  function frame:IsShown() return self.shown end
+  function frame:HookScript(name, callback) self.scripts[name] = callback end
+  function frame:SetSize(width, height) self.width, self.height = width, height end
+  function frame:SetText(text) self.text = text end
+  function frame:CreateFontString() return {SetPoint = noop, SetText = noop} end
   function frame:CreateTexture()
     return {
       SetAllPoints = noop,
@@ -60,6 +67,7 @@ C_Timer = {After = function (_, callback) callback() end}
 local cursorX, cursorY = 0, 0
 GetCursorPosition = function () return cursorX, cursorY end
 
+local subscriptions, saved, opened = {}, nil, false
 local core = {
   Components = {},
   db = {profile = {
@@ -67,10 +75,20 @@ local core = {
     frameHeight = 100,
     positionAnchor = {point = "BOTTOMLEFT", xOfs = 0, yOfs = 0},
   }},
-  Subscribe = function () end,
+  Libs = {AceConfigRegistry = {NotifyChange = noop}},
+  Localize = function (_, label) return label end,
+  GetModule = function () return {OpenSettings = function () opened = true end} end,
+  Subscribe = function (_, event, callback)
+    subscriptions[event] = subscriptions[event] or {}
+    table.insert(subscriptions[event], callback)
+  end,
+  Dispatch = function (_, event, payload)
+    assert(event == "save")
+    saved = payload
+  end,
 }
 local constants = {
-  ACTIONS = {SaveFramePosition = "save"},
+  ACTIONS = {SaveFramePosition = function (position) return "save", position end},
   EVENTS = {LOCK_MOVER = "lock", UNLOCK_MOVER = "unlock", UPDATE_CONFIG = "update"},
 }
 
@@ -98,4 +116,27 @@ assert(mover.point[1] == "TOPRIGHT" and mover.point[4] == 0 and mover.point[5] =
 mover.boundsFrame.scripts.OnDragStop()
 assert(mover.boundsFrame.scripts.OnUpdate == nil, "The live drag update was not removed")
 
-print("PASS: Mover snaps live to screen sides and corners.")
+EditModeManagerFrame = newFrame(parent)
+local nativeMover = core.Components.CreateMoverFrame("EditModeTest", parent)
+assert(not nativeMover:IsShown())
+EditModeManagerFrame:SetShown(true)
+EditModeManagerFrame.scripts.OnShow()
+assert(nativeMover:IsShown() and nativeMover.editModeSettings:IsShown(), "Edit Mode shows Glassy's mover")
+nativeMover.editModeSettings.scripts.OnClick()
+assert(opened, "The Edit Mode shortcut opens the addon's settings")
+nativeMover.boundsFrame.scripts.OnDragStart()
+cursorX = cursorX + 35
+nativeMover.boundsFrame.scripts.OnDragStop()
+assert(saved and saved.point == nativeMover.point[1] and saved.xOfs == nativeMover.point[4],
+  "Dragging in Edit Mode saves the current profile position on drop")
+core.db.profile.blizzardEditMode = false
+for _, callback in ipairs(subscriptions.update) do callback("blizzardEditMode") end
+assert(not nativeMover:IsShown(), "Disabling Edit Mode integration hides its mover")
+core.db.profile.blizzardEditMode = true
+for _, callback in ipairs(subscriptions.update) do callback("blizzardEditMode") end
+for _, callback in ipairs(subscriptions.unlock) do callback() end
+EditModeManagerFrame:Hide()
+EditModeManagerFrame.scripts.OnHide()
+assert(nativeMover:IsShown() and not nativeMover.editModeSettings:IsShown(), "Leaving Edit Mode preserves manual unlock")
+
+print("PASS: Mover snapping, Edit Mode gestures, settings shortcut, and manual unlock")

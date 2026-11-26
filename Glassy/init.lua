@@ -76,6 +76,7 @@ Core.defaults = {
     chatButtonsSide = "right",
     chatButtonsOffsetX = 0,
     chatButtonsOffsetY = 0,
+    blizzardEditMode = true,
     detailsChatEmbed = true,
     tabTextColor = {r = 1, g = 209 / 255, b = 0, a = 0.7},
     tabHighlightTextColor = {r = 1, g = 209 / 255, b = 0, a = 1},
@@ -114,6 +115,8 @@ Core.defaults = {
     tabOrder = {},
 
     -- Edit box
+    editBoxStyle = "solid",
+    emotePickerEnabled = false,
     editBoxEasing = "OutCubic",
     editBoxBackgroundEasing = "OutCubic",
     editBoxFadeInDuration = 0.2,

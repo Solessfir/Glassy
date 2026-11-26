@@ -29,6 +29,9 @@ local function getBackgroundEasing()
 end
 
 local function hasVisibleBackground()
+  if Core.db.profile.editBoxStyle == "minimal" or Core.db.profile.editBoxStyle == "framed" then
+    return true
+  end
   local backgroundColor = Core.db.profile.editBoxBackgroundColor
   local separatorColor = Core:GetThemeColor("editBoxMessageSeparatorColor")
   return
@@ -67,6 +70,7 @@ function EditBoxMixin:UpdateGlassyBackground()
     self.leftBg:Hide()
     self.centerBg:Hide()
     self.rightBg:Hide()
+    if self.UpdateGlassyStyle then self:UpdateGlassyStyle() end
     return
   end
 
@@ -90,6 +94,7 @@ function EditBoxMixin:UpdateGlassyBackground()
     end
     if self.messageSeparator then self.messageSeparator:Hide() end
   end
+  if self.UpdateGlassyStyle then self:UpdateGlassyStyle() end
 end
 
 function EditBoxMixin:ClipBackgroundToMessages(messageFrame)
@@ -123,6 +128,9 @@ function EditBoxMixin:UpdateMessageSeparator()
     Core:GetThemeColor("editBoxMessageSeparatorColor"),
     self:GetBackgroundAlpha()
   )
+  if Core.db.profile.editBoxStyle == "minimal" or Core.db.profile.editBoxStyle == "framed" then
+    self.messageSeparator:Hide()
+  end
 end
 
 function EditBoxMixin:StopBackgroundAlphaTransition()
