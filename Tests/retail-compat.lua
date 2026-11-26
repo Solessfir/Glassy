@@ -48,10 +48,12 @@ canaccessvalue = function (value) return value ~= protected end
 strfind, strlen, strsub = string.find, string.len, string.sub
 date = os.date
 local processing = {}
+local pratTimestamps = false
 local textCore = {
   GetModule = function (_, name)
     return name == "Ellesmere" and {GetActiveAccent = function () return processing.accent end} or processing
   end,
+  IsPratModuleEnabled = function (_, name) return name == "Timestamps" and pratTimestamps end,
   db = {profile = {timestampsEnabled = false, emojisEnabled = true}},
 }
 loadAddonFile("Glassy/Modules/TextProcessing.lua", textCore)
@@ -72,6 +74,16 @@ assert(processing:ProcessText("Hello :)") == "Hello :)")
 local rendered, original = processing:ProcessText(protected)
 assert(rendered == protected and original == protected, "Protected text was changed")
 assert(processing:ProcessTextures(protected) == protected)
+local profile = textCore.db.profile
+profile.timestampsEnabled = true
+profile.timestampFrames = {ChatFrame1 = true}
+profile.timestampFormat = "[%H:%M:%S]"
+local chat = {GetName = function () return "ChatFrame1" end}
+local timestamp, source = processing:ProcessText("Hello", chat, 123456)
+assert(timestamp == date(profile.timestampFormat, 123456).." Hello" and source == "Hello")
+pratTimestamps = true
+assert(processing:ProcessText("[Prat time] Hello", chat, 123456) == "[Prat time] Hello",
+  "Only one timestamp provider formats a line")
 
 canaccessvalue = nil
 loadAddonFile("Glassy/Modules/TextProcessing.lua", textCore)

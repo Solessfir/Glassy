@@ -267,6 +267,10 @@ local function processSafely(processor, text, ...)
   return text
 end
 
+local function formatMessage(text, module)
+  return module:Format(text)
+end
+
 function TP:ProcessTextures(text)
   if canaccessvalue and not canaccessvalue(text) then return text end
   if type(text) ~= "string" or not strfind(text, "|T", 1, true) then
@@ -299,7 +303,17 @@ function TP:ProcessText(text, frame, receivedAt)
   -- Retail can supply protected text. Pass it directly to the native FontString without parsing it.
   if canaccessvalue and not canaccessvalue(text) then return text, text end
   local processedText = text
-  if Core.db.profile.timestampsEnabled then
+  local profile = Core.db.profile
+  if type(text) == "string" then
+    if profile.shortChannelNames or profile.highlightNames or profile.formatPlayerNames or profile.completePlayerNames
+      or profile.chatClassIcons or profile.chatRaceIcons or profile.chatLinkIcons then
+      processedText = processSafely(formatMessage, processedText, Core:GetModule("MessageFormatting"))
+    end
+    if profile.chatUrls or profile.chatInvites then
+      processedText = processSafely(formatMessage, processedText, Core:GetModule("ChatLinks"))
+    end
+  end
+  if profile.timestampsEnabled and not Core:IsPratModuleEnabled("Timestamps") then
     processedText = processSafely(timestampProcessor, processedText, frame, receivedAt)
   end
   if Core.db.profile.emojisEnabled then

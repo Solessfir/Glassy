@@ -8,6 +8,8 @@ local AceHook = LibStub("AceHook-3.0")
 local Core = {Libs = {AceHook = AceHook, LibEasing = {}}, Components = {}}
 local Constants = {ACTIONS = {}, EVENTS = {}}
 ChatFrameUtil = {}
+local nativeHandledTab
+ChatEdit_CustomTabPressed = function () return nativeHandledTab end
 
 local function newEditBox()
   local scripts = {}
@@ -52,6 +54,31 @@ Core.db = {profile = {
   editBoxBackgroundColor = {a = 0.4},
   editBoxMessageSeparatorColor = {a = 0},
 }}
+
+local typed = "Hello Mi"
+local cursor = #typed
+local pratNames
+Core.IsPratModuleEnabled = function (_, name) return name == "PlayerNames" and pratNames end
+Core.GetModule = function ()
+  return {CompletePlayerName = function (_, prefix) if prefix == "Mi" then return "Mira" end end}
+end
+local entry = {
+  glassyEditBoxInitialized = true,
+  GetText = function () return typed end,
+  GetCursorPosition = function () return cursor end,
+  SetText = function (_, text) typed = text end,
+  SetCursorPosition = function (_, index) cursor = index end,
+}
+Core.db.profile.completePlayerNames = true
+nativeHandledTab = true
+assert(ChatEdit_CustomTabPressed(entry) and typed == "Hello Mi", "Native autocomplete takes priority")
+nativeHandledTab = false
+pratNames = true
+assert(not ChatEdit_CustomTabPressed(entry) and typed == "Hello Mi", "Prat autocomplete takes priority")
+pratNames = false
+assert(ChatEdit_CustomTabPressed(entry) and typed == "Hello Mira " and cursor == #typed)
+typed, cursor = "/w Mi", 5
+assert(not ChatEdit_CustomTabPressed(entry) and typed == "/w Mi", "Native slash autocomplete stays in charge")
 local editBoxLayout = Mixin({glassyEntryVisible = false, GetHeight = function () return 24 end}, Core.Components.EditBoxMixin)
 assert(editBoxLayout:GetReusableMessageHeight() == 24, "Message area did not reclaim the full hidden edit-box height")
 

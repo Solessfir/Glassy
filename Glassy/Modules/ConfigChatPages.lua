@@ -20,6 +20,15 @@ local FLAGS = SettingsValues.fontFlags
 local EASING_VALUES = SettingsValues.easingValues
 local EASING_SORTING = SettingsValues.easingSorting
 
+local function profileOption(key, option, updateKey)
+  option.get = function () return Core.db.profile[key] end
+  option.set = function (_, value)
+    Core.db.profile[key] = value
+    Core:Dispatch(UpdateConfig(updateKey or key))
+  end
+  return option
+end
+
 function C.CreateFontOption(setting, order)
   return {
     name = "Font",
@@ -411,6 +420,13 @@ local function getTabOptions()
   }
 end
 
+local selectedAlias = ""
+
+local function getSelectedAlias()
+  local aliases = Core.db.global.slashAliases
+  return type(aliases[selectedAlias]) == "string" and selectedAlias or ""
+end
+
 local function getEditBoxOptions()
   return {
     name = "Edit box",
@@ -606,7 +622,91 @@ local function getEditBoxOptions()
             end,
           }
         },
-      }
+      },
+      typing = {
+        name = "Typing",
+        type = "group",
+        inline = true,
+        order = 3,
+        args = {
+          completePlayerNames = profileOption("completePlayerNames", {
+            name = "Complete player names with Tab",
+            desc = "Complete a unique player name from recent chat.",
+            type = "toggle",
+            order = 1,
+            disabled = function () return Core:IsPratModuleEnabled("PlayerNames") end,
+          }, "messageFormatting"),
+        },
+      },
+      behavior = {
+        name = "Behavior",
+        type = "group",
+        inline = true,
+        order = 4,
+        args = {
+          slashAliasesEnabled = {
+            name = "Slash aliases",
+            desc = "Use shortcuts for slash commands. Turning this off keeps your saved shortcuts.",
+            type = "toggle",
+            order = 1,
+            get = function () return Core.db.profile.slashAliasesEnabled end,
+            set = function (_, enabled)
+              Core.db.profile.slashAliasesEnabled = enabled
+              Core:Dispatch(UpdateConfig("slashAliasesEnabled"))
+            end,
+          },
+          savedAlias = {
+            name = "Saved aliases",
+            type = "select",
+            order = 2,
+            width = "full",
+            values = function ()
+              local values = {[""] = L("New alias")}
+              for name, expansion in pairs(Core.db.global.slashAliases) do
+                if type(name) == "string" and name:match("^[%w_%-]+$") and type(expansion) == "string" then
+                  values[name] = "/"..name.." → "..expansion:gsub("|", "||")
+                end
+              end
+              return values
+            end,
+            get = getSelectedAlias,
+            set = function (_, name)
+              selectedAlias = name
+              Core.Libs.AceConfigRegistry:NotifyChange("Glassy")
+            end,
+          },
+          aliasExample = {
+            name = "Enter /rld = /reload to make /rld reload the UI.",
+            type = "description",
+            order = 2.5,
+            width = "full",
+          },
+          aliasDefinition = {
+            name = "Alias definition",
+            desc = "Choose a saved alias to edit it.",
+            type = "input",
+            order = 3,
+            width = "full",
+            disabled = function () return not Core.db.profile.slashAliasesEnabled end,
+            get = function ()
+              local name = getSelectedAlias()
+              return name ~= "" and ("/"..name.." = "..Core.db.global.slashAliases[name]) or ""
+            end,
+            validate = function (_, input)
+              local name, errorMessage = Core:GetModule("SlashAliases"):ParseDefinition(input)
+              return name and true or errorMessage or false
+            end,
+            set = function (_, input) Core:GetModule("SlashAliases"):Set(input) end,
+          },
+          removeAlias = {
+            name = "Remove selected alias",
+            type = "execute",
+            order = 4,
+            disabled = function () return getSelectedAlias() == "" end,
+            func = function () Core:GetModule("SlashAliases"):Remove(getSelectedAlias()) end,
+          },
+        },
+      },
     },
   }
 end

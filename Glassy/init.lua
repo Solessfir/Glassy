@@ -31,12 +31,15 @@ Core.Version = GetAddOnMetadata and GetAddOnMetadata(AddonName, "Version") or "0
 -- Modules
 Core:NewModule("Config", "AceConsole-3.0")
 Core:NewModule("ChatCopy", "AceConsole-3.0")
+Core:NewModule("ChatLinks")
 Core:NewModule("Demo")
 Core:NewModule("Ellesmere")
 Core:NewModule("Fonts")
 Core:NewModule("Hyperlinks")
+Core:NewModule("MessageFormatting")
 Core:NewModule("News")
 Core:NewModule("ProfileTransfer")
+Core:NewModule("SlashAliases", "AceConsole-3.0")
 Core:NewModule("TextProcessing")
 Core:NewModule("UIManager", "AceHook-3.0")
 Core:NewModule("VersionCheck")
@@ -44,6 +47,9 @@ Core:NewModule("WhisperTabs")
 
 -- Default settings
 Core.defaults = {
+  global = {
+    slashAliases = {},
+  },
   profile = {
     -- General
     font = "Friz Quadrata TT",
@@ -56,6 +62,7 @@ Core.defaults = {
     frameWidth = 600,
     frameHeight = 250,
     textLeftPadding = 4,
+    slashAliasesEnabled = true,
     tabFontSize = 13,
     tabTextColor = {r = 1, g = 209 / 255, b = 0, a = 0.7},
     tabHighlightTextColor = {r = 1, g = 209 / 255, b = 0, a = 1},
@@ -141,6 +148,18 @@ Core.defaults = {
     messageBlacklistEnabled = false,
     messageBlacklist = "",
     scrollbackLines = 500,
+    shortChannelNames = true,
+    channelShortLabels = {["*"] = ""},
+    channelFullNames = {["*"] = false, BN_WHISPER = true, BN_WHISPER_INFORM = true},
+    highlightNames = true,
+    formatPlayerNames = true,
+    firstNamesOnly = false,
+    completePlayerNames = true,
+    chatClassIcons = true,
+    chatRaceIcons = false,
+    chatLinkIcons = true,
+    chatUrls = true,
+    chatInvites = true,
     timestampsEnabled = false,
     timestampFormat = "[%H:%M:%S]",
     timestampColorEnabled = true,
@@ -185,6 +204,15 @@ function Core:OnEnable()
     Utils.print(unpack(item))
   end
   self.printBuffer = {}
+end
+
+function Core:IsPratModuleEnabled(name, option)
+  local prat = _G.Prat and _G.Prat.Addon
+  if not prat or type(prat.GetModule) ~= "function" then return false end
+  local module = prat:GetModule("Prat_"..name, true) or prat:GetModule(name, true)
+  if not module or type(module.IsEnabled) ~= "function" or not module:IsEnabled() then return false end
+  local profile = module.db and module.db.profile
+  return not option or not profile or profile[option] ~= false
 end
 
 -- The default font follows EllesmereUI's UI font when its skinning is enabled for Glassy, otherwise the game's.

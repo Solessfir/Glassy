@@ -23,6 +23,111 @@ local TIMESTAMP_FORMATS = SettingsValues.timestampFormats
 local EASING_VALUES = SettingsValues.easingValues
 local EASING_SORTING = SettingsValues.easingSorting
 
+local function chatOption(key, name, desc, order, pratModule)
+  return {
+    type = "toggle",
+    name = name,
+    desc = pratModule and function ()
+      if Core:IsPratModuleEnabled(pratModule) then
+        return Core:Localize(desc).."\n"..string.format(Core:Localize("Prat’s %s module controls this setting."), pratModule)
+      end
+      return desc
+    end or desc,
+    order = order,
+    disabled = pratModule and function () return Core:IsPratModuleEnabled(pratModule) end,
+    get = function () return Core.db.profile[key] end,
+    set = function (_, value)
+      Core.db.profile[key] = value
+      Core:Dispatch(UpdateConfig(key == "saveChatHistory" and key or "messageFormatting"))
+    end,
+  }
+end
+
+local L = function (text) return Core:Localize(text) end
+local channelLabels = {
+  {"SAY", "Say"}, {"YELL", "Yell"}, {"PARTY", "Party"}, {"PARTY_LEADER", "Party leader"},
+  {"GUILD", "Guild"}, {"OFFICER", "Officer"}, {"RAID", "Raid"}, {"RAID_LEADER", "Raid leader"},
+  {"RAID_WARNING", "Raid warning"}, {"INSTANCE_CHAT", "Instance"}, {"INSTANCE_CHAT_LEADER", "Instance leader"},
+  {"WHISPER", "Incoming whisper"}, {"WHISPER_INFORM", "Outgoing whisper"},
+  {"BN_WHISPER", "Incoming Battle.net whisper"}, {"BN_WHISPER_INFORM", "Outgoing Battle.net whisper"},
+}
+local channelChoices, channelOrder = {}, {}
+for _, entry in ipairs(channelLabels) do
+  channelOrder[#channelOrder + 1] = entry[1]
+  channelChoices[entry[1]] = L(entry[2])
+end
+for number = 1, 10 do
+  local key = "CHANNEL"..number
+  channelOrder[#channelOrder + 1] = key
+  channelChoices[key] = (_G.CHANNEL or L("Channel")).." "..number
+end
+
+local editedChannel = "SAY"
+
+local function channelAbbreviationsDisabled()
+  return not Core.db.profile.shortChannelNames or Core:IsPratModuleEnabled("ChannelNames")
+end
+
+local function validateChannelLabel(label)
+  if #label > 64 or label:find("[%c|%[%]]") then
+    return L("Use plain text without brackets, up to 64 bytes.")
+  end
+  return true
+end
+
+local function getChannelOptions()
+  return {
+    name = "Channel abbreviations",
+    type = "group",
+    inline = true,
+    order = 3,
+    args = {
+      shortChannelNames = chatOption("shortChannelNames", "Short channel names",
+        "Use compact chat labels such as [Y], [P], and [1].", 1, "ChannelNames"),
+      channelToEdit = {
+        name = "Channel to edit",
+        type = "select",
+        order = 2,
+        values = channelChoices,
+        sorting = channelOrder,
+        disabled = channelAbbreviationsDisabled,
+        get = function () return editedChannel end,
+        set = function (_, channel)
+          editedChannel = channel
+          Core.Libs.AceConfigRegistry:NotifyChange("Glassy")
+        end,
+      },
+      channelFullNames = {
+        name = "Use original channel label",
+        type = "toggle",
+        order = 3,
+        disabled = channelAbbreviationsDisabled,
+        get = function () return Core.db.profile.channelFullNames[editedChannel] end,
+        set = function (_, enabled)
+          Core.db.profile.channelFullNames[editedChannel] = enabled
+          Core:Dispatch(UpdateConfig("messageFormatting"))
+        end,
+      },
+      channelShortLabels = {
+        name = "Custom short label",
+        desc = "Enter the text that goes inside the brackets. Leave blank for Glassy's default abbreviation.",
+        type = "input",
+        order = 4,
+        disabled = function ()
+          return channelAbbreviationsDisabled() or Core.db.profile.channelFullNames[editedChannel]
+        end,
+        get = function () return Core.db.profile.channelShortLabels[editedChannel] or "" end,
+        validate = function (_, label) return validateChannelLabel(label) end,
+        set = function (_, label)
+          if validateChannelLabel(label) ~= true then return end
+          Core.db.profile.channelShortLabels[editedChannel] = label:match("^%s*(.-)%s*$")
+          Core:Dispatch(UpdateConfig("messageFormatting"))
+        end,
+      },
+    },
+  }
+end
+
 local function getMessageOptions()
   return {
     name = "Messages",
@@ -55,51 +160,6 @@ local function getMessageOptions()
               Core:Dispatch(UpdateConfig("messageFontSize"))
             end,
             order = 1.1,
-          },
-          chatBackgroundColor = {
-            name = "Background",
-            desc = "Choose the color and opacity behind chat messages and the scroll overlay.\nDefault: black at 50% opacity.",
-            type = "color",
-            hasAlpha = true,
-            order = 1.2,
-            get = function ()
-              local color = Core.db.profile.chatBackgroundColor
-              return color.r, color.g, color.b, color.a
-            end,
-            set = function (_, r, g, b, a)
-              Core.db.profile.chatBackgroundColor = {r = r, g = g, b = b, a = a}
-              Core:Dispatch(UpdateConfig("chatBackgroundColor"))
-            end,
-          },
-          unreadMessageSeparatorColor = {
-            name = "Unread-message separator",
-            desc = "Choose the separator color and opacity below the unread-message control. Set opacity to 0 to hide it.\nDefault: gold at 0% opacity.",
-            type = "color",
-            hasAlpha = true,
-            order = 1.26,
-            get = function ()
-              local color = Core:GetThemeColor("unreadMessageSeparatorColor")
-              return color.r, color.g, color.b, color.a
-            end,
-            set = function (_, r, g, b, a)
-              Core.db.profile.unreadMessageSeparatorColor = {r = r, g = g, b = b, a = a}
-              Core:Dispatch(UpdateConfig("unreadMessageSeparatorColor"))
-            end,
-          },
-          unreadMessageBackgroundColor = {
-            name = "Unread-message background",
-            desc = "Choose the background color and opacity behind the jump-to-latest row, with or without unread messages.\nDefault: black at 50% opacity.",
-            type = "color",
-            hasAlpha = true,
-            order = 1.25,
-            get = function ()
-              local color = Core.db.profile.unreadMessageBackgroundColor
-              return color.r, color.g, color.b, color.a
-            end,
-            set = function (_, r, g, b, a)
-              Core.db.profile.unreadMessageBackgroundColor = {r = r, g = g, b = b, a = a}
-              Core:Dispatch(UpdateConfig("unreadMessageBackgroundColor"))
-            end,
           },
           messageLeading = {
             name = "Wrapped line spacing",
@@ -139,6 +199,19 @@ local function getMessageOptions()
             end,
             order = 1.4,
           },
+          indentWordWrap = {
+            name = "Indent on line wrap",
+            desc = "Indent continuation lines when a chat message wraps.\nDefault: on",
+            type = "toggle",
+            order = 1.45,
+            get = function ()
+              return Core.db.profile.indentWordWrap
+            end,
+            set = function (info, input)
+              Core.db.profile.indentWordWrap = input
+              Core:Dispatch(UpdateConfig("indentWordWrap"))
+            end,
+          },
           iconTextureYOffset = {
             type = "range",
             name = "Inline icon offset",
@@ -158,11 +231,74 @@ local function getMessageOptions()
               Core:Dispatch(UpdateConfig("iconTextureYOffset"))
             end,
           },
+          chatBackgroundColor = {
+            name = "Background",
+            desc = "Choose the color and opacity behind chat messages and the scroll overlay.\nDefault: black at 50% opacity.",
+            type = "color",
+            hasAlpha = true,
+            order = 2,
+            get = function ()
+              local color = Core.db.profile.chatBackgroundColor
+              return color.r, color.g, color.b, color.a
+            end,
+            set = function (_, r, g, b, a)
+              Core.db.profile.chatBackgroundColor = {r = r, g = g, b = b, a = a}
+              Core:Dispatch(UpdateConfig("chatBackgroundColor"))
+            end,
+          },
+          unreadMessageBackgroundColor = {
+            name = "Unread-message background",
+            desc = "Choose the background color and opacity behind the jump-to-latest row, with or without unread messages.\nDefault: black at 50% opacity.",
+            type = "color",
+            hasAlpha = true,
+            order = 2.1,
+            get = function ()
+              local color = Core.db.profile.unreadMessageBackgroundColor
+              return color.r, color.g, color.b, color.a
+            end,
+            set = function (_, r, g, b, a)
+              Core.db.profile.unreadMessageBackgroundColor = {r = r, g = g, b = b, a = a}
+              Core:Dispatch(UpdateConfig("unreadMessageBackgroundColor"))
+            end,
+          },
+          unreadMessageSeparatorColor = {
+            name = "Unread-message separator",
+            desc = "Choose the separator color and opacity below the unread-message control. Set opacity to 0 to hide it.\nDefault: gold at 0% opacity.",
+            type = "color",
+            hasAlpha = true,
+            order = 2.2,
+            get = function ()
+              local color = Core:GetThemeColor("unreadMessageSeparatorColor")
+              return color.r, color.g, color.b, color.a
+            end,
+            set = function (_, r, g, b, a)
+              Core.db.profile.unreadMessageSeparatorColor = {r = r, g = g, b = b, a = a}
+              Core:Dispatch(UpdateConfig("unreadMessageSeparatorColor"))
+            end,
+          },
+        },
+      },
+      formatting = {
+        name = "Chat formatting",
+        type = "group",
+        inline = true,
+        order = 2,
+        args = {
+          formatPlayerNames = chatOption("formatPlayerNames", "Format player names",
+            "Show player names in their class color, without brackets, and show levels when available.", 2, "PlayerNames"),
+          firstNamesOnly = chatOption("firstNamesOnly", "First names only",
+            "Shorten multi-word player names in chat. Player links still use the full name.", 2.05, "PlayerNames"),
+          highlightNames = chatOption("highlightNames", "Highlight names",
+            "Highlight mentions of your character and text in angle brackets.", 3, "Highlight"),
+          chatClassIcons = chatOption("chatClassIcons", "Class icons",
+            "Show a class icon before player names when available.", 4, "LinkInfoIcons"),
+          chatRaceIcons = chatOption("chatRaceIcons", "Race icons",
+            "Show a race icon before player names when available.", 5, "LinkInfoIcons"),
           emojisEnabled = {
             name = "Emotes",
-            desc = "Show smileys such as :) and codes such as :smile: as small faces. Chat still sends the original text, so other players see faces only if their chat addon shows them, as Glassy and ElvUI do.\nDefault: off",
+            desc = "Display smileys and codes such as :smile: as icons. Other players receive the original text.",
             type = "toggle",
-            order = 1.6,
+            order = 6,
             get = function ()
               return Core.db.profile.emojisEnabled
             end,
@@ -171,10 +307,49 @@ local function getMessageOptions()
               Core:Dispatch(UpdateConfig("emojiDisplay"))
             end,
           },
+        },
+      },
+      channelAbbreviations = getChannelOptions(),
+      links = {
+        name = "Links and tooltips",
+        type = "group",
+        inline = true,
+        order = 4,
+        args = {
+          chatLinkIcons = chatOption("chatLinkIcons", "Link icons",
+            "Show icons for items, spells, and achievements, with details for equipment.", 6, "LinkInfoIcons"),
+          chatUrls = chatOption("chatUrls", "Clickable URLs",
+            "Click an address in chat to open it in the copy window.", 7, "UrlCopy"),
+          chatInvites = chatOption("chatInvites", "Invite links",
+            "Alt-click a player name or click an invite tag to invite that player.", 8, "Invites"),
+          mouseOverTooltips = {
+            name = "Mouse over tooltips",
+            desc = "Show the standard game tooltip when hovering over supported links in chat.\nDefault: on",
+            type = "toggle",
+            order = 9,
+            get = function ()
+              return Core.db.profile.mouseOverTooltips
+            end,
+            set = function (info, input)
+              Core.db.profile.mouseOverTooltips = input
+            end,
+          },
+        },
+      },
+      timestamps = {
+        name = "Timestamps",
+        type = "group",
+        inline = true,
+        order = 5,
+        args = {
           timestampsEnabled = {
             name = "Show timestamps",
-            desc = "Adds Glassy-owned timestamps to new and retained chat messages. Enabling this turns off WoW's built-in timestamps to prevent duplicates.\nDefault: Disabled",
+            desc = function ()
+              if Core:IsPratModuleEnabled("Timestamps") then return "Prat currently controls timestamps." end
+              return "Show timestamps on new and retained messages. Enabling this turns off WoW's timestamps."
+            end,
             type = "toggle",
+            disabled = function () return Core:IsPratModuleEnabled("Timestamps") end,
             order = 1.7,
             get = function ()
               return Core.db.profile.timestampsEnabled
@@ -188,13 +363,13 @@ local function getMessageOptions()
             end,
           },
           timestampFormat = {
-            name = "Format",
+            name = "Time format",
             desc = "Choose the time format used before each message.\nDefault: [23:59:59]",
             type = "select",
             order = 1.8,
             values = TIMESTAMP_FORMATS,
             disabled = function ()
-              return not Core.db.profile.timestampsEnabled
+              return not Core.db.profile.timestampsEnabled or Core:IsPratModuleEnabled("Timestamps")
             end,
             get = function ()
               return Core.db.profile.timestampFormat
@@ -210,7 +385,7 @@ local function getMessageOptions()
             type = "toggle",
             order = 1.9,
             disabled = function ()
-              return not Core.db.profile.timestampsEnabled
+              return not Core.db.profile.timestampsEnabled or Core:IsPratModuleEnabled("Timestamps")
             end,
             get = function ()
               return Core.db.profile.timestampColorEnabled
@@ -227,6 +402,7 @@ local function getMessageOptions()
             order = 2,
             disabled = function ()
               return not Core.db.profile.timestampsEnabled or not Core.db.profile.timestampColorEnabled
+                or Core:IsPratModuleEnabled("Timestamps")
             end,
             get = function ()
               local color = Core.db.profile.timestampColor
@@ -244,7 +420,7 @@ local function getMessageOptions()
             order = 2.1,
             values = getTimestampFrameOptions,
             disabled = function ()
-              return not Core.db.profile.timestampsEnabled
+              return not Core.db.profile.timestampsEnabled or Core:IsPratModuleEnabled("Timestamps")
             end,
             get = function (_, frameName)
               return Core.db.profile.timestampFrames[frameName]
@@ -256,12 +432,91 @@ local function getMessageOptions()
           },
         },
       },
+      section6 = {
+        name = "History",
+        type = "group",
+        inline = true,
+        order = 6,
+        args = {
+          scrollbackLines = {
+            type = "range",
+            name = "Scrollback lines",
+            desc = "Number of recent messages retained in each chat tab for copying. Glassy keeps up to 128 rendered messages for on-screen scrolling.\nDefault: "..
+              Core.defaults.profile.scrollbackLines.."\nMin: 50\nMax: 2000",
+            order = 6.1,
+            min = 50,
+            max = 2000,
+            softMin = 128,
+            softMax = 1000,
+            step = 50,
+            get = function ()
+              return Core.db.profile.scrollbackLines
+            end,
+            set = function (_, input)
+              Core.db.profile.scrollbackLines = input
+              Core:Dispatch(UpdateConfig("scrollbackLines"))
+            end,
+          },
+        },
+      },
+      section5 = {
+        name = "Filtering",
+        type = "group",
+        inline = true,
+        order = 7,
+        args = {
+          messageBlacklistEnabled = {
+            name = "Filter blocked phrases",
+            desc = "Hide chat messages containing any blocked phrase.\nDefault: off",
+            type = "toggle",
+            order = 5.3,
+            get = function ()
+              return Core.db.profile.messageBlacklistEnabled
+            end,
+            set = function (_, input)
+              Core.db.profile.messageBlacklistEnabled = input
+              Core:Dispatch(UpdateConfig("messageBlacklist"))
+            end,
+          },
+          messageBlacklist = {
+            name = "Blocked phrases",
+            desc = "Enter one plain-text phrase per line. Matching ignores letter case and repeated whitespace.",
+            type = "input",
+            multiline = 8,
+            width = "full",
+            order = 5.4,
+            disabled = function ()
+              return not Core.db.profile.messageBlacklistEnabled
+            end,
+            get = function ()
+              return Core.db.profile.messageBlacklist
+            end,
+            set = function (_, input)
+              Core.db.profile.messageBlacklist = input or ""
+              Core:Dispatch(UpdateConfig("messageBlacklist"))
+            end,
+          },
+        },
+      },
       section2 = {
         name = "Visibility",
         type = "group",
         inline = true,
-        order = 2,
+        order = 8,
         args = {
+          chatAlwaysVisible = {
+            name = "Always visible",
+            desc = "Keep chat messages, tabs, and headers visible instead of fading them out.\nDefault: off",
+            type = "toggle",
+            order = 1,
+            get = function ()
+              return Core.db.profile.chatAlwaysVisible
+            end,
+            set = function (_, input)
+              Core.db.profile.chatAlwaysVisible = input
+              Core:Dispatch(UpdateConfig("chatAlwaysVisible"))
+            end,
+          },
           chatHoldTime = {
             name = "Fade out delay",
             desc = "How many seconds Glassy waits after a message arrives before starting its fade out.\nDefault: "..
@@ -301,11 +556,11 @@ local function getMessageOptions()
           },
         },
       },
-      section3 = {
-        name = "Fading",
+      animation = {
+        name = "Animations",
         type = "group",
         inline = true,
-        order = 3,
+        order = 9,
         args = {
           fadeInDuration = {
             name = "Fade in duration",
@@ -364,14 +619,6 @@ local function getMessageOptions()
               Core:Dispatch(UpdateConfig("chatFadeEasing"))
             end,
           },
-        },
-      },
-      section4 = {
-        name = "Movement",
-        type = "group",
-        inline = true,
-        order = 4,
-        args = {
           slideInDuration = {
             name = "Movement duration",
             desc = "How many seconds existing messages take to move upward when new text arrives. Set to 0 to disable movement.\nDefault: "..
@@ -422,99 +669,8 @@ local function getMessageOptions()
             order = 4.4,
             get = function () return Core:GetModule("Demo"):IsActive() end,
             set = function (_, value) Core:GetModule("Demo"):SetActive(value) end,
-          }
-        }
-      },
-      section5 = {
-        name = "Behavior",
-        type = "group",
-        inline = true,
-        order = 6,
-        args = {
-          indentWordWrap = {
-            name = "Indent on line wrap",
-            desc = "Indent continuation lines when a chat message wraps.\nDefault: on",
-            type = "toggle",
-            order = 5.1,
-            get = function ()
-              return Core.db.profile.indentWordWrap
-            end,
-            set = function (info, input)
-              Core.db.profile.indentWordWrap = input
-              Core:Dispatch(UpdateConfig("indentWordWrap"))
-            end,
           },
-          mouseOverTooltips = {
-            name = "Mouse over tooltips",
-            desc = "Show the standard game tooltip when hovering over supported links in chat.\nDefault: on",
-            type = "toggle",
-            order = 5.2,
-            get = function ()
-              return Core.db.profile.mouseOverTooltips
-            end,
-            set = function (info, input)
-              Core.db.profile.mouseOverTooltips = input
-            end,
-          },
-          messageBlacklistEnabled = {
-            name = "Message blacklist",
-            desc = "Hide chat messages containing any blocked phrase.\nDefault: off",
-            type = "toggle",
-            order = 5.3,
-            get = function ()
-              return Core.db.profile.messageBlacklistEnabled
-            end,
-            set = function (_, input)
-              Core.db.profile.messageBlacklistEnabled = input
-              Core:Dispatch(UpdateConfig("messageBlacklist"))
-            end,
-          },
-          messageBlacklist = {
-            name = "Blocked phrases",
-            desc = "Enter one plain-text phrase per line. Matching ignores letter case and repeated whitespace.",
-            type = "input",
-            multiline = 8,
-            width = "full",
-            order = 5.4,
-            disabled = function ()
-              return not Core.db.profile.messageBlacklistEnabled
-            end,
-            get = function ()
-              return Core.db.profile.messageBlacklist
-            end,
-            set = function (_, input)
-              Core.db.profile.messageBlacklist = input or ""
-              Core:Dispatch(UpdateConfig("messageBlacklist"))
-            end,
-          },
-        }
-      },
-      section6 = {
-        name = "History",
-        type = "group",
-        inline = true,
-        order = 5,
-        args = {
-          scrollbackLines = {
-            type = "range",
-            name = "Scrollback lines",
-            desc = "Number of recent messages retained in each chat tab for copying. Glassy keeps up to 128 rendered messages for on-screen scrolling.\nDefault: "..
-              Core.defaults.profile.scrollbackLines.."\nMin: 50\nMax: 2000",
-            order = 6.1,
-            min = 50,
-            max = 2000,
-            softMin = 128,
-            softMax = 1000,
-            step = 50,
-            get = function ()
-              return Core.db.profile.scrollbackLines
-            end,
-            set = function (_, input)
-              Core.db.profile.scrollbackLines = input
-              Core:Dispatch(UpdateConfig("scrollbackLines"))
-            end,
-          },
-        }
+        },
       },
     },
   }

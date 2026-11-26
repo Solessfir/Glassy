@@ -29,7 +29,7 @@
 ## Category-zhTW: 對話
 
 ## SavedVariables: GlassyDB
-## OptionalDeps: EllesmereUI
+## OptionalDeps: EllesmereUI, Prat-3.0
 ## X-Curse-Project-ID: 1695833
 ## X-Wago-ID: qGYZPRNg
 
@@ -87,8 +87,10 @@ Glassy\Components\SlidingMessageFrameNative.lua
 Glassy\Modules\Ellesmere.lua
 Glassy\Modules\EllesmereOptions.lua
 Glassy\Modules\ChatCopy.lua
+Glassy\Modules\ChatLinks.lua
 Glassy\Modules\Demo.lua
 Glassy\Modules\ProfileTransfer.lua
+Glassy\Modules\SlashAliases.lua
 Glassy\Modules\Config.lua
 Glassy\Modules\ConfigProfiles.lua
 Glassy\Modules\ConfigChatPages.lua
@@ -96,6 +98,7 @@ Glassy\Modules\ConfigMessagePages.lua
 Glassy\Modules\ConfigSupportPages.lua
 Glassy\Modules\Fonts.lua
 Glassy\Modules\Hyperlinks.lua
+Glassy\Modules\MessageFormatting.lua
 Glassy\Modules\NewsData.lua
 Glassy\Modules\News.lua
 Glassy\Modules\TextProcessing.lua

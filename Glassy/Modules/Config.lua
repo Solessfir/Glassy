@@ -89,6 +89,7 @@ local function toggleMover()
   else
     Core:Dispatch(UnlockMover())
   end
+  Core.Libs.AceConfigRegistry:NotifyChange("Glassy")
 end
 
 C.IsMoverUnlocked = isMoverUnlocked
@@ -317,13 +318,13 @@ local function normalizeSettings()
   normalizeCombatLogBar()
   normalizeTimestamps()
   normalizeAnimationEasings()
-  if Core.db.profile.timestampsEnabled then
+  if Core.db.profile.timestampsEnabled and not Core:IsPratModuleEnabled("Timestamps") then
     disableBuiltinTimestamps()
   end
 end
 
 
-local function getOptions()
+function C:GetOptions()
   local profile = C.Pages.profile()
   profile.order = 7
   local tabs = C.Pages.tabs()
@@ -382,7 +383,7 @@ end
 
 function C:OnEnable()
   normalizeSettings()
-  local options = getOptions()
+  local options = self:GetOptions()
   Core:LocalizeOptions(options)
 
   AceConfig:RegisterOptionsTable("Glassy", options)
@@ -416,6 +417,12 @@ function C:OnSlashCommand(input)
   elseif input == "demo" then
     local demo = Core:GetModule("Demo")
     demo:SetActive(not demo:IsActive())
+  elseif input:match("^alias%s") then
+    Core:GetModule("SlashAliases"):Set(input:sub(7))
+  elseif input:match("^unalias%s") then
+    Core:GetModule("SlashAliases"):Remove(input:sub(9))
+  elseif input == "alias" or input == "listaliases" then
+    Core:GetModule("SlashAliases"):List()
   else
     self:OpenSettings()
   end
@@ -650,7 +657,7 @@ function C:RefreshConfig()
   normalizeCombatLogBar()
   normalizeTimestamps()
   normalizeAnimationEasings()
-  if Core.db.profile.timestampsEnabled then
+  if Core.db.profile.timestampsEnabled and not Core:IsPratModuleEnabled("Timestamps") then
     disableBuiltinTimestamps()
   end
 
@@ -688,10 +695,13 @@ function C:RefreshConfig()
   Core:Dispatch(UpdateConfig("indentWordWrap"))
   Core:Dispatch(UpdateConfig("iconTextureYOffset"))
   Core:Dispatch(UpdateConfig("emojiDisplay"))
+  Core:Dispatch(UpdateConfig("messageFormatting"))
+  Core:Dispatch(UpdateConfig("emojiDisplay"))
   Core:Dispatch(UpdateConfig("chatBackgroundColor"))
   Core:Dispatch(UpdateConfig("unreadMessageSeparatorColor"))
   Core:Dispatch(UpdateConfig("unreadMessageBackgroundColor"))
   Core:Dispatch(UpdateConfig("timestampDisplay"))
+  Core:Dispatch(UpdateConfig("slashAliasesEnabled"))
   Core:Dispatch(UpdateConfig("chatAlwaysVisible"))
   Core:Dispatch(UpdateConfig("chatFadeInDuration"))
   Core:Dispatch(UpdateConfig("chatFadeOutDuration"))

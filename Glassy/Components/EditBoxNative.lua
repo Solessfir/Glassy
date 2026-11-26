@@ -32,6 +32,27 @@ local function isChatMessagingLocked()
     C_ChatInfo.InChatMessagingLockdown()
 end
 
+-- Blizzard calls this extension after its own autocomplete and before switching chat channels.
+local nativeCustomTab = _G.ChatEdit_CustomTabPressed
+if type(nativeCustomTab) == "function" then
+  _G.ChatEdit_CustomTabPressed = function (editBox)
+    if nativeCustomTab(editBox) then return true end
+    if not editBox.glassyEditBoxInitialized or not Core.db.profile.completePlayerNames
+      or Core:IsPratModuleEnabled("PlayerNames") or isChatMessagingLocked() then return end
+    local text = editBox:GetText()
+    if _G.canaccessvalue and not _G.canaccessvalue(text) then return end
+    if text:sub(1, 1) == "/" or editBox:GetCursorPosition() ~= #text then return end
+    local prefix = text:match("([^%s]+)$")
+    if not prefix then return end
+    local name = Core:GetModule("MessageFormatting"):CompletePlayerName(prefix)
+    if not name or name == prefix then return end
+    local completed = text:sub(1, #text - #prefix)..name.." "
+    editBox:SetText(completed)
+    editBox:SetCursorPosition(#completed)
+    return true
+  end
+end
+
 local function setPropagateKeyboardInput(editBox, propagate)
   if InCombatLockdown() then
     return false
@@ -168,6 +189,7 @@ function EditBoxMixin:HookClassicVisibility()
 end
 
 function EditBoxMixin:Init(parent, useParentWidth)
+  self.glassyEditBoxInitialized = true
   -- Hide default styling
   hideExternalBackgrounds(self)
 

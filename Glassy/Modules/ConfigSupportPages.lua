@@ -32,6 +32,10 @@ local PRAT_UI_MODULES = {
   "SideTabs",
 }
 
+local PRAT_CHAT_MODULES = {
+  "ChannelNames", "Highlight", "History", "Invites", "LinkInfoIcons", "PlayerNames", "Timestamps", "UrlCopy",
+}
+
 local function formatList(items)
   return "• "..table.concat(items, "\n• ")
 end
@@ -41,26 +45,23 @@ local function getPratUiModuleGuidance()
     formatList(PRAT_UI_MODULES)
 end
 
-local function getPratModule(moduleName)
-  local pratAddon = _G.Prat and _G.Prat.Addon
-  if pratAddon == nil or type(pratAddon.GetModule) ~= "function" then
-    return nil
-  end
-
-  local ok, module = pcall(pratAddon.GetModule, pratAddon, moduleName, true)
-  return ok and module or nil
-end
-
-local function isPratModuleEnabled(moduleName)
-  local module = getPratModule(moduleName)
-  return module and type(module.IsEnabled) == "function" and module:IsEnabled()
-end
-
 local function getPratStatus()
   if _G.Prat == nil then
-    return "|cff808080Not detected.|r Glassy is fully functional without Prat."
+    return "|cff80ff80Prat is optional.|r Glassy can handle saved history, formatting, and links on its own."
   end
   return "|cff80ff80Detected:|r "..tostring(_G.Prat.Version or "Prat")
+end
+
+local function getPratChatModules()
+  local enabled = {}
+  for _, name in ipairs(PRAT_CHAT_MODULES) do
+    if Core:IsPratModuleEnabled(name, name == "History" and "scrollback" or nil) then
+      enabled[#enabled + 1] = name
+    end
+  end
+  if #enabled == 0 then return "Glassy handles all of these features. Configure them under Messages." end
+  return "Prat currently supplies these features: "..table.concat(enabled, ", ")..".\n\n"..
+    "Disable the matching Prat modules and reload to use Glassy's settings under Messages."
 end
 
 local function getElvUIStatus()
@@ -101,7 +102,7 @@ local function getEnabledPratUiModules()
 
   local enabled = {}
   for _, moduleName in ipairs(PRAT_UI_MODULES) do
-    if isPratModuleEnabled(moduleName) then
+    if Core:IsPratModuleEnabled(moduleName) then
       table.insert(enabled, moduleName)
     end
   end
@@ -111,15 +112,6 @@ local function getEnabledPratUiModules()
   end
   return L("|cffff8080Enabled Prat UI modules that Glassy replaces:|r").."\n"..formatList(enabled)
 end
-
-local function getPratTimestampStatus()
-  if not isPratModuleEnabled("Timestamps") then
-    return "|cff80ff80Prat Timestamps is disabled.|r Glassy can add timestamps itself."
-  end
-  return "|cffffd100Prat Timestamps is enabled.|r Glassy does not use it for live rendering. "..
-    "Disable it and use Glassy timestamps to prevent Prat from embedding timestamps in retained native history."
-end
-
 
 local function getShortcutOptions()
   return {
@@ -155,7 +147,7 @@ local function getShortcutOptions()
         name = "Sent-message history",
         type = "group",
         inline = true,
-        order = 1,
+        order = 2,
         args = {
           reference = {
             type = "description",
@@ -183,7 +175,7 @@ local function getShortcutOptions()
         },
       },
       copying = {
-        name = "Copying chat",
+        name = "Chat actions",
         type = "group",
         inline = true,
         order = 4,
@@ -193,7 +185,8 @@ local function getShortcutOptions()
             fontSize = "medium",
             width = "full",
             order = 1,
-            name = "|cffffd100Shift-click a chat tab|r  Open that tab's chat history for copying. Press Ctrl+C to copy it to the clipboard.",
+            name = "|cffffd100Shift-click a chat tab|r  Open that tab's chat history for copying. Press Ctrl+C to copy it to the clipboard.\n\n"..
+              "|cffffd100Alt-click a player name|r  Invite the character to your group.",
           },
         },
       },
@@ -211,6 +204,9 @@ local function getCommandOptions()
       commandDebug = commandRow(3, "/gl debug", "Open a copyable layout debug report"),
       commandNews = commandRow(4, "/gl news", "Open version history"),
       commandDemo = commandRow(5, "/gl demo", "Toggle demo mode"),
+      commandAlias = commandRow(6, "/alias rld /reload", "Create a shortcut for a slash command"),
+      commandUnalias = commandRow(7, "/unalias rld", "Remove a shortcut"),
+      commandListAliases = commandRow(8, "/listaliases", "List saved shortcuts"),
     },
   }
 end
@@ -241,26 +237,28 @@ local function getCompatibilityOptions()
         order = 1.2,
       },
       pratBoundary = {
-        name = "Glassy owns its renderer, tabs, edit box, scrolling, history, timestamps, copying, and tooltips. Prat remains optional and may format message content before Glassy receives it.",
+        name = "Enabled Prat modules take precedence over the matching Glassy controls.",
+        hidden = function () return _G.Prat == nil end,
         type = "description",
         order = 2,
       },
       pratSupported = {
-        name = "Supported Prat features",
+        name = "Prat chat features",
         type = "group",
         inline = true,
         order = 3,
+        hidden = function () return _G.Prat == nil end,
         args = {
           details = {
-            name = formatList({
-              "Player and channel name formatting",
-              "Text substitutions, filters, and highlights",
-              "URL and invite links",
-              "Link icons, sounds, and popups",
-              "Channel color memory",
-            }),
+            name = getPratChatModules,
             type = "description",
             order = 1,
+          },
+          history = {
+            name = "To keep existing scrollback, turn on Save chat history in Glassy and reload once with Prat History still enabled. Then disable Prat History and reload again.",
+            type = "description",
+            order = 2,
+            hidden = function () return not Core:IsPratModuleEnabled("History", "scrollback") end,
           },
         },
       },
@@ -269,6 +267,7 @@ local function getCompatibilityOptions()
         type = "group",
         inline = true,
         order = 4,
+        hidden = function () return _G.Prat == nil end,
         args = {
           current = {
             name = getEnabledPratUiModules,
@@ -281,36 +280,6 @@ local function getCompatibilityOptions()
             nameLocalized = true,
             type = "description",
             order = 2,
-          },
-        },
-      },
-      pratTimestamps = {
-        name = "Prat Timestamps",
-        type = "group",
-        inline = true,
-        order = 5,
-        args = {
-          current = {
-            name = getPratTimestampStatus,
-            type = "description",
-            order = 1,
-          },
-        },
-      },
-      pratHistory = {
-        name = "Prat History",
-        type = "group",
-        inline = true,
-        order = 6,
-        args = {
-          details = {
-            name = formatList({
-              "Restored Prat history is displayed by Glassy.",
-              "Glassy's Scrollback lines setting controls the retained line limit.",
-              "Prat's Set Chat Lines value is intentionally not used.",
-            }),
-            type = "description",
-            order = 1,
           },
         },
       },
@@ -328,7 +297,7 @@ local function getAboutOptions()
         name = "",
         type = "group",
         inline = true,
-        order = 2,
+        order = 1,
         args = {
           version = {
             name = " |cffffd100Version:|r  "..Core.Version,

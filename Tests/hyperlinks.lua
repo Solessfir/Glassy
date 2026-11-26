@@ -13,8 +13,18 @@ local listeners, modifiers = {}, {}
 local refs, copied, poppedOut = {}, nil, nil
 local module = {}
 local chatCopy = {ShowText = function (_, _, text) copied = text end}
+local handledLink
+local chatLinks = {HandleClick = function (_, link, button)
+  if link ~= "glassyurl:https://example.com" then return false end
+  handledLink = {link, button}
+  return true
+end}
 local core = {
-  GetModule = function (_, name) return name == "ChatCopy" and chatCopy or module end,
+  GetModule = function (_, name)
+    if name == "ChatCopy" then return chatCopy end
+    if name == "ChatLinks" then return chatLinks end
+    return module
+  end,
   Subscribe = function (_, event, callback) listeners[event] = callback end,
   Localize = function (_, text) return text end,
   Dispatch = function () end,
@@ -93,6 +103,10 @@ assert(loadfile("Glassy/Modules/Hyperlinks.lua"))("Glassy", {core, constants})
 module:OnInitialize()
 module:OnEnable()
 local chatFrame = {}
+
+listeners.click({"glassyurl:https://example.com", "[https://example.com]", "LeftButton", chatFrame})
+assert(handledLink[1] == "glassyurl:https://example.com" and handledLink[2] == "LeftButton" and #refs == 0,
+  "Native chat link clicks are handled before Blizzard's item link handler")
 
 listeners.click({"enchant:2337", "|cffffffff|Henchant:2337|h[Alchemy: Lesser Healing Potion]|h|r", "RightButton", chatFrame})
 assert(#refs == 0, "Recipe right-clicks open Glassy's tracking menu instead")

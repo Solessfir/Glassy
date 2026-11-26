@@ -130,6 +130,8 @@ function Hyperlinks:OnEnable()
   Core:Subscribe(HYPERLINK_CLICK, function (payload)
     local link, text, button, chatFrame = unpack(payload)
     local accessible = not _G.canaccessvalue or _G.canaccessvalue(link)
+    local chatLinks = Core:GetModule("ChatLinks")
+    if accessible and chatLinks.HandleClick and chatLinks:HandleClick(link, button) then return end
     if accessible and button == "RightButton" then
       local recipeID = tonumber(link:match("^enchant:(%d+)"))
       if recipeID and showRecipeMenu(recipeID, text) then return end

@@ -416,6 +416,7 @@ function SlidingMessageFrameMixin:SubscribeToEvents()
           key == "indentWordWrap" or
           key == "iconTextureYOffset" or
           key == "emojiDisplay" or
+          key == "messageFormatting" or
           key == "timestampDisplay" or
           (key == "combatLogBarLayout" and self.state.isCombatLog)
         ) then
@@ -423,6 +424,7 @@ function SlidingMessageFrameMixin:SubscribeToEvents()
             key == "iconTextureYOffset" or
             key == "messageFontSize" or
             key == "emojiDisplay" or
+            key == "messageFormatting" or
             key == "timestampDisplay"
           )
         end
