@@ -653,9 +653,21 @@ end
 
 local selectedAlias = ""
 
+local function getAliasNames()
+  local names = {}
+  for name, expansion in pairs(Core.db.global.slashAliases) do
+    if type(name) == "string" and name:match("^[%w_%-]+$") and type(expansion) == "string" then
+      names[#names + 1] = name
+    end
+  end
+  table.sort(names)
+  return names
+end
+
 local function getSelectedAlias()
   local aliases = Core.db.global.slashAliases
-  return type(aliases[selectedAlias]) == "string" and selectedAlias or ""
+  if type(aliases[selectedAlias]) ~= "string" then selectedAlias = "" end
+  return selectedAlias
 end
 
 local function getEditBoxOptions()
@@ -845,32 +857,46 @@ local function getEditBoxOptions()
           savedAlias = {
             name = "Saved aliases",
             type = "select",
+            style = "radio",
             order = 2,
             width = "full",
+            hidden = function () return #getAliasNames() == 0 end,
             values = function ()
               local values = {[""] = L("New alias")}
-              for name, expansion in pairs(Core.db.global.slashAliases) do
-                if type(name) == "string" and name:match("^[%w_%-]+$") and type(expansion) == "string" then
-                  values[name] = "/"..name.." → "..expansion:gsub("|", "||")
-                end
+              for _, name in ipairs(getAliasNames()) do
+                values[name] = "/"..name.." -> "..Core.db.global.slashAliases[name]:gsub("|", "||")
               end
               return values
             end,
+            sorting = function ()
+              local names = getAliasNames()
+              table.insert(names, 1, "")
+              return names
+            end,
             get = getSelectedAlias,
             set = function (_, name)
+              if name ~= "" and type(Core.db.global.slashAliases[name]) ~= "string" then return end
               selectedAlias = name
               Core.Libs.AceConfigRegistry:NotifyChange("Glassy")
             end,
           },
+          aliasEmpty = {
+            name = "No aliases saved.",
+            type = "description",
+            order = 2.1,
+            width = "full",
+            hidden = function () return #getAliasNames() ~= 0 end,
+          },
           aliasExample = {
-            name = "Enter /rld = /reload to make /rld reload the UI.",
+            name = "Format: /shortcut = /command. Example: /rld = /reload",
             type = "description",
             order = 2.5,
             width = "full",
+            hidden = function () return getSelectedAlias() ~= "" end,
           },
           aliasDefinition = {
             name = "Alias definition",
-            desc = "Choose a saved alias to edit it.",
+            desc = "Select a saved alias to edit it, or New alias to create one. Changing the shortcut name creates a separate alias.",
             type = "input",
             order = 3,
             width = "full",
@@ -883,14 +909,26 @@ local function getEditBoxOptions()
               local name, errorMessage = Core:GetModule("SlashAliases"):ParseDefinition(input)
               return name and true or errorMessage or false
             end,
-            set = function (_, input) Core:GetModule("SlashAliases"):Set(input) end,
+            set = function (_, input)
+              local name = Core:GetModule("SlashAliases"):Set(input)
+              if not name then return end
+              selectedAlias = name
+              Core.Libs.AceConfigRegistry:NotifyChange("Glassy")
+            end,
           },
           removeAlias = {
             name = "Remove selected alias",
             type = "execute",
             order = 4,
+            hidden = function () return getSelectedAlias() == "" end,
             disabled = function () return getSelectedAlias() == "" end,
-            func = function () Core:GetModule("SlashAliases"):Remove(getSelectedAlias()) end,
+            func = function ()
+              local name = getSelectedAlias()
+              if name == "" then return end
+              Core:GetModule("SlashAliases"):Remove(name)
+              if Core.db.global.slashAliases[name] == nil then selectedAlias = "" end
+              Core.Libs.AceConfigRegistry:NotifyChange("Glassy")
+            end,
           },
         },
       },

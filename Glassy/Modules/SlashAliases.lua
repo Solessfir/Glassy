@@ -1,5 +1,9 @@
-local Core, Constants = unpack(select(2, ...))
+local Core, Constants, Utils = unpack(select(2, ...))
 local Aliases = Core:GetModule("SlashAliases")
+
+local function notify(message)
+  Utils.notify((message:gsub("|", "||")))
+end
 
 local function splitCommand(text)
   local name, arguments = text:match("^%s*/?(%S+)%s*(.*)$")
@@ -35,14 +39,15 @@ end
 function Aliases:Run(name, input, editBox)
   local expansion = Core.db.global.slashAliases[name]
   if type(expansion) ~= "string" then return end
-  if _G.C_ChatInfo and _G.C_ChatInfo.InChatMessagingLockdown and _G.C_ChatInfo.InChatMessagingLockdown() then
-    self:Print(Core:Localize("Aliases are unavailable during chat messaging lockdown."))
+  local inLockdown = _G.C_ChatInfo and _G.C_ChatInfo.InChatMessagingLockdown
+  if type(inLockdown) == "function" and inLockdown() then
+    notify(Core:Localize("Aliases are unavailable during chat messaging lockdown."))
     return
   end
   if _G.canaccessvalue and not _G.canaccessvalue(input) then return end
   local target, arguments = splitCommand(expansion)
   if not target or self.registered[target] or not canRun(target) then
-    self:Print(Core:Localize("Alias target is unavailable.").." "..expansion)
+    notify(Core:Localize("Alias target is unavailable.").." "..expansion)
     return
   end
   if target == "reload" and type(_G.ReloadUI) == "function" then
@@ -105,28 +110,29 @@ end
 function Aliases:Set(input)
   local name, expansion = self:ParseDefinition(input)
   if not name then
-    if expansion then self:Print(expansion) end
+    if expansion then notify(expansion) end
     return
   end
   if not self:Register(name) then
-    self:Print(Core:Localize("That slash command is already in use.").." /"..name)
+    notify(Core:Localize("That slash command is already in use.").." /"..name)
     return
   end
   Core.db.global.slashAliases[name] = expansion
-  self:Print("/"..name.." → "..expansion)
+  notify("/"..name.." -> "..expansion)
   Core.Libs.AceConfigRegistry:NotifyChange("Glassy")
+  return name
 end
 
 function Aliases:Remove(input)
   if _G.canaccessvalue and not _G.canaccessvalue(input) then return end
   local name, extra = splitCommand(input)
   if not name or extra ~= "" or not Core.db.global.slashAliases[name] then
-    self:Print(Core:Localize("Usage: /unalias shortcut"))
+    notify(Core:Localize("Usage: /unalias shortcut"))
     return
   end
   Core.db.global.slashAliases[name] = nil
   self:Unregister(name)
-  self:Print(Core:Localize("Alias removed.").." /"..name)
+  notify(Core:Localize("Alias removed.").." /"..name)
   Core.Libs.AceConfigRegistry:NotifyChange("Glassy")
 end
 
@@ -136,9 +142,9 @@ function Aliases:List()
     if type(name) == "string" and type(expansion) == "string" then names[#names + 1] = name end
   end
   table.sort(names)
-  if #names == 0 then self:Print(Core:Localize("No aliases saved.")) end
+  if #names == 0 then notify(Core:Localize("No aliases saved.")) end
   for _, name in ipairs(names) do
-    self:Print("/"..name.." → "..Core.db.global.slashAliases[name])
+    notify("/"..name.." -> "..Core.db.global.slashAliases[name])
   end
 end
 

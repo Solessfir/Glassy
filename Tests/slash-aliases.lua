@@ -24,16 +24,17 @@ hash_SlashCmdList = {["/OTHER"] = function () end}
 hash_ChatTypeInfoList = {["/S"] = "SAY"}
 local management = {}
 function aliases:RegisterChatCommand(name, method) management[name] = method end
-function aliases:Print(text) output[#output + 1] = text end
 
-assert(loadfile("Glassy/Modules/SlashAliases.lua"))("Glassy", {core, {EVENTS = {UPDATE_CONFIG = "update"}}})
+local utils = {notify = function (text) output[#output + 1] = text end}
+assert(loadfile("Glassy/Modules/SlashAliases.lua"))("Glassy", {core, {EVENTS = {UPDATE_CONFIG = "update"}}, utils})
 aliases:OnEnable()
 assert(management.alias == "Set" and management.unalias == "Remove" and management.listaliases == "List")
 local name, expansion = aliases:ParseDefinition("/rld = /demo fixed")
 assert(name == "rld" and expansion == "/demo fixed" and next(saved.slashAliases) == nil,
   "Settings validation uses the same grammar as slash commands and does not install the alias")
-aliases:Set("rl /reload")
+assert(aliases:Set("rl /reload") == "rl")
 assert(saved.slashAliases.rl == "/reload" and SLASH_GLASSYALIAS_RL1 == "/rl")
+assert(output[#output] == "/rl -> /reload", "Alias feedback uses the shared Glassy notifier")
 assert(refreshes == 1, "Adding an alias refreshes the settings list")
 SlashCmdList.GLASSYALIAS_RL("")
 assert(reloads == 1)

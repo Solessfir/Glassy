@@ -58,15 +58,20 @@ local function profileLabels(excludeCurrent)
   local labels = {}
   for _, name in ipairs(Core.db:GetProfiles()) do
     if not excludeCurrent or name ~= Core.db:GetCurrentProfile() then
-      local characters = {}
-      for character, profileName in pairs(Core.db.sv.profileKeys or {}) do
-        if profileName == name then characters[#characters + 1] = character end
-      end
-      table.sort(characters)
-      labels[name] = #characters > 0 and name.." ("..table.concat(characters, ", ")..")" or name
+      labels[name] = name
     end
   end
   return labels
+end
+
+local function profileCharacters(name)
+  local characters = {}
+  for character, profileName in pairs(Core.db.sv.profileKeys or {}) do
+    if profileName == name then characters[#characters + 1] = character end
+  end
+  table.sort(characters)
+  if #characters == 0 then return L("No characters currently use this profile.") end
+  return L("Characters using this profile").."\n"..table.concat(characters, "\n")
 end
 
 local function applyImportedProfile(profile)
@@ -109,7 +114,11 @@ local function getProfileOptions()
       },
       startFrom = {
         name = "Start from",
-        desc = "Copy Glassy settings into a separate profile. Chat history and native filters are unchanged. Tab order, selected tab, and per-tab timestamps start from defaults.",
+        desc = function ()
+          local description = L("Copy Glassy settings into a separate profile. Chat history and native filters are unchanged. Tab order, selected tab, and per-tab timestamps start from defaults.")
+          if startFrom ~= "" then return description.."\n\n"..profileCharacters(startFrom) end
+          return description
+        end,
         type = "select",
         order = 2,
         width = 1.8,
@@ -160,7 +169,9 @@ local function getProfileOptions()
   end
   args.choose.order = 15
   args.choose.name = "Use existing profile"
-  args.choose.desc = "Use an existing profile directly. Changes are shared with every character using that profile."
+  args.choose.desc = function ()
+    return L("Use an existing profile directly. Changes are shared with every character using that profile.").."\n\n"..profileCharacters(Core.db:GetCurrentProfile())
+  end
   args.choose.values = function () return profileLabels() end
   args.choose.width = "full"
   args.copyfrom.order = 2
