@@ -108,6 +108,7 @@ Glassy\Modules\NewsData.lua
 Glassy\Modules\News.lua
 Glassy\Modules\TextProcessing.lua
 Glassy\Modules\UIManager.lua
+Glassy\Modules\ChatNotifications.lua
 Glassy\Modules\SecondaryChatWindows.lua
 Glassy\Modules\DetailsEmbed.lua
 Glassy\Modules\ChatHistory.lua

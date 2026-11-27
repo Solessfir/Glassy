@@ -75,6 +75,7 @@ function MoverFrameMixin:SetDragPosition(left, bottom)
 
   self:ClearAllPoints()
   self:SetPoint(point, parent, point, xOfs, yOfs)
+  if self.editModePanel and self.editModePanel.frame:IsShown() then self:PositionEditModeSettings() end
 end
 
 function MoverFrameMixin:UpdateDragPosition()
@@ -122,11 +123,110 @@ end
 
 function MoverFrameMixin:UpdateMoverVisibility()
   local shown = self.manuallyUnlocked or self.blizzardEditing or false
+  if self.blizzardEditing and not self.originalMoverStrata then
+    self.originalMoverStrata = self.boundsFrame:GetFrameStrata()
+    self.originalSettingsStrata = self.editModeSettings:GetFrameStrata()
+    -- Blizzard's chat selection uses MEDIUM at level 1000 and intercepts the drag target.
+    self.boundsFrame:SetFrameStrata("HIGH")
+    self.editModeSettings:SetFrameStrata("HIGH")
+  elseif not self.blizzardEditing and self.originalMoverStrata then
+    self.boundsFrame:SetFrameStrata(self.originalMoverStrata)
+    self.editModeSettings:SetFrameStrata(self.originalSettingsStrata)
+    self.originalMoverStrata = nil
+    self.originalSettingsStrata = nil
+  end
   self:SetShown(shown)
   self:EnableMouse(shown)
   self:SetMovable(shown)
   if self.editModeSettings then self.editModeSettings:SetShown(self.blizzardEditing) end
+  if self.editModePanel and not self.blizzardEditing then self.editModePanel.frame:Hide() end
   if shown then self:ScheduleBoundsUpdate() end
+end
+
+function MoverFrameMixin:OpenEditModeSettings()
+  local config, libs = Core:GetModule("Config"), Core.Libs
+  if not (libs.AceGUI and libs.AceConfig and libs.AceConfigDialog and config.Pages) then
+    config:OpenSettings()
+    return
+  end
+  if self.editModePanel and self.editModePanel.frame:IsShown() then
+    self.editModePanel.frame:Hide()
+    return
+  end
+  if not self.editModePanel then
+    local general = config.Pages.general().args
+    local messages = config.Pages.messages().args
+    local editBox = config.Pages.editBox().args.section1.args
+    local options = {name = "Glassy", type = "group", args = {}}
+    local controls = {
+      general.section3.args.frameWidth, general.section3.args.frameHeight,
+      messages.section1.args.messageFont, messages.section1.args.messageFontSize, editBox.editBoxFontSize,
+      messages.section1.args.chatBackgroundColor, messages.section2.args.chatAlwaysVisible,
+      messages.section2.args.chatHoldTime, messages.animation.args.fadeInDuration,
+      messages.animation.args.fadeOutDuration, messages.animation.args.slideInDuration,
+    }
+    for index, control in ipairs(controls) do
+      local option = {}
+      for key, value in pairs(control) do option[key] = value end
+      option.order, option.width = index, "full"
+      if index == 4 then option.name = "Message font size" end
+      if index == 5 then option.name = "Edit box font size" end
+      local set = option.set
+      option.set = function (info, value, ...)
+        set(info, value, ...)
+        libs.AceConfigRegistry:NotifyChange("Glassy")
+      end
+      options.args["setting"..index] = option
+    end
+    options.args.resetPosition = {
+      name = "Reset position", type = "execute", order = 20,
+      func = function ()
+        local anchor = Core.defaults.profile.positionAnchor
+        Core:Dispatch(SaveFramePosition({point = anchor.point, xOfs = anchor.xOfs, yOfs = anchor.yOfs}))
+        Core:Dispatch(Constants.ACTIONS.UpdateConfig("framePosition"))
+        libs.AceConfigRegistry:NotifyChange("Glassy")
+      end,
+    }
+    Core:LocalizeOptions(options)
+    libs.AceConfig:RegisterOptionsTable("GlassyEditMode", options)
+    -- AceConfigDialog adds scrolling for Frame containers, but not InlineGroup containers.
+    local panel = libs.AceGUI:Create("Frame")
+    panel:SetTitle("Glassy")
+    panel:SetLayout("Fill")
+    panel:SetWidth(350)
+    panel:SetHeight(math.min(570, _G.UIParent:GetHeight() - 40))
+    panel:EnableResize(false)
+    panel.frame:SetParent(self.boundsFrame)
+    panel.frame:SetFrameStrata("DIALOG")
+    panel.frame:SetClampedToScreen(true)
+    self.editModePanel = panel
+  end
+  self.editModePanel.frame:Show()
+  self:RefreshEditModeSettings()
+end
+
+function MoverFrameMixin:RefreshEditModeSettings()
+  local dialog = Core.Libs.AceConfigDialog
+  dialog:SetDefaultSize("GlassyEditMode", math.min(350, _G.UIParent:GetWidth() - 20), math.min(570, _G.UIParent:GetHeight() - 40))
+  dialog:Open("GlassyEditMode", self.editModePanel)
+  self:PositionEditModeSettings()
+end
+
+function MoverFrameMixin:PositionEditModeSettings()
+  local panel = self.editModePanel
+  if not panel then return end
+  local parent = _G.UIParent
+  local scale = self.boundsFrame:GetEffectiveScale() / parent:GetEffectiveScale()
+  local right, left, top = self.boundsFrame:GetRight(), self.boundsFrame:GetLeft(), self.boundsFrame:GetTop()
+  if not (right and left and top) then return end
+  local width, height = panel.frame:GetWidth(), panel.frame:GetHeight()
+  local screenWidth, screenHeight = parent:GetWidth(), parent:GetHeight()
+  local x = right * scale + 8
+  if x + width > screenWidth - 10 then x = left * scale - width - 8 end
+  x = math.max(10, math.min(x, screenWidth - width - 10))
+  top = math.max(height + 10, math.min(top * scale, screenHeight - 10))
+  panel.frame:ClearAllPoints()
+  panel.frame:SetPoint("TOPLEFT", parent, "BOTTOMLEFT", x, top)
 end
 
 function MoverFrameMixin:ConnectBlizzardEditMode()
@@ -137,7 +237,7 @@ function MoverFrameMixin:ConnectBlizzardEditMode()
   settings:SetPoint("TOPRIGHT", -5, -5)
   settings:SetSize(140, 24)
   settings:SetText(Core:Localize("Glassy settings"))
-  settings:SetScript("OnClick", function () Core:GetModule("Config"):OpenSettings() end)
+  settings:SetScript("OnClick", function () self:OpenEditModeSettings() end)
   self.editModeSettings = settings
 
   local label = settings:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
@@ -157,6 +257,15 @@ function MoverFrameMixin:ConnectBlizzardEditMode()
   editMode:HookScript("OnHide", update)
   Core:Subscribe(UPDATE_CONFIG, function (key)
     if key == "blizzardEditMode" then update() end
+    if self.editModePanel and self.editModePanel.frame:IsShown() and not self.settingsRefreshScheduled then
+      self.settingsRefreshScheduled = true
+      C_Timer.After(0, function ()
+        self.settingsRefreshScheduled = false
+        if self.editModePanel.frame:IsShown() then
+          self:RefreshEditModeSettings()
+        end
+      end)
+    end
   end)
   update()
 end
@@ -250,6 +359,7 @@ function MoverFrameMixin:UpdateBounds()
   self.boundsFrame:ClearAllPoints()
   self.boundsFrame:SetPoint("TOPLEFT", self, "TOPLEFT", boundsLeft - moverLeft, boundsTop - moverTop)
   self.boundsFrame:SetPoint("BOTTOMRIGHT", self, "TOPLEFT", boundsRight - moverLeft, boundsBottom - moverTop)
+  if self.editModePanel and self.editModePanel.frame:IsShown() then self:PositionEditModeSettings() end
 end
 
 function MoverFrameMixin:Init()

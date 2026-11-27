@@ -12,8 +12,6 @@ local CreateSlidingMessageFramePool = Core.Components.CreateSlidingMessageFrameP
 
 -- WoW provides these globals at runtime, so suppress Luacheck's undefined-global warning while localizing them.
 -- luacheck: push ignore 113
-local BNToastFrame = BNToastFrame
-local ChatAlertFrame = ChatAlertFrame
 local C_Timer = C_Timer
 local CreateFrame = CreateFrame
 local GetCVar = C_CVar and C_CVar.GetCVar or GetCVar
@@ -342,17 +340,8 @@ function UIManager:ConfigureNativeChat()
   self.moverFrame:AddBoundsRegion(self.editBox)
   self.moverFrame:SetLayoutRegions(self.container, self.editBox)
 
-  -- Fix Battle.net Toast frame position
-  if ChatAlertFrame then
-    ChatAlertFrame:ClearAllPoints()
-    ChatAlertFrame:SetPoint("BOTTOMLEFT", self.container, "TOPLEFT", 15, 10)
-    if BNToastFrame then
-      BNToastFrame:ClearAllPoints()
-      BNToastFrame:SetPoint("BOTTOMLEFT", ChatAlertFrame, "BOTTOMLEFT", 0, 0)
-    end
-  end
-
   self.chatButtons = Core.Components.CreateChatButtons(self.container, self.dock)
+  self:InitializeNotifications()
 
   -- New version alert
   --@non-debug@

@@ -274,6 +274,15 @@ local english = {
   WHISPER_ALERT_SOUND = "Whisper notification sound",
   WHISPER_BUBBLES = "Whisper message bubbles",
   CLOSE_CONVERSATION = "Close conversation",
+  NOTIFICATION_SETTINGS = "Notifications",
+  STYLE_BNET_NOTIFICATIONS = "Style Battle.net notifications",
+  STYLE_GAME_ALERTS = "Style game alerts",
+  BNET_ALERTS = "Battle.net alerts",
+  CHAT_ALERTS = "Chat alerts",
+  VOICE_ALERTS = "Voice chat",
+  RESET_POSITION = "Reset position",
+  MESSAGE_FONT_SIZE = "Message font size",
+  EDIT_BOX_FONT_SIZE = "Edit box font size",
   EUI_SKIN_OFF = "Glassy's skin is turned off in EllesmereUI's Third-Party Addons options.",
 }
 

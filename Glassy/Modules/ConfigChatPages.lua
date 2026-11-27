@@ -297,6 +297,19 @@ local function getGeneralOptions()
           },
         },
       },
+      notifications = {
+        name = "Notifications", type = "group", inline = true, order = 3,
+        args = {
+          notificationStyle = profileOption("notificationStyle", {
+            name = "Style Battle.net notifications", type = "toggle", order = 1,
+            desc = "Use Glassy's background and font for Battle.net notifications. Turn off to restore Blizzard's appearance.",
+          }),
+          alertStyle = profileOption("alertStyle", {
+            name = "Style game alerts", type = "toggle", order = 2,
+            desc = "Use Glassy's background and font for achievement, loot, and other game alerts. Turn off to restore Blizzard's appearance.",
+          }),
+        },
+      },
     }
   }
 end
