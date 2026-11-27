@@ -130,6 +130,7 @@ Core.defaults = {
     -- Edit box
     editBoxStyle = "solid",
     emotePickerEnabled = false,
+    saveCommandHistory = false,
     editBoxEasing = "OutCubic",
     editBoxBackgroundEasing = "OutCubic",
     editBoxFadeInDuration = 0.2,

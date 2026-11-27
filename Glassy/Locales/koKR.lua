@@ -6,6 +6,7 @@ Core:RegisterCompactTranslations("koKR", {
   BUTTON_HOVER_COLOR = "마우스 오버 버튼 색상",
   INBOX_BUTTON_COLOR = "받은 편지함 버튼 색상",
   INBOX_BUTTON_HOVER_COLOR = "마우스 오버 받은 편지함 버튼 색상",
+  SAVE_COMMAND_HISTORY = "슬래시 명령어 기록 저장",
   WHISPERS = "귓속말",
   EMPTY_WHISPER_INBOX = "아직 귓속말이 없습니다.",
   START_WHISPER = "/w 이름-서버로 대화를 시작하세요.",

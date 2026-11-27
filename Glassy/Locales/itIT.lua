@@ -6,6 +6,7 @@ Core:RegisterCompactTranslations("itIT", {
   BUTTON_HOVER_COLOR = "Colore dei pulsanti al passaggio del mouse",
   INBOX_BUTTON_COLOR = "Colore del pulsante della posta in arrivo",
   INBOX_BUTTON_HOVER_COLOR = "Colore del pulsante della posta in arrivo al passaggio del mouse",
+  SAVE_COMMAND_HISTORY = "Salva cronologia dei comandi",
   WHISPERS = "Sussurri",
   EMPTY_WHISPER_INBOX = "Non ci sono ancora sussurri.",
   START_WHISPER = "Usa /w Nome-Reame per iniziare una conversazione.",

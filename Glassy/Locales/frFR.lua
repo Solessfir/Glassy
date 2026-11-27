@@ -1,6 +1,7 @@
 local Core = unpack(select(2, ...))
 
 Core:RegisterCompactTranslations("frFR", {
+  SAVE_COMMAND_HISTORY = "Enregistrer l’historique des commandes",
   WHISPERS = "Chuchotements",
   EMPTY_WHISPER_INBOX = "Aucun chuchotement pour le moment.",
   START_WHISPER = "Utilisez /w Nom-Royaume pour démarrer une conversation.",

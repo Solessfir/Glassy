@@ -6,6 +6,7 @@ Core:RegisterCompactTranslations("zhTW", {
   BUTTON_HOVER_COLOR = "按鈕滑鼠懸停顏色",
   INBOX_BUTTON_COLOR = "收件匣按鈕顏色",
   INBOX_BUTTON_HOVER_COLOR = "收件匣按鈕滑鼠懸停顏色",
+  SAVE_COMMAND_HISTORY = "儲存斜線指令記錄",
   WHISPERS = "密語",
   EMPTY_WHISPER_INBOX = "尚無密語。",
   START_WHISPER = "使用 /w 名稱-伺服器 開始對話。",

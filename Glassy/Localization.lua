@@ -266,6 +266,7 @@ local english = {
   EUI_CHAT_ENABLED = "EllesmereUI Chat is enabled.",
   EUI_CHAT_CONFLICT = "It restyles the same chat frames as Glassy. Disable the EllesmereUI Chat addon, then reload.",
   EUI_SKIN_ACTIVE = "Glassy's windows, label colors, and default font follow its style.",
+  SAVE_COMMAND_HISTORY = "Save slash-command history",
   WHISPERS = "Whispers",
   EMPTY_WHISPER_INBOX = "No whispers yet.",
   START_WHISPER = "Use /w Name-Realm to start a conversation.",

@@ -6,6 +6,7 @@ Core:RegisterTranslations("ruRU", {
   BUTTON_HOVER_COLOR = "Цвет кнопок при наведении",
   INBOX_BUTTON_COLOR = "Цвет кнопки входящих сообщений",
   INBOX_BUTTON_HOVER_COLOR = "Цвет кнопки входящих сообщений при наведении",
+  SAVE_COMMAND_HISTORY = "Сохранять историю команд",
   WHISPERS = "Шёпот",
   EMPTY_WHISPER_INBOX = "Пока нет сообщений шёпотом.",
   START_WHISPER = "Начните беседу командой /w Имя-Сервер.",

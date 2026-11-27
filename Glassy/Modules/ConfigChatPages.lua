@@ -809,6 +809,20 @@ local function getEditBoxOptions()
             desc = "Add a button that inserts Twemoji codes in the edit box. Enable emotes under Messages first.",
             disabled = function () return not Core.db.profile.emojisEnabled end,
           }),
+          saveCommandHistory = {
+            name = "Save slash-command history",
+            desc = function ()
+              if Core:IsPratModuleEnabled("History", "savehistory") then return "Prat currently saves slash-command history." end
+              return "Keep up to 32 recent slash commands for this character. Recall them with Alt+Up or Alt+Down. Turning this off clears saved commands."
+            end,
+            type = "toggle",
+            order = 3,
+            disabled = function ()
+              return not _G.IsSecureCmd or Core:IsPratModuleEnabled("History", "savehistory")
+            end,
+            get = function () return Core.db.profile.saveCommandHistory end,
+            set = function (_, enabled) C:SetCommandHistoryEnabled(enabled) end,
+          },
         },
       },
       behavior = {

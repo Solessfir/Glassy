@@ -100,6 +100,7 @@ temporary.temporary = true
 local _, _, closed = newWindow("ChatFrame4", {line("closed", 1)})
 closed.active = false
 history:OnEnable()
+delayed()
 shutdown()
 local saved = core.db.char.chatHistory
 assert(#saved.ChatFrame1 == 3 and saved.ChatFrame1[1][1] == "first" and saved.ChatFrame1[3][5] == 300)
@@ -132,9 +133,17 @@ local function restoreSetup(entries, limit)
   return frame, view
 end
 
-local frame, view = restoreSetup({line("live", 9999)})
+local frame, view = restoreSetup({line("third", 9999)})
+core.db.char.chatHistory.ChatFrame3 = {savedLine("inactive tab", 100)}
+history:OnEnable()
+shutdown()
+saved = core.db.char.chatHistory
+assert(#saved.ChatFrame1 == 4 and saved.ChatFrame1[1][1] == "first" and saved.ChatFrame1[3][5] == 300
+  and saved.ChatFrame1[4][1] == "third" and saved.ChatFrame1[4][5] == 9999,
+  "Shutdown before the timer retains new messages even when their text repeats a saved line")
+assert(saved.ChatFrame3[1][1] == "inactive tab", "A tab not yet initialized retains its previous transcript")
 delayed()
-assert(frame:GetNumMessages() == 4 and frame:GetMessageInfo(1) == "first" and frame:GetMessageInfo(4) == "live",
+assert(frame:GetNumMessages() == 4 and frame:GetMessageInfo(1) == "first" and frame:GetMessageInfo(4) == "third",
   "Restoration backfills native history in chronological order, retaining messages received during login")
 local queued = view.state.incomingScrollbackMessages
 assert(#queued == 3 and queued[1][2] == "third" and queued[3][2] == "first")
@@ -144,8 +153,15 @@ assert(frame.entries[1].serverTime == nil and core.Components.SlidingMessageFram
   "Restored timestamps live in addon bookkeeping, leaving native entries unchanged for secure chat processing")
 history:Restore()
 assert(frame:GetNumMessages() == 4, "Saved history is consumed only once")
-history:Save()
+shutdown()
 assert(core.db.char.chatHistory.ChatFrame1[1][5] == 100, "Subsequent sessions preserve the original receivedAt")
+
+frame = restoreSetup({{message = "third", timestamp = 90.2}})
+core.db.char.chatHistory.ChatFrame1[3][5] = 9990
+history:OnEnable()
+shutdown()
+assert(#core.db.char.chatHistory.ChatFrame1 == 3 and core.db.char.chatHistory.ChatFrame1[1][1] == "first",
+  "Early shutdown matches an existing native row despite subsecond clock conversion differences")
 
 frame, view = restoreSetup({line("live", 9999)}, 2)
 history:Restore()
@@ -160,6 +176,12 @@ assert(frame:GetNumMessages() == 4 and frame:GetMessageInfo(1) == "first" and #v
 frame, view = restoreSetup({line("first", 100), line("second", 200), line("third", 300)})
 history:Restore()
 assert(frame:GetNumMessages() == 3 and #view.state.incomingScrollbackMessages == 0, "Existing complete history is not duplicated")
+
+frame, view = restoreSetup({line("third", 9999)})
+history:Restore()
+assert(frame:GetNumMessages() == 4 and #view.state.incomingScrollbackMessages == 3
+  and frame:GetMessageInfo(3) == "third" and frame:GetMessageInfo(4) == "third",
+  "A newly received message with identical text does not replace an older saved occurrence")
 
 frame, view = restoreSetup({})
 frame:BackFillMessage("native restoration", 1, 1, 1)
@@ -181,10 +203,25 @@ assert(#view.state.incomingScrollbackMessages == 1 and view.state.incomingScroll
   "Native restoration keeps Glassy's existing blacklist behavior")
 assert(view.state.incomingScrollbackMessages[1].receivedAt == 10000, "An unreadable saved timestamp falls back safely")
 
-frame, view = restoreSetup({})
-frame.BackFillMessage = function () error("native failure") end
-local ok = pcall(history.Restore, history)
-assert(not ok and view.state.restoringReceivedAt == nil, "A native failure cannot leak the scoped timestamp into later chat")
+for _, timestamp in ipairs({300, secretNumber}) do
+  frame, view = restoreSetup({line("live", 9999)}, 3)
+  local backfill = frame.BackFillMessage
+  frame.BackFillMessage = function (self, text, ...)
+    if text == "second" then error("native failure") end
+    return backfill(self, text, ...)
+  end
+  local previous = core.db.char.chatHistory
+  previous.ChatFrame1[3][5] = timestamp
+  history:OnEnable()
+  local ok = pcall(delayed)
+  assert(not ok and view.state.restoringReceivedAt == nil, "A native failure cannot leak the scoped timestamp into later chat")
+  assert(core.db.char.chatHistory == previous, "A native failure preserves the saved transcript")
+  shutdown()
+  saved = core.db.char.chatHistory.ChatFrame1
+  local restoredTime = timestamp == secretNumber and 10000 or timestamp
+  assert(#saved == 3 and saved[1][1] == "second" and saved[2][5] == restoredTime and saved[3][5] == 9999,
+    "After partial restoration, shutdown saves new messages, deduplicates restored rows, and obeys the limit")
+end
 
 frame = restoreSetup({})
 core.db.profile.saveChatHistory = false

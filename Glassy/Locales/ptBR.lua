@@ -6,6 +6,7 @@ Core:RegisterCompactTranslations("ptBR", {
   BUTTON_HOVER_COLOR = "Cor dos botões ao passar o mouse",
   INBOX_BUTTON_COLOR = "Cor do botão da caixa de entrada",
   INBOX_BUTTON_HOVER_COLOR = "Cor do botão da caixa de entrada ao passar o mouse",
+  SAVE_COMMAND_HISTORY = "Salvar histórico de comandos",
   WHISPERS = "Sussurros",
   EMPTY_WHISPER_INBOX = "Ainda não há sussurros.",
   START_WHISPER = "Use /w Nome-Reino para iniciar uma conversa.",

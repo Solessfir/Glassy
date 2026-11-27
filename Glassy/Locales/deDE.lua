@@ -1,6 +1,7 @@
 local Core = unpack(select(2, ...))
 
 Core:RegisterCompactTranslations("deDE", {
+  SAVE_COMMAND_HISTORY = "Befehlsverlauf speichern",
   WHISPERS = "Flüstern",
   EMPTY_WHISPER_INBOX = "Noch keine Flüsternachrichten.",
   START_WHISPER = "Beginne eine Unterhaltung mit /w Name-Realm.",

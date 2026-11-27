@@ -1,6 +1,7 @@
 local Core = unpack(select(2, ...))
 
 local values = {
+  SAVE_COMMAND_HISTORY = "Guardar historial de comandos",
   WHISPERS = "Susurros",
   EMPTY_WHISPER_INBOX = "Aún no hay susurros.",
   START_WHISPER = "Usa /w Nombre-Reino para iniciar una conversación.",

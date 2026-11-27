@@ -25,11 +25,52 @@ local IsControlKeyDown = IsControlKeyDown
 -- luacheck: pop
 
 local EDIT_BOX_RIGHT_PADDING = 8
+local SAVED_COMMAND_LIMIT = 32
 
 local function isChatMessagingLocked()
   return C_ChatInfo and
     C_ChatInfo.InChatMessagingLockdown and
     C_ChatInfo.InChatMessagingLockdown()
+end
+
+local function keepsCommandHistory()
+  return Core.db.profile.saveCommandHistory and not Core:IsPratModuleEnabled("History", "savehistory")
+end
+
+local function isRecallableCommand(text)
+  if (_G.canaccessvalue and not _G.canaccessvalue(text)) or type(text) ~= "string"
+    or #text > 1280 or text:find("[%c]") then return false end
+  local command = text:match("^/[^/%s]+")
+  if not command or command:match("^/%d+$") then return false end
+  command = command:upper()
+  local kind = _G.hash_ChatTypeInfoList and _G.hash_ChatTypeInfoList[command]
+  -- Native history also records sent chat with a channel prefix. Keep only commands.
+  if kind and _G.ChatTypeInfo and _G.ChatTypeInfo[kind] then return false end
+  return _G.IsSecureCmd and not _G.IsSecureCmd(command)
+end
+
+function EditBoxMixin:ConnectCommandHistory()
+  if not self.AddHistoryLine or not _G.hooksecurefunc then return end
+  local history = Core.db.char.commandHistory
+  if keepsCommandHistory() and type(history) == "table" then
+    -- Let the client recall commands through its Alt+Up/Down history.
+    for index = math.max(1, #history - SAVED_COMMAND_LIMIT + 1), #history do
+      if isRecallableCommand(history[index]) then self:AddHistoryLine(history[index]) end
+    end
+  end
+  _G.hooksecurefunc(self, "AddHistoryLine", function (_, text)
+    if not keepsCommandHistory() or not isRecallableCommand(text) then return end
+    local commands = Core.db.char.commandHistory
+    if type(commands) ~= "table" then
+      commands = {}
+      Core.db.char.commandHistory = commands
+    end
+    for index = #commands, 1, -1 do
+      if commands[index] == text then table.remove(commands, index) end
+    end
+    commands[#commands + 1] = text
+    while #commands > SAVED_COMMAND_LIMIT do table.remove(commands, 1) end
+  end)
 end
 
 -- Blizzard calls this extension after its own autocomplete and before switching chat channels.
@@ -207,6 +248,7 @@ function EditBoxMixin:Init(parent, useParentWidth)
   -- Blizzard chat edit boxes default to requiring Alt for cursor movement.
   -- Glassy owns the visible edit box, so use standard arrow-key behavior.
   self:SetAltArrowKeyMode(false)
+  self:ConnectCommandHistory()
 
   for _, suffix in ipairs({"Left", "Mid", "Right"}) do
     Utils.hookPresentation(self.glassyHooks, _G[self:GetName()..suffix], "Show", function (texture)

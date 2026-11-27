@@ -6,6 +6,7 @@ Core:RegisterCompactTranslations("zhCN", {
   BUTTON_HOVER_COLOR = "按钮悬停颜色",
   INBOX_BUTTON_COLOR = "收件箱按钮颜色",
   INBOX_BUTTON_HOVER_COLOR = "收件箱按钮悬停颜色",
+  SAVE_COMMAND_HISTORY = "保存斜杠命令历史",
   WHISPERS = "密语",
   EMPTY_WHISPER_INBOX = "还没有密语。",
   START_WHISPER = "使用 /w 名字-服务器 开始对话。",
