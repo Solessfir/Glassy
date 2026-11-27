@@ -109,7 +109,7 @@ function News:OnEnable()
         suffix = "\n"
       end
 
-      itemLabel:SetText(prefix..item..suffix)
+      itemLabel:SetText(prefix..item:gsub("→", "->")..suffix)
       scrollFrame:AddChild(itemLabel)
     end
   end
