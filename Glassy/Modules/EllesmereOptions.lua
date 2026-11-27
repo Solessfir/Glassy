@@ -117,10 +117,11 @@ function Ellesmere:ScheduleOptionsRefresh(force)
     local forced = self.optionsRefreshForce
     self.optionsRefreshForce = false
     local EllesmereUI = _G.EllesmereUI
-    if not (EllesmereUI and EllesmereUI.GetPluginModuleKey and EllesmereUI.GetActiveModule) then return end
+    local moduleKey = EllesmereUI and EllesmereUI.GetPluginModuleKey
+    if type(moduleKey) ~= "function" or not EllesmereUI.GetActiveModule then return end
     local active = EllesmereUI:GetActiveModule()
     for _, key in ipairs(self.optionModuleKeys or {}) do
-      local fullKey = EllesmereUI.GetPluginModuleKey(PLUGIN_ID, key)
+      local fullKey = moduleKey(PLUGIN_ID, key)
       if fullKey and fullKey == active then
         EllesmereUI:RefreshPage(forced)
       elseif fullKey and forced and EllesmereUI.InvalidateModulePageCache then
@@ -166,17 +167,39 @@ local function dim(ctx, frame, disabled, tooltip)
   tooltipOnFrame(ctx, blocker, tooltip)
 end
 
-local function makeLabel(parent, size)
-  local label = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-  local path, _, flags = label:GetFont()
-  if path then label:SetFont(path, size, flags) end
-  if Ellesmere.skin and Ellesmere.skin.Font then pcall(Ellesmere.skin.Font, label) end
+local function makeLabel(parent, size, description)
+  local ui = _G.EllesmereUI
+  local color = (description and ui.TEXT_DIM or ui.TEXT_WHITE) or {}
+  local label
+  -- The options panel uses its house font independently of the user's in-game skin font.
+  if ui.MakeFont then
+    label = ui.MakeFont(parent, size, nil, color.r or 1, color.g or 1, color.b or 1,
+      color.a or (description and 0.53 or 1))
+  else
+    label = parent:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+    local path = ui.EXPRESSWAY or label:GetFont()
+    if path then label:SetFont(path, size, "") end
+    label:SetTextColor(color.r or 1, color.g or 1, color.b or 1, color.a or (description and 0.53 or 1))
+    label:SetShadowOffset(0, 0)
+  end
   label:SetJustifyH("LEFT")
   label:SetWordWrap(true)
   return label
 end
 
 local DESCRIPTION_SIZES = {small = 12, medium = 14, large = 16}
+
+local function descriptionText(text)
+  local accent = _G.EllesmereUI.ELLESMERE_GREEN
+  if not accent then return text end
+  local function byte(value) return math.floor(math.max(0, math.min(1, value or 1)) * 255 + 0.5) end
+  local color = string.format("|cff%02x%02x%02x", byte(accent.r), byte(accent.g), byte(accent.b))
+  local normal = _G.NORMAL_FONT_COLOR_CODE
+  if type(normal) == "string" and normal:match("^|c%x%x%x%x%x%x%x%x$") then
+    text = text:gsub(normal, color)
+  end
+  return (text:gsub("|cffffd100", color))
+end
 
 local function descriptionRow(ctx, text, fontSize)
   if text == "" or text == " " then return ctx.y - (text == " " and 12 or 0) end
@@ -185,10 +208,10 @@ local function descriptionRow(ctx, text, fontSize)
   local frame = CreateFrame("Frame", nil, ctx.parent)
   frame:SetPoint("TOPLEFT", ctx.parent, "TOPLEFT", ctx.pad, ctx.y)
   frame:SetWidth(width)
-  local label = makeLabel(frame, DESCRIPTION_SIZES[fontSize] or 13)
+  local label = makeLabel(frame, DESCRIPTION_SIZES[fontSize] or 13, true)
   label:SetPoint("TOPLEFT", 20, -8)
   label:SetWidth(width - 40)
-  label:SetText(text)
+  label:SetText(descriptionText(text))
   local height = label:GetStringHeight() + 16
   frame:SetHeight(height)
   return ctx.y - height - ROW_GAP, frame
@@ -203,6 +226,8 @@ local function inputRow(ctx, text, multiline, getText, commit)
   local frame = CreateFrame("Frame", nil, ctx.parent)
   frame:SetPoint("TOPLEFT", ctx.parent, "TOPLEFT", ctx.pad, ctx.y)
   frame:SetSize(width, height)
+  local ui = _G.EllesmereUI
+  if ui.RowBg then ui.RowBg(frame, ctx.parent) end
   local label = makeLabel(frame, 14)
   label:SetPoint("TOPLEFT", 20, -8)
   label:SetWidth(width - 40)
@@ -211,40 +236,57 @@ local function inputRow(ctx, text, multiline, getText, commit)
   height = height + math.max(0, labelHeight - 20)
   frame:SetHeight(height)
 
-  local accept = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-  accept:SetSize(90, 22)
-  accept:SetText(_G.ACCEPT or "Accept")
-  if Ellesmere.skin then pcall(Ellesmere.skin.Button, accept) end
+  local nativeButton = ui.MakeStyledButton and ui.RB_COLOURS
+  local accept = CreateFrame("Button", nil, frame, not nativeButton and "UIPanelButtonTemplate" or nil)
+  accept:SetSize(90, 26)
+  if nativeButton then
+    ui.MakeStyledButton(accept, _G.ACCEPT or "Accept", 13, ui.RB_COLOURS)
+  else
+    accept:SetText(_G.ACCEPT or "Accept")
+    if Ellesmere.skin then pcall(Ellesmere.skin.Button, accept) end
+  end
+
+  local function inputSurface(surface)
+    local background = surface:CreateTexture(nil, "BACKGROUND")
+    background:SetAllPoints()
+    background:SetColorTexture(0, 0, 0, 0.5)
+    if ui.MakeRoundedBorder then ui.MakeRoundedBorder(surface, 1, 1, 1, 0.2, background) end
+  end
 
   local editBox
   if multiline then
     accept:SetPoint("BOTTOMRIGHT", -20, 8)
-    local container = CreateFrame("Frame", nil, frame, "BackdropTemplate")
+    local container = CreateFrame("Frame", nil, frame)
     container:SetPoint("TOPLEFT", 20, -labelHeight - 14)
     container:SetPoint("BOTTOMRIGHT", -20, 38)
+    inputSurface(container)
     local scroll = CreateFrame("ScrollFrame", nil, container, "UIPanelScrollFrameTemplate")
     scroll:SetPoint("TOPLEFT", 6, -6)
     scroll:SetPoint("BOTTOMRIGHT", -26, 6)
     editBox = CreateFrame("EditBox", nil, scroll)
     editBox:SetMultiLine(true)
-    editBox:SetFontObject("ChatFontNormal")
     editBox:SetWidth(width - 80)
     scroll:SetScrollChild(editBox)
     -- An empty box is one line tall, so the whole frame focuses it.
     container:EnableMouse(true)
     container:SetScript("OnMouseDown", function () editBox:SetFocus() end)
     if Ellesmere.skin then
-      pcall(Ellesmere.skin.Panel, container, {inset = true})
       pcall(Ellesmere.skin.ScrollBar, scroll.ScrollBar)
     end
   else
     accept:SetPoint("BOTTOMRIGHT", -20, 12)
-    editBox = CreateFrame("EditBox", nil, frame, "InputBoxTemplate")
-    editBox:SetHeight(24)
+    editBox = CreateFrame("EditBox", nil, frame)
+    editBox:SetHeight(26)
     editBox:SetPoint("BOTTOMLEFT", 20, 11)
     editBox:SetPoint("RIGHT", accept, "LEFT", -12, 0)
-    if Ellesmere.skin then pcall(Ellesmere.skin.EditBox, editBox) end
+    editBox:SetTextInsets(10, 10, 0, 0)
+    inputSurface(editBox)
   end
+  local fontPath = ui.EXPRESSWAY or ui._font
+  if not fontPath then fontPath = label:GetFont() end
+  if fontPath then editBox:SetFont(fontPath, 13, "") end
+  editBox:SetTextColor(1, 1, 1, 0.9)
+  editBox:SetJustifyH("LEFT")
   editBox:SetAutoFocus(false)
   local initialText = getText() or ""
   editBox:SetText(initialText)
@@ -252,9 +294,11 @@ local function inputRow(ctx, text, multiline, getText, commit)
   local submitted
   local function submit()
     local value = editBox:GetText()
-    if value == initialText or value == (getText() or "") or value == submitted then return end
+    -- The focused box can outlive a change to the selected alias or profile until the page rebuilds.
+    if value == initialText or value == submitted or (getText() or "") ~= initialText then return end
     submitted = value
     commit(value)
+    initialText = getText() or ""
   end
   editBox:HookScript("OnTextChanged", function (_, userInput)
     if userInput then submitted = nil end
@@ -360,6 +404,21 @@ local function renderOption(self, ctx, chain, path)
       tooltip)
   elseif kind == "select" then
     local labels, order = valuesOf(chain, path)
+    if option.style == "radio" then
+      frame, height = W:SectionHeader(ctx.parent, name, ctx.y, tooltip)
+      ctx.y = ctx.y - height
+      dim(ctx, frame, disabled, tooltip)
+      local selectValue = confirmedSetter(self, chain, path)
+      for _, key in ipairs(order) do
+        local row, rowHeight = W:Checkbox(ctx.parent, tostring(labels[key]), ctx.y,
+          function () return field(chain, path, "get") == key end,
+          function (checked) if checked then selectValue(key) end end,
+          tooltip)
+        ctx.y = ctx.y - rowHeight
+        dim(ctx, row, disabled, tooltip)
+      end
+      return
+    end
     frame, height = W:Dropdown(ctx.parent, name, ctx.y, labels,
       function () return field(chain, path, "get") end,
       confirmedSetter(self, chain, path),
@@ -399,7 +458,8 @@ local function renderOption(self, ctx, chain, path)
         local valid = field(chain, path, "validate", value)
         if valid == false or type(valid) == "string" then
           local message = type(valid) == "string" and valid or textOf(chain, path, "usage")
-          Core:GetModule("Config"):Print(message ~= "" and message or name..": Invalid value")
+          local feedback = message ~= "" and message or name..": Invalid value"
+          Utils.notify((feedback:gsub("|", "||")))
           return
         end
         confirmThen(chain, path, function () applyChange(self, chain, path, "set", value) end, value)
@@ -471,10 +531,15 @@ local function copyValue(value)
   return copy
 end
 
--- EllesmereUI confirms a reset and reloads the UI afterwards, so restoring the saved defaults is enough.
+-- EllesmereUI reloads after a reset. Command history also has data stored outside the profile.
 local function resetSettings(settings)
   for setting in pairs(settings) do
-    Core.db.profile[setting] = copyValue(Core.defaults.profile[setting])
+    local value = Core.defaults.profile[setting]
+    if setting == "saveCommandHistory" then
+      Core:GetModule("Config"):SetCommandHistoryEnabled(value)
+    else
+      Core.db.profile[setting] = copyValue(value)
+    end
   end
 end
 
@@ -540,6 +605,53 @@ function Ellesmere:RegisterOptions()
   for _, event in ipairs({"OnProfileChanged", "OnProfileCopied", "OnProfileReset"}) do
     Core.db.RegisterCallback(self, event, function () self:ScheduleOptionsRefresh(true) end)
   end
+end
+
+local function revealSidebarEntry(EllesmereUI, moduleKey, retry)
+  if _G.EllesmereUI ~= EllesmereUI or not EllesmereUI.GetActiveModule
+    or EllesmereUI:GetActiveModule() ~= moduleKey then return end
+  local scroll, child = EllesmereUI._addonScrollFrame, EllesmereUI._addonScrollChild
+  if not (scroll and child and scroll.IsVisible and scroll:IsVisible() and child.GetChildren) then return end
+  local buttons = {child:GetChildren()}
+  for _, button in ipairs(buttons) do
+    if button._folder == moduleKey and button:IsShown() then
+      local childTop, top, bottom = child:GetTop(), button:GetTop(), button:GetBottom()
+      if not (childTop and top and bottom) then
+        if retry then C_Timer.After(0.1, function () revealSidebarEntry(EllesmereUI, moduleKey, false) end) end
+        return
+      end
+      local current, height = scroll:GetVerticalScroll(), scroll:GetHeight()
+      local first, last = childTop - top, childTop - bottom
+      local target = current
+      if first < current then target = first elseif last > current + height then target = last - height end
+      if target == current then return end
+      local range = EllesmereUI.SafeScrollRange and EllesmereUI.SafeScrollRange(scroll) or scroll:GetVerticalScrollRange()
+      if not range or range == 0 then
+        if retry then C_Timer.After(0.1, function () revealSidebarEntry(EllesmereUI, moduleKey, false) end) end
+        return
+      end
+      target = math.max(0, math.min(range or 0, target))
+      scroll:SetVerticalScroll(target)
+      -- EUI updates this sidebar's thumb and arrow through its range callback.
+      local update = scroll:GetScript("OnScrollRangeChanged")
+      if update then update(scroll, 0, range) end
+      return
+    end
+  end
+end
+
+function Ellesmere:OpenOptions()
+  local EllesmereUI = _G.EllesmereUI
+  local openPlugin = EllesmereUI and EllesmereUI.OpenPlugin
+  if not self.optionsRegistered or type(openPlugin) ~= "function" then return false end
+  if _G.InCombatLockdown and _G.InCombatLockdown() then return false end
+  local opened = openPlugin(PLUGIN_ID, "general")
+  if opened and EllesmereUI.GetPluginModuleKey then
+    local moduleKey = EllesmereUI.GetPluginModuleKey(PLUGIN_ID, "general")
+    -- EUI defers first open, and the scroll range can lag behind sidebar layout.
+    if moduleKey then C_Timer.After(0.1, function () revealSidebarEntry(EllesmereUI, moduleKey, true) end) end
+  end
+  return opened
 end
 
 function Ellesmere:OnEnable()

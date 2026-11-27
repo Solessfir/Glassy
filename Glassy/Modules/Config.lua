@@ -431,6 +431,8 @@ function C:OnSlashCommand(input)
     Core:GetModule("SlashAliases"):Remove(input:sub(9))
   elseif input == "alias" or input == "listaliases" then
     Core:GetModule("SlashAliases"):List()
+  elseif input == "standalone" then
+    self:OpenSettings(true)
   else
     self:OpenSettings()
   end
@@ -438,17 +440,20 @@ end
 
 local settingsWindow
 
--- AceConfigDialog's own window returns to AceGUI's shared pool when closed, so EllesmereUI's permanent skin would
--- reach other addons' windows. While EllesmereUI skins Glassy, settings open in a window Glassy keeps instead.
-function C:OpenSettings()
+function C:OpenSettings(standalone)
   local ellesmere = Core:GetModule("Ellesmere")
+  if not standalone and ellesmere:OpenOptions() then
+    if settingsWindow then settingsWindow:Hide() end
+    AceConfigDialog:Close("Glassy")
+    return
+  end
   if not ellesmere:IsActive() then
     AceConfigDialog:Open("Glassy")
     return
   end
   if settingsWindow == nil then
+    -- A skinned window must stay out of AceGUI's shared pool.
     settingsWindow = AceGUI:Create("Frame")
-    -- The pooled controls inside go back to AceGUI; only the kept window carries the skin.
     settingsWindow:SetCallback("OnClose", function (widget) widget:ReleaseChildren() end)
     _G.GlassySettingsFrame = settingsWindow.frame
     table.insert(_G.UISpecialFrames, "GlassySettingsFrame")

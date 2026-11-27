@@ -38,12 +38,20 @@ local function stubFrame()
   function frame:SetText(text) self.text = text end
   function frame:GetText() return self.text end
   function frame:GetStringHeight() return 20 end
-  function frame:GetFont() return "font.ttf", 12, "" end
+  function frame:SetFont(path, size, flags) self.font = {path, size, flags} end
+  function frame:GetFont() return unpack(rawget(self, "font") or {"font.ttf", 12, ""}) end
+  function frame:SetTextColor(...) self.textColor = {...} end
+  function frame:SetColorTexture(...) self.textureColor = {...} end
   function frame:CreateFontString() return stubFrame() end
+  function frame:CreateTexture() return stubFrame() end
   frames[#frames + 1] = frame
   return frame
 end
-CreateFrame = function () return stubFrame() end
+CreateFrame = function (kind, _, parent, template)
+  local frame = stubFrame()
+  frame.frameType, frame.parent, frame.template = kind, parent, template
+  return frame
+end
 
 -- EllesmereUI widgets record what they were asked to draw.
 local rows = {}
@@ -63,6 +71,8 @@ local spec, activeModule, refreshes = nil, nil, {}
 local shownTooltip
 EllesmereUI = {
   Widgets = widgets, CONTENT_PAD = 45,
+  EXPRESSWAY = "house-font.ttf", TEXT_WHITE = {r = 1, g = 1, b = 1}, TEXT_DIM = {r = 1, g = 1, b = 1, a = 0.53},
+  ELLESMERE_GREEN = {r = 0.1, g = 0.8, b = 0.6}, RB_COLOURS = {},
   ShowWidgetTooltip = function (_, text) shownTooltip = text end,
   HideWidgetTooltip = function () shownTooltip = nil end,
   RegisterPlugin = function (id, value) assert(id == "Glassy"); spec = value; return true end,
@@ -72,9 +82,31 @@ EllesmereUI = {
   InvalidateModulePageCache = function (_, key) refreshes[#refreshes + 1] = "invalidate "..key end,
   IsSearchPrebuild = function () return false end,
 }
+function EllesmereUI.MakeFont(parent, size, flags, ...)
+  local label = parent:CreateFontString()
+  label:SetFont(EllesmereUI.EXPRESSWAY, size, flags or "")
+  label:SetTextColor(...)
+  label.nativeFont = true
+  return label
+end
+function EllesmereUI.MakeStyledButton(button, text, size, colors)
+  assert(colors == EllesmereUI.RB_COLOURS)
+  button.nativeButton = true
+  button.label = EllesmereUI.MakeFont(button, size, nil, 1, 1, 1, 1)
+  button.label:SetText(text)
+end
+function EllesmereUI.RowBg(frame, parent)
+  assert(frame.parent == parent, "Native row colors are scoped to the page")
+  frame.nativeRow = true
+end
+function EllesmereUI.MakeRoundedBorder(frame, r, g, b, a, background)
+  frame.nativeBorder = {r, g, b, a}
+  frame.background = background
+end
 
 -- A small options tree that uses every AceConfig feature Glassy's settings use.
-local db = {enabled = true, size = 12, mode = "b", frames = {ChatFrame1 = true}, color = {0.1, 0.2, 0.3, 0.4}, text = "old"}
+NORMAL_FONT_COLOR_CODE = "|cffffd200"
+local db = {enabled = true, size = 12, mode = "b", alias = "", frames = {ChatFrame1 = true}, color = {0.1, 0.2, 0.3, 0.4}, text = "old"}
 local profiles = {current = "Default", available = {Default = "Default", Raid = "Raid"}}
 local handler = {
   GetProfile = function (_, info) assert(info.handler and info.arg == "common" and info[0] == "Glassy" and info.uiName == "AceConfigDialog-3.0"); return profiles.current end,
@@ -99,10 +131,12 @@ local options = {
               disabled = function () return not db.enabled end},
             secret = {type = "toggle", name = "Hidden", order = 3, hidden = true},
             mode = {type = "select", name = "Mode", order = 4, values = {a = "Alpha", b = "Beta"}, sorting = {"b", "a"}},
+            alias = {type = "select", style = "radio", name = "Aliases", order = 4.2,
+              values = {[""] = "New alias", rld = "/rld -> /reload"}, sorting = {"", "rld"}},
             always = {type = "toggle", name = "Always available", order = 4.5, disabled = false},
             font = {type = "select", name = "Font", order = 5, dialogControl = "LSM30_Font",
               values = {[""] = "Use UI font", Friz = "Fonts\\Friz.ttf"}, get = function () return "Friz" end, set = noop},
-            last = {type = "description", name = "Last", order = -1},
+            last = {type = "description", name = "Last |cffffd100command|r |cffffd200profile|r |cffff0000warning|r", order = -1},
           },
         },
         frames = {type = "multiselect", name = "Windows", order = 2, values = {ChatFrame1 = "General", ChatFrame3 = "Trade"},
@@ -140,16 +174,23 @@ local options = {
 registry:RegisterOptionsTable("Glassy", options)
 
 local updateListeners = {}
-local module = {}
+local module = {skin = {
+  Font = function (font) font:SetFont("game-skin-font.ttf", 10, "OUTLINE") end,
+  Button = function () error("Panel buttons must use the native options style") end,
+  EditBox = function () error("Panel inputs must use the native options style") end,
+  Panel = function () error("Panel surfaces must use the native options style") end,
+  ScrollBar = noop,
+}}
 local core = {
   Libs = {AceConfigRegistry = registry},
   defaults = {profile = {enabled = true, size = 12, color = {r = 1, g = 1, b = 1}, chatFadeInDuration = 0.4}},
   db = {RegisterCallback = noop, profile = {enabled = false, size = 30, color = {r = 0, g = 0, b = 0}}},
-  GetModule = function (_, name) return name == "Config" and {Print = function (_, text) printed = text end} or module end,
+  GetModule = function () return module end,
   Subscribe = function (_, _, callback) updateListeners[#updateListeners + 1] = callback end,
 }
 local utils = {}
 assert(loadfile("Glassy/utils.lua"))("Glassy", {core, {}, utils})
+utils.notify = function (text) printed = text end
 assert(loadfile("Glassy/Modules/EllesmereOptions.lua"))("Glassy", {core, {EVENTS = {UPDATE_CONFIG = "update"}}, utils})
 module:OnEnable()
 
@@ -178,11 +219,19 @@ assert(build(1) > 0)
 assert(row("Appearance").kind == "SectionHeader" and not row("Hidden"), "Inline groups become sections; hidden options are skipped")
 assert(row("Appearance").args[1] == "Appearance settings", "Group headings keep their descriptions")
 local commandHelp
+local themedHighlight
 for _, frame in ipairs(frames) do
-  if frame.text == "/glassy  Open settings" then commandHelp = true end
+  if frame.text == "/glassy  Open settings" then
+    commandHelp = true
+    assert(frame.nativeFont and frame.font[1] == EllesmereUI.EXPRESSWAY and frame.font[2] == 14,
+      "Descriptions use the options house font rather than the in-game skin font")
+    assert(frame.textColor[4] == 0.53, "Description text uses the native dim color")
+  end
+  if frame.text == "Last |cff1acc99command|r |cff1acc99profile|r |cffff0000warning|r" then themedHighlight = true end
   assert(not tostring(frame.text):find("Hidden help", 1, true), "Hidden descriptions stay out of merged help rows")
 end
 assert(commandHelp, "Command help keeps its inline description layout")
+assert(themedHighlight, "Gold command emphasis follows the native panel accent while other explicit colors are preserved")
 local toggle = row("Enabled")
 assert(toggle.args[1]() == true and toggle.args[3] == "Turns it on", "Inherited getters and tooltips are used")
 local slider = row("Size")
@@ -190,6 +239,12 @@ assert(slider.args[1] == 1 and slider.args[2] == 100 and slider.args[3] == 1, "S
 assert(slider.alpha == 1, "Enabled rows are not dimmed")
 local dropdown = row("Mode")
 assert(dropdown.args[1].b == "Beta" and dropdown.args[4][1] == "b", "Dropdowns keep the option's sorting")
+local newAlias, savedAlias = row("New alias"), row("/rld -> /reload")
+assert(row("Aliases").kind == "SectionHeader" and newAlias.kind == "Checkbox" and savedAlias.kind == "Checkbox")
+assert(newAlias.args[1]() and not savedAlias.args[1]())
+savedAlias.args[2](true)
+savedAlias.args[2](false)
+assert(not newAlias.args[1]() and savedAlias.args[1](), "Radio choices are visible and selecting one unchecks the other")
 assert(row("Font").args[1].Friz == "Friz" and row("Font").args[1][""] == "Use UI font", "Font pickers preserve the inherited font label")
 assert(row("Windows").kind == "SectionHeader" and row("General").kind == "Checkbox" and row("Trade"))
 local color = row("Color")
@@ -248,8 +303,9 @@ assert(db.frames.ChatFrame3 == false)
 local input
 for _, frame in ipairs(frames) do if frame.scripts.OnEnterPressed then input = frame end end
 db.text = "changed elsewhere"
+input.text = "stale draft"
 input.scripts.OnEditFocusLost(input)
-assert(db.text == "changed elsewhere", "Untouched inputs never overwrite a newly selected alias or profile")
+assert(db.text == "changed elsewhere", "A stale draft never overwrites a newly selected alias or profile")
 db.text = "old"
 input.text = "bad"
 input.scripts.OnEnterPressed(input)
@@ -259,6 +315,12 @@ input.scripts.OnEditFocusLost(input)
 assert(printed == nil, "Leaving the box does not report the same rejection twice")
 local accept
 for _, frame in ipairs(frames) do if frame.scripts.OnClick then accept = frame end end
+assert(rawget(input, "template") == nil and input.font[1] == EllesmereUI.EXPRESSWAY and input.font[2] == 13,
+  "Inputs use the options house font without Blizzard input artwork")
+assert(input.nativeBorder and input.background.textureColor[4] == 0.5 and input.parent.nativeRow,
+  "Input surfaces use the native rounded border, dark fill, and alternating row background")
+assert(accept.nativeButton and rawget(accept, "template") == nil and accept.label.font[1] == EllesmereUI.EXPRESSWAY,
+  "Accept uses EllesmereUI's native button primitive")
 input.text = "new"
 input.scripts.OnTextChanged(input, true)
 accept.scripts.OnClick(accept)
@@ -284,6 +346,18 @@ end
 assert(inputTooltip, "Input descriptions are available as tooltips")
 row("Color").scripts.OnEnter()
 assert(shownTooltip == "Choose the text color", "Color descriptions are available as tooltips")
+
+options.args.general.args.text.multiline = 4
+build(1)
+local multilineInput
+for _, frame in ipairs(frames) do
+  if frame.frameType == "EditBox" then multilineInput = frame end
+end
+assert(multilineInput and multilineInput.font[1] == EllesmereUI.EXPRESSWAY and multilineInput.font[2] == 13,
+  "Multiline text uses the same house font as single-line inputs")
+assert(rawget(multilineInput, "template") == nil and multilineInput.parent.parent.nativeBorder,
+  "Multiline input containers use the same native rounded surface")
+options.args.general.args.text.multiline = nil
 
 -- Handler method names, info.arg, and confirmations work like AceConfig.
 build(2)

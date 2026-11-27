@@ -34,44 +34,45 @@ local PRAT_UI_MODULES = {
 
 local PRAT_CHAT_MODULES = {
   "ChannelNames", "Highlight", "History", "Invites", "LinkInfoIcons", "PlayerNames", "Timestamps", "UrlCopy",
+  "AltNames", "ChannelColorMemory", "ChannelSticky", "ChatLog", "CustomFilters", "Mentions", "PopupMessage",
+  "Sounds", "Substitutions", "TellTarget",
 }
 
 local function formatList(items)
   return "• "..table.concat(items, "\n• ")
 end
 
-local function getPratUiModuleGuidance()
-  return L("Glassy replaces the native-frame behavior of these modules. Keep them disabled:").."\n"..
-    formatList(PRAT_UI_MODULES)
-end
-
 local function getPratStatus()
-  if _G.Prat == nil then
-    return "|cff80ff80Prat is optional.|r Glassy can handle saved history, formatting, and links on its own."
-  end
-  return "|cff80ff80Detected:|r "..tostring(_G.Prat.Version or "Prat")
+  local prat = _G.Prat
+  return "|cff80ff80Prat|r"..(prat and prat.Version and " |cff8080ff"..tostring(prat.Version).."|r" or "")
 end
 
-local function getPratChatModules()
+local function getEnabledPratModules(moduleNames, chatFeatures)
   local enabled = {}
-  for _, name in ipairs(PRAT_CHAT_MODULES) do
-    if Core:IsPratModuleEnabled(name, name == "History" and "scrollback" or nil) then
+  if _G.Prat == nil then return enabled end
+  for _, name in ipairs(moduleNames) do
+    if Core:IsPratModuleEnabled(name, chatFeatures and name == "History" and "scrollback" or nil) then
       enabled[#enabled + 1] = name
     end
   end
-  if #enabled == 0 then return "Glassy handles all of these features. Configure them under Messages." end
-  return "Prat currently supplies these features: "..table.concat(enabled, ", ")..".\n\n"..
+  return enabled
+end
+
+local function getPratChatModules()
+  return "Prat currently supplies these features: "..table.concat(getEnabledPratModules(PRAT_CHAT_MODULES, true), ", ")..".\n\n"..
     "Disable the matching Prat modules and reload to use Glassy's settings under Messages."
 end
 
-local function getElvUIStatus()
+local function getElvUIEngine()
   local elvui = _G.ElvUI
-  local engine = type(elvui) == "table" and elvui[1]
-  if not engine then
-    return "|cff808080Not detected: ElvUI.|r"
-  end
+  return type(elvui) == "table" and elvui[1]
+end
+
+local function getElvUIStatus()
+  local engine = getElvUIEngine()
+  if not engine then return "" end
   local version = engine.versionString or engine.version
-  return "|cff80ff80Detected:|r ElvUI"..(version and " |cff8080ff"..tostring(version).."|r" or "")
+  return "|cff80ff80ElvUI|r"..(version and " |cff8080ff"..tostring(version).."|r" or "")
 end
 
 local function isAddOnLoaded(name)
@@ -79,38 +80,15 @@ local function isAddOnLoaded(name)
   return loaded and loaded(name) or false
 end
 
--- EllesmereUI Chat restyles the same chat frames Glassy owns, so both must not run together.
 local function getEllesmereStatus()
-  if not _G.EllesmereUI then
-    return "|cff808080Not detected: EllesmereUI.|r"
-  end
-  if isAddOnLoaded("EllesmereUIChat") then
-    return "|cffff8080EllesmereUI Chat is enabled.|r "..
-      "It restyles the same chat frames as Glassy. Disable the EllesmereUI Chat addon, then reload."
-  end
-  if Core:GetModule("Ellesmere"):IsActive() then
-    return "|cff80ff80Detected:|r EllesmereUI. Glassy's windows, label colors, and default font follow its style."
-  end
-  return "|cff80ff80Detected:|r EllesmereUI. "..
-    "Glassy's skin is turned off in EllesmereUI's Third-Party Addons options."
+  local status = "|cff80ff80EllesmereUI|r"
+  if Core:GetModule("Ellesmere"):IsActive() then return status end
+  return status.."\nGlassy's skin is turned off in EllesmereUI's Third-Party Addons options."
 end
 
 local function getEnabledPratUiModules()
-  if _G.Prat == nil then
-    return L("No compatibility warnings.")
-  end
-
-  local enabled = {}
-  for _, moduleName in ipairs(PRAT_UI_MODULES) do
-    if Core:IsPratModuleEnabled(moduleName) then
-      table.insert(enabled, moduleName)
-    end
-  end
-
-  if #enabled == 0 then
-    return L("|cff80ff80No conflicting Prat UI modules are enabled.|r")
-  end
-  return L("|cffff8080Enabled Prat UI modules that Glassy replaces:|r").."\n"..formatList(enabled)
+  return L("|cffff8080Enabled Prat UI modules that Glassy replaces:|r").."\n"..
+    formatList(getEnabledPratModules(PRAT_UI_MODULES)).."\n\n"..L("Disable these Prat modules and reload.")
 end
 
 local function getShortcutOptions()
@@ -139,7 +117,7 @@ local function getShortcutOptions()
               "|cffffd100Ctrl+K|r  Delete from the cursor to the end.\n\n"..
               "|cffffd100Ctrl+Y|r  Insert the text last removed by Ctrl+U or Ctrl+K.\n\n"..
               "|cffffd100Ctrl+A / C / X / V|r  Select all / copy / cut / paste.\n\n"..
-              "Ctrl+U, K and Y are unavailable during Blizzard's chat messaging lockdown.",
+              "|cffffd100Ctrl+U / K / Y|r are unavailable during Blizzard's chat messaging lockdown.",
           },
         },
       },
@@ -200,6 +178,7 @@ local function getCommandOptions()
     type = "group",
     args = {
       commandOpen = commandRow(1, "/gl", "Open settings"),
+      commandStandalone = commandRow(1.5, "/gl standalone", "Open the standalone settings"),
       commandMover = commandRow(2, "/gl lock", "Toggle the Glassy frame mover"),
       commandDebug = commandRow(3, "/gl debug", "Open a copyable layout debug report"),
       commandNews = commandRow(4, "/gl news", "Open version history"),
@@ -207,6 +186,7 @@ local function getCommandOptions()
       commandAlias = commandRow(6, "/alias rld /reload", "Create a shortcut for a slash command"),
       commandUnalias = commandRow(7, "/unalias rld", "Remove a shortcut"),
       commandListAliases = commandRow(8, "/listaliases", "List saved shortcuts"),
+      commandTellTarget = commandRow(9, "/tt", "Whisper your player target when enabled in Messages"),
     },
   }
 end
@@ -217,37 +197,42 @@ local function getCompatibilityOptions()
     name = "Compatibility",
     type = "group",
     order = 6,
+    hidden = function () return _G.Prat == nil and not getElvUIEngine() and not _G.EllesmereUI and not isAddOnLoaded("EllesmereUIChat") end,
     args = {
       pratStatus = {
         name = getPratStatus,
+        hidden = function () return _G.Prat == nil end,
         type = "description",
         fontSize = "medium",
         order = 1,
       },
       elvuiStatus = {
         name = getElvUIStatus,
+        hidden = function () return not getElvUIEngine() end,
         type = "description",
         fontSize = "medium",
         order = 1.1,
       },
       ellesmereStatus = {
         name = getEllesmereStatus,
+        hidden = function () return not _G.EllesmereUI end,
         type = "description",
         fontSize = "medium",
         order = 1.2,
       },
-      pratBoundary = {
-        name = "Enabled Prat modules take precedence over the matching Glassy controls.",
-        hidden = function () return _G.Prat == nil end,
+      ellesmereChatStatus = {
+        name = "|cffff8080EllesmereUI Chat is enabled.|r\nIt restyles the same chat frames as Glassy. Disable the EllesmereUI Chat addon, then reload.",
+        hidden = function () return not isAddOnLoaded("EllesmereUIChat") end,
         type = "description",
-        order = 2,
+        fontSize = "medium",
+        order = 1.3,
       },
       pratSupported = {
         name = "Prat chat features",
         type = "group",
         inline = true,
         order = 3,
-        hidden = function () return _G.Prat == nil end,
+        hidden = function () return #getEnabledPratModules(PRAT_CHAT_MODULES, true) == 0 end,
         args = {
           details = {
             name = getPratChatModules,
@@ -258,7 +243,7 @@ local function getCompatibilityOptions()
             name = "To keep existing scrollback, turn on Save chat history in Glassy and reload once with Prat History still enabled. Then disable Prat History and reload again.",
             type = "description",
             order = 2,
-            hidden = function () return not Core:IsPratModuleEnabled("History", "scrollback") end,
+            hidden = function () return _G.Prat == nil or not Core:IsPratModuleEnabled("History", "scrollback") end,
           },
         },
       },
@@ -267,19 +252,13 @@ local function getCompatibilityOptions()
         type = "group",
         inline = true,
         order = 4,
-        hidden = function () return _G.Prat == nil end,
+        hidden = function () return #getEnabledPratModules(PRAT_UI_MODULES) == 0 end,
         args = {
           current = {
             name = getEnabledPratUiModules,
             nameLocalized = true,
             type = "description",
             order = 1,
-          },
-          details = {
-            name = getPratUiModuleGuidance,
-            nameLocalized = true,
-            type = "description",
-            order = 2,
           },
         },
       },

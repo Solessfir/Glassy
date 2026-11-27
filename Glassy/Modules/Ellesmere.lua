@@ -34,14 +34,16 @@ local function skinSafely(callback, ...)
 end
 
 local function skinWindow(S, window, parts)
-  S.Shell(window.frame)
-  for _, child in ipairs({window.frame:GetChildren()}) do
-    if child:GetObjectType() == "Button" then
-      if child.GetText and child:GetText() == _G.CLOSE then
-        S.Button(child)
-      elseif child.SetBackdrop then
-        -- The status bar is the only other button with a backdrop.
-        S.Panel(child, {inset = true})
+  if window then
+    S.Shell(window.frame)
+    for _, child in ipairs({window.frame:GetChildren()}) do
+      if child:GetObjectType() == "Button" then
+        if child.GetText and child:GetText() == _G.CLOSE then
+          S.Button(child)
+        elseif child.SetBackdrop then
+          -- The status bar is the only other button with a backdrop.
+          S.Panel(child, {inset = true})
+        end
       end
     end
   end
@@ -53,6 +55,14 @@ local function skinWindow(S, window, parts)
       S.ScrollBar(part.scrollBar)
     elseif part.type == "ScrollFrame" then
       S.ScrollBar(part.scrollbar)
+    elseif part.type == "Button" then
+      S.Button(part.button)
+      if S.Font then S.Font(part.button:GetFontString(), 1, 1, 1) end
+    elseif part.type == "CloseButton" and S.CloseButton then
+      S.CloseButton(part.button)
+      part.button:SetText("")
+    elseif part.type == "FontString" and S.Font then
+      S.Font(part.fontString)
     end
   end
 end
@@ -84,9 +94,13 @@ end
 function Ellesmere:SkinWindow(window, parts)
   if self.skin then
     skinSafely(skinWindow, self.skin, window, parts)
-  else
+  elseif _G.EllesmereUI and _G.EllesmereUI.RegisterSkin then
     self.pendingWindows[#self.pendingWindows + 1] = {window = window, parts = parts}
   end
+end
+
+function Ellesmere:SkinPart(part)
+  self:SkinWindow(nil, {part})
 end
 
 -- The cached accent, only while EllesmereUI still skins Glassy.

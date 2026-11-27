@@ -39,6 +39,14 @@ for _, locale in ipairs({"deDE", "esES", "esMX", "frFR", "itIT", "koKR", "ptBR",
   assert(localized:Localize("General") ~= "General" or locale == "esES" or locale == "esMX")
   assert(localized:Localize("Prat Timestamps") == "Prat Timestamps", locale .. " must preserve the Prat module name")
   assert(localized:Localize("Prat History") == "Prat History", locale .. " must preserve the Prat module name")
+  for _, label in ipairs({"Button hover color", "Inbox button color", "Saved aliases", "Chat alerts and sounds",
+    "Chat rules", "Chat utilities"}) do
+    assert(localized:Localize(label) ~= label, locale .. " must translate " .. label)
+  end
+  local aliasHint = "Format: /shortcut = /command. Example: /rld = /reload"
+  local localizedHint = localized:Localize(aliasHint)
+  assert(localizedHint ~= aliasHint and localizedHint:find("/rld = /reload", 1, true),
+    locale .. " must translate the alias hint without changing the command")
 end
 
 local options = {

@@ -32,7 +32,12 @@ local statusBar = region("Button", {SetBackdrop = function () end})
 local window = {frame = {GetChildren = function () return closeButton, statusBar, region("Frame") end}}
 local editBox = {type = "EditBox", editbox = {}}
 local textBox = {type = "MultiLineEditBox", scrollBG = {}, scrollBar = {}}
-module:SkinWindow(window, {editBox, textBox})
+local title, rowLabel = {}, {}
+local row = {GetFontString = function () return rowLabel end}
+local closeGlyph = {SetText = function (button, text) button.text = text end}
+module:SkinWindow(window, {editBox, textBox, {type = "FontString", fontString = title},
+  {type = "CloseButton", button = closeGlyph}})
+module:SkinPart({type = "Button", button = row})
 assert(core:GetThemeColor("tabTextColor") == core.db.profile.tabTextColor, "Without EllesmereUI colors stay Glassy's")
 
 local skinned, enabled, accent, looksChanged = {}, true, {12 / 255, 210 / 255, 159 / 255}, nil
@@ -40,6 +45,7 @@ local function record(name) return function (frame, opts) skinned[#skinned + 1] 
 local S = {
   Shell = record("Shell"), Button = record("Button"), Panel = record("Panel"),
   EditBox = record("EditBox"), ScrollBar = record("ScrollBar"),
+  Font = record("Font"), CloseButton = record("CloseButton"),
   IsEnabled = function () return enabled end,
   GetAccentColor = function () return unpack(accent) end,
   GetFont = function () return "Fonts\\Ellesmere.ttf" end,
@@ -54,6 +60,11 @@ end
 assert(skinnedWith("Shell", window.frame) and skinnedWith("Button", closeButton), "The window and its close button are skinned")
 assert(skinnedWith("Panel", statusBar)[3].inset and skinnedWith("EditBox", editBox.editbox))
 assert(skinnedWith("Panel", textBox.scrollBG) and skinnedWith("ScrollBar", textBox.scrollBar))
+assert(skinnedWith("Font", title) and skinnedWith("CloseButton", closeGlyph) and closeGlyph.text == "")
+assert(skinnedWith("Button", row) and skinnedWith("Font", rowLabel), "Rows created before login receive the same skin")
+local newRow = {GetFontString = function () return rowLabel end}
+module:SkinPart({type = "Button", button = newRow})
+assert(skinnedWith("Button", newRow), "Rows created after login are skinned immediately")
 assert(fontsSelected == 1 and module:GetFontPath() == "Fonts\\Ellesmere.ttf", "The default font is re-resolved")
 local updates = table.concat(dispatched, ",")
 assert(updates:find("tabTextColor", 1, true), "Themed elements refresh")
