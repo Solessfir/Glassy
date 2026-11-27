@@ -34,7 +34,7 @@ What's new
 - Fade at the top under Messages → Visibility softens the top edge of live chat. It is off by default and keeps scrollback fully readable.
 - Detached chat windows can now hold multiple tabs. Right-click a detached tab and choose Move to secondary window. Regular tab groups are saved per character.
 - Repeating Move to New Window for a channel already moved keeps its existing window.
-- Details! can display its damage meters in a docked Glassy tab. Turn it on under Tabs → Integrations, then enable Chat Tab Embed in Details! and choose the tab there. This integration is off by default.
+- Details! can display its damage meters in a docked Glassy tab. Enable Chat Tab Embed in Details! and choose the tab there.
 - Tabs → Whispers adds an optional inbox and separate windows for character and Battle.net conversations. Enable Open on incoming whisper to show the window without taking keyboard focus.
 - Open the inbox from the whisper icon in the tab bar. It shows the unread count. Start a reply with the game's Whisper action, right-click for player actions, or enable optional bubbles and a sound.
 - The inbox and replies use EllesmereUI's window styling when enabled. An empty inbox shows how to start a whisper.

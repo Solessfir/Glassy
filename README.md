@@ -147,7 +147,7 @@ Glassy keeps its visible renderer bounded to 128 messages; the separate **Scroll
 
 ### Details!
 
-Turn on **Details! Chat Tab Embed** under **Tabs → Integrations**, then enable **Chat Tab Embed** in Details! and choose a dedicated tab in the main chat dock. Glassy shows the meters when that tab is selected. This integration is off by default.
+Enable **Chat Tab Embed** in Details! and choose a dedicated tab in the main chat dock. Glassy shows the meters when that tab is selected.
 
 ### Prat 3.0
 

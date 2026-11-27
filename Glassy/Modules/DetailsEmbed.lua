@@ -1,4 +1,4 @@
-local Core, Constants = unpack(select(2, ...))
+local Core = unpack(select(2, ...))
 local UIManager = Core:GetModule("UIManager")
 
 -- luacheck: push ignore 113
@@ -117,7 +117,7 @@ function UIManager:SyncDetailsEmbedSelection()
 
   local details = _G.Details
   local settings = details and details.chat_tab_embed
-  local chatFrame = Core.db.profile.detailsChatEmbed == true and settings and settings.enabled and details.chat_tab_embed_onframe
+  local chatFrame = settings and settings.enabled and details.chat_tab_embed_onframe
   local hidden = self.detailsHiddenFrames or {}
   self.detailsHiddenFrames = hidden
   for frame, owner in pairs(hidden) do
@@ -154,14 +154,13 @@ function UIManager:RefreshDetailsEmbed()
   self:SyncDetailsEmbedSelection()
   local details = _G.Details
   local settings = details and details.chat_tab_embed
-  if self.detailsStartupAlpha and (Core.db.profile.detailsChatEmbed ~= true
-    or not (settings and settings.enabled) or details.chat_tab_embed_onframe) then
+  if self.detailsStartupAlpha and (not (settings and settings.enabled) or details.chat_tab_embed_onframe) then
     self:EndDetailsStartupWait()
   end
   local chatFrame = settings and settings.enabled and details.chat_tab_embed_onframe
   local window = chatFrame and self:GetChatWindow(chatFrame)
   local renderer = window and window.slidingMessageFrame
-  if Core.db.profile.detailsChatEmbed ~= true or not (window and renderer and renderer.viewport
+  if not (window and renderer and renderer.viewport
     and renderer.config and chatFrame.isDocked and chatFrame ~= _G.ChatFrame2
     and not window.temporary and not chatFrame.isTemporary and not window.secondaryGroup
     and not renderer.detachedGroup and not renderer.detachedContainer
@@ -288,13 +287,21 @@ function UIManager:HookDetailsEmbed()
       hooks[method] = true
     end
   end
+  -- Details requests its startup embed seconds after entering the world.
+  if not hooks.CheckChatEmbed and type(embed.CheckChatEmbed) == "function" then
+    hooksecurefunc(embed, "CheckChatEmbed", function (_, isStartup)
+      -- Details defers its own startup attach by five seconds.
+      if isStartup then self:StartDetailsStartupWait(6) end
+    end)
+    hooks.CheckChatEmbed = true
+  end
 end
 
 local function getDetailsStartupTarget(manager)
   local details = _G.Details
   local settings = details and details.chat_tab_embed
   local embed = details and details.chat_embed
-  if Core.db.profile.detailsChatEmbed ~= true or not (settings and settings.enabled and not details.chat_tab_embed_onframe
+  if not (settings and settings.enabled and not details.chat_tab_embed_onframe
     and type(settings.tab_name) == "string" and settings.tab_name ~= "" and embed
     and type(embed.GetTab) == "function" and type(embed.DoEmbed) == "function") then return end
   local chatFrame = embed:GetTab(settings.tab_name)
@@ -309,12 +316,24 @@ end
 function UIManager:BeginDetailsStartupWait()
   local details, settings = getDetailsStartupTarget(self)
   if not (details and type(details.GetInstance) == "function") then return end
-  self.detailsStartupAlpha = {}
+  self.detailsStartupAlpha = self.detailsStartupAlpha or {}
+  self.detailsAlphaHooks = self.detailsAlphaHooks or {}
   for index = 1, settings.single_window and 1 or 2 do
     local instance = details:GetInstance(index)
     local frame = instance and instance.baseframe
-    if frame and frame:GetParent() == _G.UIParent and frame.GetAlpha and frame.SetAlpha then
+    if frame and frame:GetParent() == _G.UIParent and frame.GetAlpha and frame.SetAlpha
+      and self.detailsStartupAlpha[frame] == nil then
       self.detailsStartupAlpha[frame] = frame:GetAlpha()
+      -- Details refreshes window alpha during startup; keep the latest value for the restore.
+      if not self.detailsAlphaHooks[frame] and type(hooksecurefunc) == "function" then
+        self.detailsAlphaHooks[frame] = true
+        hooksecurefunc(frame, "SetAlpha", function (_, alpha)
+          local waiting = self.detailsStartupAlpha
+          if self.detailsRestoringAlpha or not (waiting and waiting[frame] ~= nil) or alpha == 0 then return end
+          waiting[frame] = alpha
+          frame:SetAlpha(0)
+        end)
+      end
       frame:SetAlpha(0)
     end
   end
@@ -322,10 +341,26 @@ end
 
 function UIManager:EndDetailsStartupWait()
   if not self.detailsStartupAlpha then return end
-  for frame, alpha in pairs(self.detailsStartupAlpha) do
+  local waiting = self.detailsStartupAlpha
+  self.detailsStartupAlpha = nil
+  self.detailsRestoringAlpha = true
+  for frame, alpha in pairs(waiting) do
     if frame:GetAlpha() == 0 then frame:SetAlpha(alpha) end
   end
-  self.detailsStartupAlpha = nil
+  self.detailsRestoringAlpha = nil
+end
+
+-- Restarting the timer lets a later Details startup request extend a wait begun on entering the world.
+function UIManager:StartDetailsStartupWait(delay)
+  self:BeginDetailsStartupWait()
+  local token = {}
+  self.detailsStartupTimer = token
+  C_Timer.After(delay, function ()
+    if self.detailsStartupTimer ~= token then return end
+    self.detailsStartupTimer = nil
+    self:EndDetailsStartupWait()
+    self:RecoverDetailsStartupEmbed()
+  end)
 end
 
 function UIManager:RecoverDetailsStartupEmbed()
@@ -349,12 +384,8 @@ function UIManager:InitializeDetailsEmbed()
     self:ScheduleDetailsEmbed()
     if event == "PLAYER_ENTERING_WORLD" then
       self.detailsEmbedEvents:UnregisterEvent(event)
-      -- Details defers its own startup attach by five seconds.
-      self:BeginDetailsStartupWait()
-      C_Timer.After(6, function ()
-        self:EndDetailsStartupWait()
-        self:RecoverDetailsStartupEmbed()
-      end)
+      -- Details windows can already be visible here, seconds before Details requests its startup embed.
+      if _G.Details then self:StartDetailsStartupWait(_G.Details.AndIWillNeverStop and 6 or 15) end
     end
   end)
   if type(_G.FCFDock_SelectWindow) == "function" and type(hooksecurefunc) == "function" then
@@ -362,8 +393,5 @@ function UIManager:InitializeDetailsEmbed()
       if dock == _G.GENERAL_CHAT_DOCK then self:SyncDetailsEmbedSelection() end
     end)
   end
-  Core:Subscribe(Constants.EVENTS.UPDATE_CONFIG, function (key)
-    if key == nil or key == "detailsChatEmbed" then self:RefreshDetailsEmbed() end
-  end)
   self:RefreshDetailsEmbed()
 end

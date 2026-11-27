@@ -129,11 +129,6 @@ assert(core.db.profile.tabFont == "" and tabAppearance.tabFont.get() == "Use UI 
 assert(not tabAppearance.tabSelectionAnimation.disabled())
 tabAppearance.tabStyle.set(nil, "classic")
 assert(tabAppearance.tabSelectionAnimation.disabled())
-local detailsEmbed = config.Pages.tabs().args.integrations.args.detailsChatEmbed
-detailsEmbed.set(nil, true)
-assert(detailsEmbed.get() and core.db.profile.detailsChatEmbed)
-detailsEmbed.set(nil, false)
-assert(not detailsEmbed.get())
 local whisperOptions = config.Pages.tabs().args.whispers.args
 assert(whisperOptions.whisperWindowsAutoOpen.disabled() and not whisperOptions.keepWhisperTabs.disabled())
 assert(whisperOptions.whisperWindowsSound.disabled() and whisperOptions.whisperWindowsBubbles.disabled())

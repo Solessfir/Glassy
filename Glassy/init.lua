@@ -89,7 +89,6 @@ Core.defaults = {
     alertPosition = {point = "", x = 0, y = 0},
     chatAlertPosition = {point = "", x = 0, y = 0},
     voicePosition = {point = "", x = 0, y = 0},
-    detailsChatEmbed = false,
     tabTextColor = {r = 1, g = 209 / 255, b = 0, a = 0.7},
     tabHighlightTextColor = {r = 1, g = 209 / 255, b = 0, a = 1},
     chatTabTooltips = false,

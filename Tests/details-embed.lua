@@ -1,5 +1,5 @@
 -- Run from the repository root with Lua 5.1.
-local pending, subscriptions = {}, {}
+local pending = {}
 C_Timer = {After = function (_, callback) pending[#pending + 1] = callback end}
 local function flush()
   local callbacks = pending
@@ -58,9 +58,8 @@ local manager = {}
 local core = {
   db = {profile = {}},
   GetModule = function () return manager end,
-  Subscribe = function (_, event, callback) subscriptions[event] = callback end,
 }
-assert(loadfile("Glassy/Modules/DetailsEmbed.lua"))("Glassy", {core, {EVENTS = {UPDATE_CONFIG = "config"}}})
+assert(loadfile("Glassy/Modules/DetailsEmbed.lua"))("Glassy", {core})
 local chat = frame()
 chat.name, chat.isDocked = "ChatFrame3", true
 ChatFrame3Background = frame(chat)
@@ -115,19 +114,13 @@ Details = {
       first:SetSize(321, 123)
     end,
     SetTabSettings = function () end,
+    CheckChatEmbed = function () end,
   },
 }
 nativeEmbed(true)
 manager.detailsEmbedEvents.callback()
 assert(not renderer.detailsEmbedHost, "Late addon load must schedule adoption")
 flush()
-assert(not renderer.detailsEmbedHost and renderer.viewport:IsShown(), "Unset integration must leave chat untouched")
-assert(first.points[1][2] == background and not first.ignoreAlpha, "Unset integration must preserve the native embed")
-core.db.profile.detailsChatEmbed = false
-subscriptions.config("detailsChatEmbed")
-assert(not renderer.detailsEmbedHost, "Disabled integration must leave chat untouched")
-core.db.profile.detailsChatEmbed = true
-subscriptions.config("detailsChatEmbed")
 local host = renderer.detailsEmbedAnchor
 assert(renderer.detailsEmbedHost and not renderer.viewport:IsShown() and not renderer.overlay:IsShown())
 assert(first:GetParent() == chat and first.ignoreAlpha and chat:IsShown(), "Keep Details native parent and selected visibility")
@@ -141,15 +134,15 @@ assert(not second.ignoreAlpha, "Single mode must leave the second window untouch
 renderer.config.height = 260
 manager:ResizeDetailsEmbed(renderer)
 assert(host.height == 260 and first.height == 180, "Two-anchor single mode must retain native sizing")
-core.db.profile.detailsChatEmbed = false
-subscriptions.config("detailsChatEmbed")
+Details.chat_tab_embed.enabled = false
+manager:RefreshDetailsEmbed()
 assert(not renderer.detailsEmbedHost and renderer.viewport:IsShown() and not chat:IsShown())
 assert(first.points[1][2] == background and first.points[2][5] == 14 and not first.ignoreAlpha and first.level == 1)
 assert(first.strata == "LOW" and firstRows.strata == "LOW" and firstRows.level == 1 and renderer.overlay:IsShown(),
   "Releasing must restore native layers and the existing scrollback overlay")
-core.db.profile.detailsChatEmbed = true
-subscriptions.config("detailsChatEmbed")
-assert(renderer.detailsEmbedHost and chat:IsShown(), "Enabling an already-selected host must show its native parent")
+Details.chat_tab_embed.enabled = true
+manager:RefreshDetailsEmbed()
+assert(renderer.detailsEmbedHost and chat:IsShown(), "Re-enabling an already-selected host must show its native parent")
 
 Details.chat_tab_embed.single_window = false
 local general = frame()
@@ -174,12 +167,12 @@ assert(first.width == 253 and second.width == 253 and first.height == 233 and se
 renderer.config.width, renderer.config.height = 600, 300
 manager:ResizeDetailsEmbed(renderer)
 assert(first.width == 303 and second.width == 303 and first.height == 273, "Dual resizing must not accumulate deltas")
-core.db.profile.detailsChatEmbed = false
-subscriptions.config("detailsChatEmbed")
+Details.chat_tab_embed.enabled = false
+manager:RefreshDetailsEmbed()
 assert(first.width == 203 and first.height == 153 and second.width == 203 and not second.ignoreAlpha)
 
-core.db.profile.detailsChatEmbed = true
-subscriptions.config("detailsChatEmbed")
+Details.chat_tab_embed.enabled = true
+manager:RefreshDetailsEmbed()
 Details.chat_embed:ReleaseEmbed()
 flush()
 assert(first:GetParent() == nil and first.points[1][1] == "CENTER" and first.width == 321 and first.height == 123,
@@ -238,8 +231,12 @@ assert(embedCalls == previousEmbedCalls, "Startup recovery must never embed into
 ChatFrame1 = general
 manager.detailsEmbedEvents.callback(nil, "PLAYER_ENTERING_WORLD")
 assert(first:GetAlpha() == 0 and second:GetAlpha() == 0, "Standalone meters must be transparent during startup")
+second:SetAlpha(0.8)
+assert(second:GetAlpha() == 0, "Details alpha refreshes must not reveal a meter during startup")
+Details.chat_embed:CheckChatEmbed(true)
+assert(#pending == 3, "The startup embed request must restart the wait")
 flush()
-assert(first:GetAlpha() == 1 and second:GetAlpha() == 0.75, "Startup must restore the original meter alpha")
+assert(first:GetAlpha() == 1 and second:GetAlpha() == 0.8, "Startup must restore the latest meter alpha")
 assert(embedCalls == previousEmbedCalls + 1 and Details.chat_tab_embed_onframe == chat)
 assert(renderer.detailsEmbedHost and not first:IsShown() and not second:IsShown(),
   "Startup recovery must attach both meters without covering General")

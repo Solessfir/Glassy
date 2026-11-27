@@ -628,25 +628,6 @@ local function getTabOptions()
           }),
         },
       },
-      integrations = {
-        name = "Integrations",
-        type = "group",
-        inline = true,
-        order = 8,
-        args = {
-          detailsChatEmbed = {
-            name = "Details! Chat Tab Embed",
-            desc = "In Details! settings, enable Chat Tab Embed and enter the name of a dedicated docked chat tab.",
-            type = "toggle",
-            order = 1,
-            get = function () return Core.db.profile.detailsChatEmbed end,
-            set = function (_, enabled)
-              Core.db.profile.detailsChatEmbed = enabled
-              Core:Dispatch(UpdateConfig("detailsChatEmbed"))
-            end,
-          },
-        },
-      },
     },
   }
 end

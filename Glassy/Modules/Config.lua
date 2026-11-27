@@ -593,8 +593,8 @@ function C:OnDebugCommand()
   local embed = details and details.chat_tab_embed
   if embed then
     local adopted = uiManager.detailsEmbedState
-    report[#report + 1] = string.format("Details embed: Glassy=%s Details=%s tab=%s target=%s adopted=%d",
-      tostring(Core.db.profile.detailsChatEmbed), tostring(embed.enabled), tostring(embed.tab_name),
+    report[#report + 1] = string.format("Details embed: enabled=%s tab=%s target=%s adopted=%d",
+      tostring(embed.enabled), tostring(embed.tab_name),
       debugName(details.chat_tab_embed_onframe), adopted and #adopted.frames or 0)
     if uiManager.detailsStartupResult then
       report[#report + 1] = "Details startup retry: "..uiManager.detailsStartupResult
@@ -704,7 +704,6 @@ function C:RefreshConfig()
   Core:Dispatch(UpdateConfig("tabBarAlignment"))
   Core:Dispatch(UpdateConfig("chatButtons"))
   Core:Dispatch(UpdateConfig("blizzardEditMode"))
-  Core:Dispatch(UpdateConfig("detailsChatEmbed"))
   Core:Dispatch(UpdateConfig("frameHeight"))
   Core:Dispatch(UpdateConfig("frameWidth"))
   Core:Dispatch(UpdateConfig("framePosition"))
