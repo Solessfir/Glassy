@@ -164,10 +164,12 @@ function ChatLinks:Format(text)
       local prefix = text:sub(1, first - 1):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
       prefix = prefix:gsub("|Hchannel:[^|]*|h.-|h", ""):gsub("|T.-|t", ""):gsub("|A.-|a", "")
         :gsub("%b[]", ""):gsub("%[", "")
-      local headerEnd = text:find(":", last + 1, true)
+      local badge = text:sub(last + 1):match("^ |A:friendslist%-recentallies%-yellow:[%d:%-]+|a")
+      local headerStart = last + (badge and #badge or 0)
+      local headerEnd = text:find(":", headerStart + 1, true)
       -- Only a native chat header may supply the sender; pasted player links do not.
       if prefix:match("^%s*$") and headerEnd then
-        local header = text:sub(last + 1, headerEnd - 1):gsub("|r", ""):gsub("|c%x%x%x%x%x%x%x%x", "")
+        local header = text:sub(headerStart + 1, headerEnd - 1):gsub("|r", ""):gsub("|c%x%x%x%x%x%x%x%x", "")
         if header:match("^[%s%a\128-\255%]]*$") and (channel or header:match("^[%s%]]*$")) then
           text = text:sub(1, headerEnd)..formatInvites(text:sub(headerEnd + 1), sender)
         end

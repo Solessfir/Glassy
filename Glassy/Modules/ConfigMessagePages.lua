@@ -372,6 +372,20 @@ local function getMessageOptions()
               Core:Dispatch(UpdateConfig("timestampDisplay"))
             end,
           },
+          timestampClickable = {
+            name = "Clickable timestamps",
+            desc = "Click a timestamp to copy its message. Shift-click to insert it in chat.\nDefault: Disabled",
+            type = "toggle",
+            order = 1.75,
+            disabled = function ()
+              return not Core.db.profile.timestampsEnabled or Core:IsPratModuleEnabled("Timestamps")
+            end,
+            get = function () return Core.db.profile.timestampClickable end,
+            set = function (_, input)
+              Core.db.profile.timestampClickable = input
+              Core:Dispatch(UpdateConfig("timestampDisplay"))
+            end,
+          },
           timestampFormat = {
             name = "Time format",
             desc = "Choose the time format used before each message.\nDefault: [23:59:59]",

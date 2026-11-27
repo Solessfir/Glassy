@@ -7,6 +7,8 @@ Core:RegisterCompactTranslations("deDE", {
   SHOW_RAID_SUBGROUPS = "Schlachtzugsgruppennummern anzeigen",
   HIGHLIGHT_PLAYER_MENTIONS = "Eigenen Namen hervorheben",
   HIGHLIGHT_GUILD_TAGS = "Gilden-Tags hervorheben",
+  CLICKABLE_TIMESTAMPS = "Anklickbare Zeitstempel",
+  COPY_MESSAGE_TITLE = "Glassy: Nachricht kopieren",
   WHISPERS = "Flüstern",
   EMPTY_WHISPER_INBOX = "Noch keine Flüsternachrichten.",
   START_WHISPER = "Beginne eine Unterhaltung mit /w Name-Realm.",

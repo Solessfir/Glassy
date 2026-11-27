@@ -7,6 +7,8 @@ Core:RegisterCompactTranslations("frFR", {
   SHOW_RAID_SUBGROUPS = "Afficher les numéros de groupe de raid",
   HIGHLIGHT_PLAYER_MENTIONS = "Surligner votre nom",
   HIGHLIGHT_GUILD_TAGS = "Surligner les noms de guilde",
+  CLICKABLE_TIMESTAMPS = "Horodatages cliquables",
+  COPY_MESSAGE_TITLE = "Glassy : Copier le message",
   WHISPERS = "Chuchotements",
   EMPTY_WHISPER_INBOX = "Aucun chuchotement pour le moment.",
   START_WHISPER = "Utilisez /w Nom-Royaume pour démarrer une conversation.",

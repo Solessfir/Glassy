@@ -55,6 +55,56 @@ local function eachElement(rootDescription, text, callback)
   end
 end
 
+local function findChannelWindow(source, chatType, chatTarget)
+  local allowed = {[chatType] = true}
+  for _, group in pairs(_G.CHAT_CATEGORY_LIST and _G.CHAT_CATEGORY_LIST[chatType] or {}) do
+    allowed[group] = true
+  end
+  local channelName
+  if chatType == "CHANNEL" then
+    local getName = _G.ChatFrameUtil and _G.ChatFrameUtil.GetChannelShortcutName
+    channelName = getName and getName(chatTarget)
+    if not channelName then return end
+  end
+  local function filters(frame)
+    if type(frame.messageTypeList) ~= "table" or type(frame.channelList) ~= "table" then return end
+    local dedicated, subscribed, primary = true, false, false
+    for _, group in pairs(frame.messageTypeList) do
+      if not allowed[group] then dedicated = false end
+      if chatType ~= "CHANNEL" and allowed[group] then subscribed = true end
+      if group == chatType then primary = true end
+    end
+    for _, channel in pairs(frame.channelList) do
+      if channelName and channel == channelName then subscribed = true
+      else dedicated = false end
+    end
+    return dedicated and subscribed and (channelName ~= nil or primary), subscribed
+  end
+
+  local sourceDedicated, sourceSubscribed = filters(source)
+  local constants = _G.Constants and _G.Constants.ChatFrameConstants
+  local getInfo = _G.FCF_GetChatWindowInfo or _G.GetChatWindowInfo
+  for index = 3, constants and constants.MaxChatWindows or _G.NUM_CHAT_WINDOWS or 10 do
+    local frame = _G["ChatFrame"..index]
+    local reserved = _G.FCF_IsChatWindowIndexReserved and _G.FCF_IsChatWindowIndexReserved(index)
+    local builtin = frame and _G.IsBuiltinChatWindow and _G.IsBuiltinChatWindow(frame)
+    local active = frame and (frame.isDocked or getInfo and select(7, getInfo(index)))
+    if frame and not frame.isTemporary and not reserved and not builtin and active then
+      if frame == source and sourceDedicated then return frame end
+      -- A stale menu can still refer to the source after Blizzard moved its filters and history.
+      if sourceSubscribed == false and filters(frame) then return frame end
+    end
+  end
+end
+
+local function focusChannelWindow(frame)
+  if frame.isDocked and _G.FCF_SelectDockFrame then
+    _G.FCF_SelectDockFrame(frame)
+  elseif _G.FCF_FlashTab then
+    _G.FCF_FlashTab(frame)
+  end
+end
+
 -- Menus opened from Glassy links lack the chat frame they came from, and only Blizzard's own menus
 -- may write to the clipboard, so these entries are redirected while Glassy handles a click.
 function Hyperlinks:ModifyLinkMenus()
@@ -101,9 +151,14 @@ function Hyperlinks:ModifyLinkMenus()
       -- Links read "channel:CHANNEL:2" or "channel:GUILD"; PopOutChat expects the upper-case type.
       local _, chatType, chatTarget = strsplit(":", link)
       if not chatType then return end
+      chatType = chatType:upper()
       eachElement(rootDescription, moveText, function (description)
         description:SetResponder(function ()
-          popOutChat(chatFrame, chatType:upper(), chatTarget)
+          local dedicated = findChannelWindow(chatFrame, chatType, chatTarget)
+          if dedicated then focusChannelWindow(dedicated); return end
+          -- Capacity may have changed while the menu was open; PopOutChat assumes a free window.
+          if _G.FCF_CanOpenNewWindow and not _G.FCF_CanOpenNewWindow() then return end
+          popOutChat(chatFrame, chatType, chatTarget)
         end)
       end)
     end)
@@ -128,8 +183,15 @@ function Hyperlinks:OnEnable()
   end)
 
   Core:Subscribe(HYPERLINK_CLICK, function (payload)
-    local link, text, button, chatFrame = unpack(payload)
+    local link, text, button, chatFrame, sourceText = unpack(payload)
     local accessible = not _G.canaccessvalue or _G.canaccessvalue(link)
+    if accessible and link == "glassytime:copy" then
+      if button == "LeftButton" and Core.db.profile.timestampClickable and Core.db.profile.timestampsEnabled
+        and not Core:IsPratModuleEnabled("Timestamps") then
+        Core:GetModule("ChatCopy"):CopyMessage(sourceText, chatFrame, _G.IsShiftKeyDown())
+      end
+      return
+    end
     local chatLinks = Core:GetModule("ChatLinks")
     if accessible and chatLinks.HandleClick and chatLinks:HandleClick(link, button) then return end
     if accessible and button == "RightButton" then

@@ -36,6 +36,8 @@ Core:RegisterCompactTranslations("itIT", {
   SHOW_RAID_SUBGROUPS = "Mostra i numeri dei gruppi d’incursione",
   HIGHLIGHT_PLAYER_MENTIONS = "Evidenzia il tuo nome",
   HIGHLIGHT_GUILD_TAGS = "Evidenzia i nomi delle gilde",
+  CLICKABLE_TIMESTAMPS = "Orari cliccabili",
+  COPY_MESSAGE_TITLE = "Glassy: Copia messaggio",
   WHISPERS = "Sussurri",
   EMPTY_WHISPER_INBOX = "Non ci sono ancora sussurri.",
   START_WHISPER = "Usa /w Nome-Reame per iniziare una conversazione.",

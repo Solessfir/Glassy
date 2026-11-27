@@ -36,6 +36,16 @@ end
 assert(module:Format("|cff123456example.com tail|r") == "|cff123456"..url("example.com").."|cff123456 tail|r",
   "URL links restore the enclosing text color")
 assert(module:Format(header.."invite?") == header..invite("invite?", "Elowen-Realm"))
+local badge = " |A:friendslist-recentallies-yellow:11:11:0:0|a"
+local recentAllyHeader = "|Hplayer:Elowen-Realm:123:SAY:|h[|cff3fc7ebElowen|r]|h"..badge.." says: "
+assert(module:Format(recentAllyHeader.."invite?") == recentAllyHeader..invite("invite?", "Elowen-Realm"),
+  "The native recent-ally badge does not hide the message delimiter")
+assert(module:Format("Look "..recentAllyHeader.."invite") == "Look "..recentAllyHeader.."invite",
+  "A pasted recent-ally header does not supply the sender")
+for _, suffix in ipairs({badge.." invalid!: ", " |A:other:11:11|a says: ", " |A:friendslist-recentallies-yellow:11:11 says: "}) do
+  local nonNative = "|Hplayer:Elowen-Realm:123:SAY|h[Elowen]|h"..suffix.."invite"
+  assert(module:Format(nonNative) == nonNative, "Non-native suffix markup does not supply the sender")
+end
 assert(module:Format(header.."inv for dungeon") == header..invite("inv for", "Elowen-Realm").." dungeon")
 assert(module:Format(header.."Invite Anduin") == header..invite("Invite Anduin", "Anduin"))
 assert(module:Format(header.."send invite to Anduin") == header..invite("send invite to Anduin", "Anduin"))
@@ -46,6 +56,8 @@ assert(module:Format("invite me") == "invite me", "Unattributed messages never g
 assert(module:Format("Look "..header.."invite") == "Look "..header.."invite", "Pasted player links are not senders")
 local system = "|Hplayer:Elowen|h[Elowen]|h has come online: invite"
 assert(module:Format(system) == system, "System message player links do not supply chat senders")
+local allySystem = "|Hplayer:Elowen|h[Elowen]|h"..badge.." has come online: invite"
+assert(module:Format(allySystem) == allySystem, "A badge does not turn a system message into a sender header")
 assert(module:Format(header.."초대") == header..invite("초대", "Elowen-Realm"))
 local iconHeader = "|Hchannel:CHANNEL:2|h[2. Trade]|h |Ticon:14|t |cff00ff00[|Hplayer:Elowen:1|hElowen|h]|r: "
 assert(module:Format(iconHeader.."invite") == iconHeader..invite("invite", "Elowen"), "Formatted sender icons remain supported")

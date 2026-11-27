@@ -151,6 +151,29 @@ function ChatCopy:Show(chatFrame)
   self:ShowText(L("Glassy: Copy chat — ")..getFrameLabel(chatFrame), readChatFrame(chatFrame))
 end
 
+function ChatCopy:CopyMessage(text, chatFrame, insert)
+  if _G.canaccessvalue and not _G.canaccessvalue(text) then return end
+  local plain = stripChatMarkup(text)
+  if not plain then return end
+  local chatInfo = _G.C_ChatInfo
+  if not insert or (chatInfo and chatInfo.InChatMessagingLockdown and chatInfo.InChatMessagingLockdown()) then
+    self:ShowText(L("Glassy: Copy message"), plain)
+    return
+  end
+
+  -- Plain pipes must stay literal when placed back into WoW's chat edit box.
+  local escaped = plain:gsub("|", "||")
+  local chatUtil = _G.ChatFrameUtil
+  local getActive = (chatUtil and chatUtil.GetActiveWindow) or _G.ChatEdit_GetActiveWindow
+  local active = getActive and getActive()
+  if active then
+    active:Insert(escaped)
+  else
+    local openChat = (chatUtil and chatUtil.OpenChat) or _G.ChatFrame_OpenChat
+    if openChat then openChat(escaped, chatFrame) end
+  end
+end
+
 local SEARCH_RESULT_LIMIT = 200
 local searchFrame
 local searchInput

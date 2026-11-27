@@ -36,6 +36,8 @@ Core:RegisterTranslations("ruRU", {
   SHOW_RAID_SUBGROUPS = "Показывать номера групп в рейде",
   HIGHLIGHT_PLAYER_MENTIONS = "Выделять своё имя",
   HIGHLIGHT_GUILD_TAGS = "Выделять названия гильдий",
+  CLICKABLE_TIMESTAMPS = "Кликабельные метки времени",
+  COPY_MESSAGE_TITLE = "Glassy: Копировать сообщение",
   WHISPERS = "Шёпот",
   EMPTY_WHISPER_INBOX = "Пока нет сообщений шёпотом.",
   START_WHISPER = "Начните беседу командой /w Имя-Сервер.",

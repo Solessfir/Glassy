@@ -36,6 +36,8 @@ Core:RegisterCompactTranslations("zhCN", {
   SHOW_RAID_SUBGROUPS = "显示团队小队编号",
   HIGHLIGHT_PLAYER_MENTIONS = "高亮自己的名字",
   HIGHLIGHT_GUILD_TAGS = "高亮公会标签",
+  CLICKABLE_TIMESTAMPS = "可点击时间戳",
+  COPY_MESSAGE_TITLE = "Glassy：复制消息",
   WHISPERS = "密语",
   EMPTY_WHISPER_INBOX = "还没有密语。",
   START_WHISPER = "使用 /w 名字-服务器 开始对话。",

@@ -36,6 +36,8 @@ Core:RegisterCompactTranslations("ptBR", {
   SHOW_RAID_SUBGROUPS = "Mostrar números dos grupos de raide",
   HIGHLIGHT_PLAYER_MENTIONS = "Destacar seu nome",
   HIGHLIGHT_GUILD_TAGS = "Destacar nomes de guilda",
+  CLICKABLE_TIMESTAMPS = "Horários clicáveis",
+  COPY_MESSAGE_TITLE = "Glassy: Copiar mensagem",
   WHISPERS = "Sussurros",
   EMPTY_WHISPER_INBOX = "Ainda não há sussurros.",
   START_WHISPER = "Use /w Nome-Reino para iniciar uma conversa.",

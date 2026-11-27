@@ -176,7 +176,9 @@ function MessageLineMixin:Init()
 
   self:SetScript("OnHyperlinkClick", function (_, link, text, button)
     if not isVisibleUnderMouse() then return end
-    Core:Dispatch(HyperlinkClick({link, text, button, self.sourceFrame}))
+    local sourceText
+    if isAccessible(link) and link == "glassytime:copy" then sourceText = self.sourceText end
+    Core:Dispatch(HyperlinkClick({link, text, button, self.sourceFrame, sourceText}))
   end)
 
   self:SetScript("OnHyperlinkEnter", function (_, link, text)

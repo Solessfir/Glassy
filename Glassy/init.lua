@@ -219,6 +219,7 @@ Core.defaults = {
     chatUrls = true,
     chatInvites = true,
     timestampsEnabled = false,
+    timestampClickable = false,
     timestampFormat = "[%H:%M:%S]",
     timestampColorEnabled = true,
     timestampColor = {

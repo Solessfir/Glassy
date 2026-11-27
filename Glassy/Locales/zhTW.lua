@@ -36,6 +36,8 @@ Core:RegisterCompactTranslations("zhTW", {
   SHOW_RAID_SUBGROUPS = "顯示團隊小隊編號",
   HIGHLIGHT_PLAYER_MENTIONS = "醒目標示自己的名稱",
   HIGHLIGHT_GUILD_TAGS = "醒目標示公會標籤",
+  CLICKABLE_TIMESTAMPS = "可點擊的時間標記",
+  COPY_MESSAGE_TITLE = "Glassy：複製訊息",
   WHISPERS = "密語",
   EMPTY_WHISPER_INBOX = "尚無密語。",
   START_WHISPER = "使用 /w 名稱-伺服器 開始對話。",

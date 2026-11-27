@@ -36,6 +36,8 @@ Core:RegisterCompactTranslations("koKR", {
   SHOW_RAID_SUBGROUPS = "공격대 하위 그룹 번호 표시",
   HIGHLIGHT_PLAYER_MENTIONS = "내 이름 강조",
   HIGHLIGHT_GUILD_TAGS = "길드 태그 강조",
+  CLICKABLE_TIMESTAMPS = "클릭 가능한 시간 표시",
+  COPY_MESSAGE_TITLE = "Glassy: 메시지 복사",
   WHISPERS = "귓속말",
   EMPTY_WHISPER_INBOX = "아직 귓속말이 없습니다.",
   START_WHISPER = "/w 이름-서버로 대화를 시작하세요.",

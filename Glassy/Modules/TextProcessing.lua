@@ -265,6 +265,9 @@ local function timestampProcessor(text, frame, receivedAt)
   end
 
   local timestamp = receivedAt and date(profile.timestampFormat, receivedAt) or date(profile.timestampFormat)
+  if profile.timestampClickable then
+    timestamp = "|Hglassytime:copy|h"..timestamp.."|h"
+  end
   if not profile.timestampColorEnabled then
     return timestamp.." "..text
   end
