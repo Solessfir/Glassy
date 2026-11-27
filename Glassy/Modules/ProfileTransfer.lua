@@ -6,6 +6,14 @@ local MAX_TEXT_LENGTH = 131072
 local MAX_VALUES = 4096
 local MAX_DEPTH = 12
 
+function ProfileTransfer:NormalizeHighlights(profile)
+  if rawget(profile, "highlightNames") == false then
+    profile.highlightPlayerMentions = false
+    profile.highlightGuildTags = false
+  end
+  profile.highlightNames = nil
+end
+
 function ProfileTransfer:NormalizeBackgroundFades(profile, defaults)
   local width = math.max(1, tonumber(profile.frameWidth) or defaults.frameWidth or 600)
   for _, side in ipairs({"Left", "Right"}) do
@@ -236,6 +244,7 @@ function ProfileTransfer:Import(text, defaults)
       fail("invalid profile data")
     end
     self:NormalizeBackgroundFades(decoded, defaults)
+    self:NormalizeHighlights(decoded)
     local sanitized = sanitizeValue(decoded, defaults, 1)
     if next(sanitized) == nil then
       fail("profile has no supported settings")

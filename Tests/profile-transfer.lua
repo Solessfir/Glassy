@@ -13,6 +13,8 @@ local defaults = {
   color = {r = 1, g = 1, b = 1, a = 1},
   tabOrder = {},
   timestampFrames = {["*"] = true},
+  highlightPlayerMentions = true,
+  highlightGuildTags = true,
 }
 local profile = {
   timestampFrames = {ChatFrame1 = false},
@@ -51,5 +53,15 @@ assert(not transfer:Import("return os.execute('anything')", defaults))
 assert(not transfer:Import(string.sub(encoded, 1, -2), defaults))
 local wrongType = {enabled = "yes", size = 14}
 assert(not transfer:Import(assert(transfer:Export(wrongType)), defaults))
+
+local olderProfile = {highlightNames = false, highlightPlayerMentions = true, highlightGuildTags = true}
+transfer:NormalizeHighlights(olderProfile)
+assert(olderProfile.highlightNames == nil and olderProfile.highlightPlayerMentions == false
+  and olderProfile.highlightGuildTags == false, "Migrate old opt-out even after AceDB has copied the new defaults")
+local oldExport = assert(transfer:Import(assert(transfer:Export({highlightNames = false})), defaults))
+assert(oldExport.highlightPlayerMentions == false and oldExport.highlightGuildTags == false)
+local currentExport = assert(transfer:Import(assert(transfer:Export({highlightPlayerMentions = false,
+  highlightGuildTags = true})), defaults))
+assert(currentExport.highlightPlayerMentions == false and currentExport.highlightGuildTags == true)
 
 print("PASS: profile exports are stable, portable, safely parsed, and schema validated")

@@ -1,7 +1,8 @@
-local Core, _, Utils = unpack(select(2, ...))
+local Core, Constants, Utils = unpack(select(2, ...))
 local Formatting = Core:GetModule("MessageFormatting")
 local canaccessvalue = _G.canaccessvalue
 local players = {}
+local raidGroups = {}
 local playerKeys, playerIndex = {}, 1
 local recentNames, recentNameCounts, recentIndex = {}, {}, 1
 
@@ -31,7 +32,7 @@ end
 
 local function wantsPlayerInfo()
   local profile = Core.db.profile
-  return (profile.formatPlayerNames and not Core:IsPratModuleEnabled("PlayerNames"))
+  return ((profile.formatPlayerNames or profile.chatRaidSubgroups) and not Core:IsPratModuleEnabled("PlayerNames"))
     or ((profile.chatClassIcons or profile.chatRaceIcons) and not Core:IsPratModuleEnabled("LinkInfoIcons"))
 end
 
@@ -40,28 +41,50 @@ local function updateUnit(unit)
   local _, class = _G.UnitClass(unit)
   local race = _G.UnitRace and select(2, _G.UnitRace(unit))
   local level, sex = _G.UnitLevel(unit), _G.UnitSex and _G.UnitSex(unit)
-  if _G.UnitGUID then remember(_G.UnitGUID(unit), class, level, race, sex) end
+  local guid = _G.UnitGUID and _G.UnitGUID(unit)
+  remember(guid, class, level, race, sex)
   if _G.GetUnitName then
     -- The client joins Forever surnames or foreign realms with the right separator.
     local ok, fullName = pcall(_G.GetUnitName, unit, true)
-    if ok then remember(fullName, class, level, race, sex) end
-    return
+    if ok then
+      remember(fullName, class, level, race, sex)
+      return fullName, guid
+    end
+    return nil, guid
   end
   local name, realm = _G.UnitName(unit)
   remember(name, class, level, race, sex)
-  if canaccessvalue and not canaccessvalue(realm) then return end
+  if canaccessvalue and not canaccessvalue(realm) then return name, guid end
   if plainString(name) and plainString(realm) and realm ~= "" then
-    remember(name.."-"..realm, class, level, race, sex)
+    name = name.."-"..realm
+    remember(name, class, level, race, sex)
   end
+  return name, guid
 end
 
 function Formatting:RefreshPlayers()
+  raidGroups = {}
   if not wantsPlayerInfo() then return end
   updateUnit("player")
   updateUnit("target")
   updateUnit("mouseover")
   for i = 1, 4 do updateUnit("party"..i) end
-  for i = 1, 40 do updateUnit("raid"..i) end
+  local inRaid = Core.db.profile.chatRaidSubgroups and _G.IsInRaid and _G.IsInRaid()
+  local raidSize = _G.GetRaidRosterInfo and readable(inRaid) and inRaid
+    and _G.GetNumGroupMembers and _G.GetNumGroupMembers()
+  if not readable(raidSize) or type(raidSize) ~= "number" then raidSize = 0 end
+  for i = 1, 40 do
+    local name, guid = updateUnit("raid"..i)
+    if i <= raidSize then
+      local rosterName, _, subgroup = _G.GetRaidRosterInfo(i)
+      if readable(subgroup) and type(subgroup) == "number" and subgroup >= 1 and subgroup <= 8
+        and subgroup % 1 == 0 then
+        if (not canaccessvalue or canaccessvalue(name)) and type(name) == "string" then raidGroups[name] = subgroup end
+        if plainString(rosterName) then raidGroups[rosterName] = subgroup end
+        if (not canaccessvalue or canaccessvalue(guid)) and type(guid) == "string" then raidGroups[guid] = subgroup end
+      end
+    end
+  end
   if _G.GetNumGuildMembers and _G.GetGuildRosterInfo then
     for i = 1, _G.GetNumGuildMembers() do
       local name, _, _, level, _, _, _, _, _, _, class = _G.GetGuildRosterInfo(i)
@@ -84,6 +107,9 @@ end
 
 function Formatting:OnEnable()
   self:RefreshPlayers()
+  self.stopConfigListener = Core:Subscribe(Constants.EVENTS.UPDATE_CONFIG, function (key)
+    if key == "messageFormatting" then self:RefreshPlayers() end
+  end)
   local frame = _G.CreateFrame("Frame")
   for _, event in ipairs({"PLAYER_ENTERING_WORLD", "PLAYER_LEVEL_UP", "GROUP_ROSTER_UPDATE",
     "GUILD_ROSTER_UPDATE", "FRIENDLIST_UPDATE", "PLAYER_TARGET_CHANGED", "UPDATE_MOUSEOVER_UNIT", "UNIT_LEVEL", "UNIT_NAME_UPDATE"}) do
@@ -101,6 +127,7 @@ end
 
 function Formatting:OnDisable()
   if self.eventFrame then self.eventFrame:UnregisterAllEvents() end
+  if self.stopConfigListener then self.stopConfigListener() end
 end
 
 local function colorText(text, color, restore)
@@ -131,16 +158,21 @@ local RACE_ATLAS = {
   EarthenDwarf = "earthen", KulTiran = "kultiran",
 }
 
+local RAID_CHANNELS = {RAID = true, RAID_LEADER = true, RAID_WARNING = true,
+  INSTANCE_CHAT = true, INSTANCE_CHAT_LEADER = true}
+
 local function playerInfo(data)
-  local name, line = data:match("^player:([^:]+):?(%d*)")
+  local name, line, channel = data:match("^player:([^:]+):?(%d*):?([^:]*)")
   if not name then return end
   local player = players[name] or {}
+  local subgroup = RAID_CHANNELS[channel] and raidGroups[name] or nil
   local getGUID = _G.C_ChatInfo and _G.C_ChatInfo.GetChatLineSenderGUID
   if getGUID and line ~= "" then
     local ok, guid = pcall(getGUID, tonumber(line))
     if ok and type(guid) == "string" and (not canaccessvalue or canaccessvalue(guid)) then
       player = players[guid] or player
-      if not _G.GetPlayerInfoByGUID then return player end
+      if RAID_CHANNELS[channel] then subgroup = raidGroups[guid] or subgroup end
+      if not _G.GetPlayerInfoByGUID then return player, subgroup end
       local infoOK, _, class, _, race, sex = pcall(_G.GetPlayerInfoByGUID, guid)
       if infoOK then
         player = {class = plainString(class) and class or player.class, level = player.level,
@@ -148,28 +180,30 @@ local function playerInfo(data)
       end
     end
   end
-  return player
+  return player, subgroup
 end
 
-local function playerText(data, shown, restore, profile, names, icons)
+local function playerText(data, shown, restore, profile, names, icons, raidSubgroups)
   if shown:find("|K", 1, true) then return shown, "" end
-  local player = playerInfo(data)
+  local player, subgroup = playerInfo(data)
   if not player then return shown, "" end
   if names then
     local colors = _G.CUSTOM_CLASS_COLORS or _G.RAID_CLASS_COLORS
     local color = colors and colors[player.class]
     if color then
       shown = shown:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
-      shown = colorText(shown:match("^%[(.*)%]$") or shown, color, restore)
-    else
+      if not profile.chatNameBrackets then shown = shown:match("^%[(.*)%]$") or shown end
+      shown = colorText(shown, color, restore)
+    elseif not profile.chatNameBrackets then
       shown = shown:gsub("^%[", ""):gsub("%]$", "")
         :gsub("^(|c%x%x%x%x%x%x%x%x)%[", "%1"):gsub("%](|r)$", "%1")
     end
-    if player.level then
+    if player.level and profile.chatPlayerLevels ~= false then
       local color = _G.GetQuestDifficultyColor and _G.GetQuestDifficultyColor(player.level)
       shown = colorText(tostring(player.level), color, restore)..":"..shown
     end
   end
+  if raidSubgroups and subgroup then shown = shown.." ["..subgroup.."]" end
   local prefix, size = "", math.floor((profile.messageFontSize or 13) + 0.5)
   if icons and profile.chatRaceIcons and player.race then
     local race = (RACE_ATLAS[player.race] or player.race:lower()).."-"..(player.sex == 3 and "female" or "male")
@@ -284,13 +318,14 @@ function Formatting:CompletePlayerName(prefix)
   return match
 end
 
-local function highlightText(text, ownName, restore)
+local function highlightText(text, ownName, guildTags, restore)
   local function highlightWords(words)
     if not ownName then return words end
     return (words:gsub("%f[%a\128-\255][%a\128-\255]+%f[^%a\128-\255]", function (word)
       if Utils.lower(word) == ownName then return "|cff00ff00"..word.."|r"..restore end
     end))
   end
+  if not guildTags then return highlightWords(text) end
   local parts, cursor = {}, 1
   while true do
     local first, last, guild = text:find("<([^<>]+)>", cursor)
@@ -306,6 +341,8 @@ local function shortenSpeech(text, profile)
   local start, finish, linkType = text:find("|H(%a+):[^|]+|h.-|h")
   if not start or (linkType ~= "player" and linkType ~= "BNplayer") then return text end
   local before, after = text:sub(1, start - 1), text:sub(finish + 1)
+  local badge = after:match("^ |A:friendslist%-recentallies%-yellow:[%d:%-]+|a") or ""
+  after = after:sub(#badge + 1)
   local plainBefore = before:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
   local kinds = linkType == "BNplayer" and {"BN_WHISPER", "BN_WHISPER_INFORM"}
     or {"SAY", "YELL", "WHISPER", "WHISPER_INFORM"}
@@ -317,7 +354,7 @@ local function shortenSpeech(text, profile)
       local short = channelLabel(kind, profile)
       if not short then return text end
       local colors = before:sub(1, #before - #prefix)
-      return colors.."["..short.."] "..text:sub(start, finish)..": "..after:sub(#suffix + 1)
+      return colors.."["..short.."] "..text:sub(start, finish)..badge..": "..after:sub(#suffix + 1)
     end
   end
   return text
@@ -339,12 +376,17 @@ local function formatText(text)
   local profile = Core.db.profile
   local channels = profile.shortChannelNames and not Core:IsPratModuleEnabled("ChannelNames")
     and not isChannelNotice(text)
-  local names = profile.formatPlayerNames and not Core:IsPratModuleEnabled("PlayerNames")
-  local firstNames = profile.firstNamesOnly and not Core:IsPratModuleEnabled("PlayerNames")
+  local nativeNames = not Core:IsPratModuleEnabled("PlayerNames")
+  local names = profile.formatPlayerNames and nativeNames
+  local firstNames = profile.firstNamesOnly and nativeNames
+  local raidSubgroups = profile.chatRaidSubgroups and nativeNames
   local icons = (profile.chatClassIcons or profile.chatRaceIcons or profile.chatLinkIcons) and not Core:IsPratModuleEnabled("LinkInfoIcons")
-  local highlight = profile.highlightNames and not Core:IsPratModuleEnabled("Highlight")
-  local completion = profile.completePlayerNames and not Core:IsPratModuleEnabled("PlayerNames")
-  if not (channels or names or firstNames or icons or highlight or completion) then return text end
+  local nativeHighlight = not Core:IsPratModuleEnabled("Highlight")
+  local playerMentions = profile.highlightPlayerMentions and nativeHighlight
+  local guildTags = profile.highlightGuildTags and nativeHighlight
+  local completion = profile.completePlayerNames and nativeNames
+  local altNames = profile.chatAltNamesEnabled and not Core:IsPratModuleEnabled("AltNames")
+  if not (channels or names or firstNames or raidSubgroups or icons or playerMentions or guildTags or completion or altNames) then return text end
   if channels then
     text = shortenSpeech(text, profile)
     local warning = channelLabel("RAID_WARNING", profile)
@@ -352,13 +394,13 @@ local function formatText(text)
       text = text:gsub("^%["..escape(_G.CHAT_MSG_RAID_WARNING).."%]", function () return "["..warning.."]" end)
     end
   end
-  local ownName = highlight and _G.UnitName and _G.UnitName("player")
+  local ownName = playerMentions and _G.UnitName and _G.UnitName("player")
   ownName = plainString(ownName) and Utils.lower(ownName) or nil
   local parts, cursor, restore = {}, 1, ""
   while cursor <= #text do
     local pipe = text:find("|", cursor, true) or (#text + 1)
     local segment = text:sub(cursor, pipe - 1)
-    if highlight then segment = highlightText(segment, ownName, restore) end
+    if ownName or guildTags then segment = highlightText(segment, ownName, guildTags, restore) end
     parts[#parts + 1] = segment
     if pipe > #text then break end
     local code, finish = text:sub(pipe, pipe + 1)
@@ -371,7 +413,10 @@ local function formatText(text)
           if firstNames and not shown:find("|K", 1, true) then
             shown = shown:gsub("^(%S+)%s+[^|%]]+", "%1", 1)
           end
-          if names or icons then shown, prefix = playerText(data, shown, restore, profile, names, icons) end
+          if names or icons or raidSubgroups then
+            shown, prefix = playerText(data, shown, restore, profile, names, icons, raidSubgroups)
+          end
+          if altNames then shown = Core:GetModule("ChatRules"):AppendMainName(data, shown) end
         elseif channels and data:match("^channel:") then shown = channelText(data, shown, profile)
         elseif icons and profile.chatLinkIcons then shown, prefix = linkText(data, shown, profile.messageFontSize or 13) end
         parts[#parts + 1] = prefix.."|H"..data.."|h"..shown.."|h"

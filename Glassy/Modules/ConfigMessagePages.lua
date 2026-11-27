@@ -23,7 +23,7 @@ local TIMESTAMP_FORMATS = SettingsValues.timestampFormats
 local EASING_VALUES = SettingsValues.easingValues
 local EASING_SORTING = SettingsValues.easingSorting
 
-local function chatOption(key, name, desc, order, pratModule)
+local function chatOption(key, name, desc, order, pratModule, dependency)
   return {
     type = "toggle",
     name = name,
@@ -34,7 +34,9 @@ local function chatOption(key, name, desc, order, pratModule)
       return desc
     end or desc,
     order = order,
-    disabled = pratModule and function () return Core:IsPratModuleEnabled(pratModule) end,
+    disabled = pratModule and function ()
+      return Core:IsPratModuleEnabled(pratModule) or (dependency and not Core.db.profile[dependency])
+    end,
     get = function () return Core.db.profile[key] end,
     set = function (_, value)
       Core.db.profile[key] = value
@@ -285,11 +287,19 @@ local function getMessageOptions()
         order = 2,
         args = {
           formatPlayerNames = chatOption("formatPlayerNames", "Format player names",
-            "Show player names in their class color, without brackets, and show levels when available.", 2, "PlayerNames"),
+            "Show player names in their class color.", 2, "PlayerNames"),
           firstNamesOnly = chatOption("firstNamesOnly", "First names only",
             "Shorten multi-word player names in chat. Player links still use the full name.", 2.05, "PlayerNames"),
-          highlightNames = chatOption("highlightNames", "Highlight names",
-            "Highlight mentions of your character and text in angle brackets.", 3, "Highlight"),
+          chatNameBrackets = chatOption("chatNameBrackets", "Keep name brackets",
+            "Keep Blizzard's brackets around formatted player names.", 2.1, "PlayerNames", "formatPlayerNames"),
+          chatPlayerLevels = chatOption("chatPlayerLevels", "Show player levels",
+            "Show player levels when available.", 2.2, "PlayerNames", "formatPlayerNames"),
+          chatRaidSubgroups = chatOption("chatRaidSubgroups", "Show raid subgroup numbers",
+            "Show the sender's subgroup in raid and instance chat while you are in the same raid.", 2.3, "PlayerNames"),
+          highlightPlayerMentions = chatOption("highlightPlayerMentions", "Highlight your name",
+            "Highlight mentions of your character.", 3, "Highlight"),
+          highlightGuildTags = chatOption("highlightGuildTags", "Highlight guild tags",
+            "Highlight text in angle brackets, such as <Guild Name>.", 3.1, "Highlight"),
           chatClassIcons = chatOption("chatClassIcons", "Class icons",
             "Show a class icon before player names when available.", 4, "LinkInfoIcons"),
           chatRaceIcons = chatOption("chatRaceIcons", "Race icons",

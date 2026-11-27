@@ -1,13 +1,19 @@
 -- Run from the repository root with Lua 5.1.
 local module, enabled = {}, {}
 local profile = {shortChannelNames = true, channelShortLabels = {},
-  channelFullNames = {BN_WHISPER = true, BN_WHISPER_INFORM = true}, formatPlayerNames = true, highlightNames = true,
+  channelFullNames = {BN_WHISPER = true, BN_WHISPER_INFORM = true}, formatPlayerNames = true,
+  highlightPlayerMentions = true, highlightGuildTags = true,
   chatClassIcons = true, chatRaceIcons = false, chatLinkIcons = true, messageFontSize = 13}
 local core = {
   db = {profile = profile},
   GetModule = function () return module end,
   IsPratModuleEnabled = function (_, name) return enabled[name] end,
 }
+local configChanged
+function core:Subscribe(_, callback)
+  configChanged = callback
+  return function () configChanged = nil end
+end
 local SECRET = setmetatable({}, {__tostring = function () error("Unreadable value") end})
 canaccessvalue = function (value) return value ~= SECRET end
 UnitName = function (unit) if unit == "player" then return "Elowen" elseif unit == "target" then return "Mira" end end
@@ -42,7 +48,8 @@ function eventFrame:RegisterEvent() end
 function eventFrame:SetScript(_, callback) self.callback = callback end
 function eventFrame:UnregisterAllEvents() end
 CreateFrame = function () return eventFrame end
-assert(loadfile("Glassy/Modules/MessageFormatting.lua"))("Glassy", {core, {}, {lower = string.lower}})
+assert(loadfile("Glassy/Modules/MessageFormatting.lua"))("Glassy",
+  {core, {EVENTS = {UPDATE_CONFIG = "UPDATE_CONFIG"}}, {lower = string.lower}})
 module:OnEnable()
 
 local player = "|Hplayer:Mira:7:YELL|h[Mira]|h"
@@ -146,7 +153,8 @@ C_ChatInfo.GetChatLineSenderGUID = originalSenderGUID
 local channel = "|Hchannel:CHANNEL:4|h[4. Looking For Group]|h "..player
 assert(module:Format(channel):find("|Hchannel:CHANNEL:4|h[4]|h", 1, true))
 assert(module:Format("|Hchannel:PARTY|h[Party Leader]|h hello"):find("|h[PL]|h", 1, true))
-profile.formatPlayerNames, profile.chatClassIcons, profile.highlightNames = false, false, false
+profile.formatPlayerNames, profile.chatClassIcons = false, false
+profile.highlightPlayerMentions, profile.highlightGuildTags = false, false
 local headers = {
   SAY = {player.." says: hello", "[S] "..player..": hello"},
   YELL = {player.." yells: hello", "[Y] "..player..": hello"},
@@ -178,6 +186,21 @@ for kind, entry in pairs(headers) do
   end
   profile.channelShortLabels[kind] = nil
 end
+local badge = " |A:friendslist-recentallies-yellow:11:11:0:0|a"
+for _, suffix in ipairs({" says: hello", " yells: hello", " whispers: hello"}) do
+  local label = suffix:find("says", 1, true) and "S" or suffix:find("yells", 1, true) and "Y" or "W From"
+  assert(module:Format(player..badge..suffix) == "["..label.."] "..player..badge..": hello",
+    "Speech abbreviations preserve the native recent-ally badge")
+  local pasted = "Look "..player..badge..suffix
+  assert(module:Format(pasted) == pasted, "Pasted recent-ally links do not become speech headers")
+end
+local nativeAlly = "|Hplayer:Mira:7:SAY:|h[|cff3fc7ebMira|r]|h"..badge
+assert(module:Format(nativeAlly.." says: hello") == "[S] "..nativeAlly..": hello",
+  "Native player payloads and colored labels retain their badge")
+for _, suffix in ipairs({badge.." unrelated says: hello", " |A:other:11:11|a says: hello",
+  " |A:friendslist-recentallies-yellow:11:11 says: hello"}) do
+  assert(module:Format(player..suffix) == player..suffix, "Non-native suffixes retain their text")
+end
 local bnPlayer = "|HBNplayer:Friend:123:7:BN_WHISPER:0|h[|Kf1|k]|h"
 for kind, native in pairs({BN_WHISPER = bnPlayer.." whispers: hello", BN_WHISPER_INFORM = "To "..bnPlayer..": hello"}) do
   assert(module:Format(native) == native, "Battle.net keeps its native header by default")
@@ -193,7 +216,8 @@ enabled.ChannelNames = true
 assert(module:Format(player.." yells: hello") == player.." yells: hello", "Prat owns custom labels too")
 enabled.ChannelNames = nil
 profile.channelShortLabels.YELL = nil
-profile.formatPlayerNames, profile.chatClassIcons, profile.highlightNames = true, true, true
+profile.formatPlayerNames, profile.chatClassIcons = true, true
+profile.highlightPlayerMentions, profile.highlightGuildTags = true, true
 
 local linked = "|cff0070dd|Hitem:1:0|h[Hat]|h|r"
 text = module:Format(linked)
@@ -209,6 +233,11 @@ assert(text:find("|cff00ff00Elowen|r|cffaabbcc", 1, true), "Highlight restores e
 assert(text:find("|cffffffff<|r|cff00ff00Guild|r|cffffffff>|r|cffaabbcc", 1, true))
 assert(text:find("Elowenish", 1, true), "Highlight matches whole names")
 assert(module:Format("elowen"):find("|cff00ff00elowen|r", 1, true), "Names are highlighted without case sensitivity")
+profile.highlightPlayerMentions = false
+assert(module:Format("Elowen <Guild>"):find("^Elowen |cffffffff<"), "Guild tags work without player mentions")
+profile.highlightPlayerMentions, profile.highlightGuildTags = true, false
+assert(module:Format("Elowen <Guild>") == "|cff00ff00Elowen|r <Guild>", "Player mentions work without guild tags")
+profile.highlightGuildTags = true
 local protected = "|Hcustom:Elowen|h[Elowen <Guild>]|h |TElowen:12|t |A:Elowen:12|a |KElowen|k ||Hcustom:X"
 assert(module:Format(protected) == protected, "Links and protected markup are preserved")
 assert(module:Format("broken |Hitem:1:Elowen") == "broken |Hitem:1:Elowen")
@@ -233,7 +262,8 @@ profile.channelShortLabels.CHANNEL1 = "General"
 assert(module:Format(notice) == notice, "Channel notices retain names even with custom labels")
 profile.channelShortLabels.CHANNEL1 = nil
 assert(module:Format("To "..player..": hello"):find("[W To] ", 1, true) == 1)
-profile.shortChannelNames, profile.formatPlayerNames, profile.highlightNames = false, false, false
+profile.shortChannelNames, profile.formatPlayerNames = false, false
+profile.highlightPlayerMentions, profile.highlightGuildTags = false, false
 profile.chatClassIcons, profile.chatRaceIcons, profile.chatLinkIcons = false, false, false
 profile.completePlayerNames = true
 assert(module:Format(player) == player, "Completion caching does not require visible name formatting")
@@ -250,6 +280,8 @@ profile.firstNamesOnly = true
 local fullName = "|Hplayer:Éowyn Silver Moon-Realm:9:WHISPER|h[|cffaabbccÉowyn Silver Moon|r]|h"
 assert(module:Format(fullName) == "|Hplayer:Éowyn Silver Moon-Realm:9:WHISPER|h[|cffaabbccÉowyn|r]|h",
   "First names shorten only the visible Unicode name and preserve colors, brackets, and the full whisper target")
+assert(modules.TextProcessing:ProcessText(fullName) == module:Format(fullName),
+  "First-name shortening also reaches the renderer when it is the only option enabled")
 assert(module:Format("|Hplayer:Mira:9|h[Mira]|h") == "|Hplayer:Mira:9|h[Mira]|h")
 assert(module:Format("|Hplayer:Friend:9|h[|Ksecret name|k]|h") == "|Hplayer:Friend:9|h[|Ksecret name|k]|h",
   "Protected names remain opaque")
@@ -270,6 +302,29 @@ UnitName = function (...) unitCalls = unitCalls + 1; return originalUnitName(...
 module:RefreshPlayers()
 assert(unitCalls == 0, "Roster APIs are skipped when player formatting and icons are disabled")
 profile.formatPlayerNames = true
+profile.chatNameBrackets, profile.chatPlayerLevels = true, false
+assert(module:Format(player):find("|h|cff3fc7eb[Mira]|r|h", 1, true), "Brackets and levels can be controlled separately")
+profile.chatNameBrackets, profile.chatPlayerLevels = false, true
+
+local raidMember = "|Hplayer:Mira-Forever:98:RAID|h[Mira]|h"
+local inRaid, group = true, 6
+IsInRaid = function () return inRaid end
+GetNumGroupMembers = function () return 1 end
+GetRaidRosterInfo = function () return "Mira-Forever", 0, group end
+profile.chatRaidSubgroups = true
+configChanged("messageFormatting")
+assert(module:Format(raidMember):find(" [6]|h", 1, true), "Enabling subgroups updates the current raid immediately")
+assert(not module:Format(raidMember:gsub(":RAID|", ":GUILD|")):find(" [6]|h", 1, true))
+group = SECRET
+eventFrame.callback(eventFrame, "GROUP_ROSTER_UPDATE")
+assert(not module:Format(raidMember):find(" [6]|h", 1, true), "Restricted subgroups do not leave stale numbers")
+group = 5
+eventFrame.callback(eventFrame, "GROUP_ROSTER_UPDATE")
+assert(module:Format(raidMember):find(" [5]|h", 1, true))
+inRaid = false
+eventFrame.callback(eventFrame, "GROUP_ROSTER_UPDATE")
+assert(not module:Format(raidMember):find(" [5]|h", 1, true), "Leaving the raid clears cached subgroups")
+profile.chatRaidSubgroups = false
 local currentTarget = "NewTarget"
 UnitName = function (unit) if unit == "target" then return currentTarget end end
 for i = 1, 2000 do

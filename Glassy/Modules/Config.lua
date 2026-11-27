@@ -219,6 +219,7 @@ local function migrateSettings()
       editBoxAnchor.yOfs = nil
     end
   end
+  Core:GetModule("ProfileTransfer"):NormalizeHighlights(profile)
   profile.settingsVersion = CURRENT_SETTINGS_VERSION
 end
 
@@ -345,6 +346,13 @@ function C:GetOptions()
   compatibility.inline = true
   compatibility.order = 4
   about.args.compatibility = compatibility
+  local messages = C.Pages.messages()
+  messages.args.chatAlerts = Core:GetModule("ChatAlerts"):BuildOptions()
+  messages.args.chatAlerts.order = 10
+  messages.args.chatRules = Core:GetModule("ChatRules"):BuildOptions()
+  messages.args.chatRules.order = 11
+  messages.args.chatUtilities = Core:GetModule("ChatUtilities"):BuildOptions()
+  messages.args.chatUtilities.order = 12
   return {
     name = "Glassy",
     handler = C,
@@ -353,7 +361,7 @@ function C:GetOptions()
       general = C.Pages.general(),
       tabs = tabs,
       editBox = C.Pages.editBox(),
-      messages = C.Pages.messages(),
+      messages = messages,
       profile = profile,
       about = about,
     },
@@ -732,6 +740,8 @@ function C:RefreshConfig()
   Core:Dispatch(UpdateConfig("iconTextureYOffset"))
   Core:Dispatch(UpdateConfig("emojiDisplay"))
   Core:Dispatch(UpdateConfig("messageFormatting"))
+  Core:Dispatch(UpdateConfig("messageBlacklist"))
+  Core:Dispatch(UpdateConfig("chatUtilities"))
   Core:Dispatch(UpdateConfig("emojiDisplay"))
   Core:Dispatch(UpdateConfig("chatBackgroundColor"))
   Core:Dispatch(UpdateConfig("unreadMessageSeparatorColor"))

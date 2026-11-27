@@ -30,8 +30,11 @@ Core.Version = GetAddOnMetadata and GetAddOnMetadata(AddonName, "Version") or "0
 
 -- Modules
 Core:NewModule("Config", "AceConsole-3.0")
+Core:NewModule("ChatAlerts")
 Core:NewModule("ChatCopy", "AceConsole-3.0")
 Core:NewModule("ChatLinks")
+Core:NewModule("ChatRules")
+Core:NewModule("ChatUtilities", "AceConsole-3.0")
 Core:NewModule("Demo")
 Core:NewModule("Ellesmere")
 Core:NewModule("Fonts")
@@ -179,14 +182,35 @@ Core.defaults = {
     emojisEnabled = false,
     messageBlacklistEnabled = false,
     messageBlacklist = "",
+    chatAlertOwnName = false,
+    chatAlertWords = "",
+    chatAlertSound = "",
+    chatAlertPopup = false,
+    chatSounds = {["*"] = ""},
+    chatOutgoingSounds = {["*"] = ""},
+    chatAltNamesEnabled = false,
+    chatAltNames = "",
+    chatSubstitutionsEnabled = false,
+    chatSubstitutions = "",
+    chatSubstitutionPatterns = false,
+    chatFilterRulesEnabled = false,
+    chatFilterRules = "",
+    stickyChatTypes = {["*"] = "default"},
+    rememberChannelColors = false,
+    channelColors = {["*"] = {r = -1, g = -1, b = -1}},
+    whisperTarget = false,
     scrollbackLines = 500,
     saveChatHistory = true,
     chatHistoryDateSeparators = false,
     shortChannelNames = true,
     channelShortLabels = {["*"] = ""},
     channelFullNames = {["*"] = false, BN_WHISPER = true, BN_WHISPER_INFORM = true},
-    highlightNames = true,
+    highlightPlayerMentions = true,
+    highlightGuildTags = true,
     formatPlayerNames = true,
+    chatPlayerLevels = true,
+    chatNameBrackets = false,
+    chatRaidSubgroups = false,
     firstNamesOnly = false,
     completePlayerNames = true,
     chatClassIcons = true,

@@ -293,9 +293,6 @@ function TP:ProcessTextures(text)
 end
 
 function TP:IsMessageBlacklisted(text)
-  if not Core.db.profile.messageBlacklistEnabled then
-    return false
-  end
   if canaccessvalue and not canaccessvalue(text) then
     return false
   end
@@ -303,11 +300,16 @@ function TP:IsMessageBlacklisted(text)
     return false
   end
 
-  local normalized = normalizeBlacklistText(text)
-  for _, phrase in ipairs(getBlacklistPhrases()) do
-    if normalized:find(phrase, 1, true) then
-      return true
+  if Core.db.profile.messageBlacklistEnabled then
+    local normalized = normalizeBlacklistText(text)
+    for _, phrase in ipairs(getBlacklistPhrases()) do
+      if normalized:find(phrase, 1, true) then
+        return true
+      end
     end
+  end
+  if Core.db.profile.chatFilterRulesEnabled then
+    return Core:GetModule("ChatRules"):IsMessageFiltered(text)
   end
   return false
 end
@@ -318,8 +320,12 @@ function TP:ProcessText(text, frame, receivedAt)
   local processedText = text
   local profile = Core.db.profile
   if type(text) == "string" then
-    if profile.shortChannelNames or profile.highlightNames or profile.formatPlayerNames or profile.completePlayerNames
-      or profile.chatClassIcons or profile.chatRaceIcons or profile.chatLinkIcons then
+    if profile.chatSubstitutionsEnabled then
+      processedText = processSafely(function (value) return Core:GetModule("ChatRules"):Substitute(value) end, processedText)
+    end
+    if profile.shortChannelNames or profile.highlightPlayerMentions or profile.highlightGuildTags
+      or profile.formatPlayerNames or profile.firstNamesOnly or profile.chatRaidSubgroups or profile.completePlayerNames
+      or profile.chatClassIcons or profile.chatRaceIcons or profile.chatLinkIcons or profile.chatAltNamesEnabled then
       processedText = processSafely(formatMessage, processedText, Core:GetModule("MessageFormatting"))
     end
     if profile.chatUrls or profile.chatInvites then
