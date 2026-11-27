@@ -190,7 +190,7 @@ local function getGeneralOptions()
           },
           blizzardEditMode = profileOption("blizzardEditMode", {
             name = "Blizzard Edit Mode",
-            desc = "Show the Glassy mover and settings shortcut when the game's Edit Mode is open.",
+            desc = "Move chat, notifications, and voice indicators and adjust chat settings in the game's Edit Mode.",
             type = "toggle",
             order = 7,
             hidden = function () return not _G.EditModeManagerFrame end,

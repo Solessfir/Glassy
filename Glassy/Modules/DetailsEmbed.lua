@@ -60,7 +60,7 @@ local function releaseFrame(record)
     setPoints(frame, record.originalPoints)
     if record.width then frame:SetSize(record.width, record.height) end
   end
-  if frame:IsIgnoringParentAlpha() then frame:SetIgnoreParentAlpha(record.ignoreAlpha) end
+  if frame:IsIgnoringParentAlpha() ~= record.ignoreAlpha then frame:SetIgnoreParentAlpha(record.ignoreAlpha) end
   for _, layer in ipairs(record.layers) do
     if layer.strata and layer.frame:GetFrameStrata() == layer.appliedStrata then layer.frame:SetFrameStrata(layer.strata) end
     if layer.level and layer.frame:GetFrameLevel() == layer.appliedLevel then layer.frame:SetFrameLevel(layer.level) end
@@ -101,14 +101,67 @@ function UIManager:ResizeDetailsEmbed(renderer)
   end
 end
 
-function UIManager:RefreshDetailsEmbed()
-  self:HookDetailsEmbed()
+function UIManager:SyncDetailsEmbedSelection()
+  local state = self.detailsEmbedState
+  local dock = _G.GENERAL_CHAT_DOCK
+  local selected = dock and dock.selected
+  if state then
+    for _, record in ipairs(state.frames) do
+      local frame = record.frame
+      local visible = selected == record.chatFrame
+      if frame:GetParent() == record.chatFrame and frame:IsIgnoringParentAlpha() ~= visible then
+        frame:SetIgnoreParentAlpha(visible)
+      end
+    end
+  end
+
   local details = _G.Details
   local settings = details and details.chat_tab_embed
+  local chatFrame = Core.db.profile.detailsChatEmbed == true and settings and settings.enabled and details.chat_tab_embed_onframe
+  local hidden = self.detailsHiddenFrames or {}
+  self.detailsHiddenFrames = hidden
+  for frame, owner in pairs(hidden) do
+    if frame:GetParent() ~= owner then
+      hidden[frame] = nil
+    elseif owner ~= chatFrame or selected == owner then
+      hidden[frame] = nil
+      frame:Show()
+    end
+  end
+  if not (chatFrame and chatFrame.isDocked and chatFrame ~= selected and type(details.GetInstance) == "function") then return end
+
+  -- Details can show an embedded window on reload before it has stock anchors for Glassy to adopt.
+  local hooks = self.detailsVisibilityHooks or {}
+  self.detailsVisibilityHooks = hooks
+  for index = 1, settings.single_window and 1 or 2 do
+    local instance = details:GetInstance(index)
+    local frame = instance and instance.baseframe
+    if frame and frame:GetParent() == chatFrame and frame.IsShown then
+      if not hooks[frame] and frame.HookScript then
+        hooks[frame] = true
+        frame:HookScript("OnShow", function () self:SyncDetailsEmbedSelection() end)
+      end
+      if frame:IsShown() then
+        hidden[frame] = chatFrame
+        frame:Hide()
+      end
+    end
+  end
+end
+
+function UIManager:RefreshDetailsEmbed()
+  self:HookDetailsEmbed()
+  self:SyncDetailsEmbedSelection()
+  local details = _G.Details
+  local settings = details and details.chat_tab_embed
+  if self.detailsStartupAlpha and (Core.db.profile.detailsChatEmbed ~= true
+    or not (settings and settings.enabled) or details.chat_tab_embed_onframe) then
+    self:EndDetailsStartupWait()
+  end
   local chatFrame = settings and settings.enabled and details.chat_tab_embed_onframe
   local window = chatFrame and self:GetChatWindow(chatFrame)
   local renderer = window and window.slidingMessageFrame
-  if Core.db.profile.detailsChatEmbed == false or not (window and renderer and renderer.viewport
+  if Core.db.profile.detailsChatEmbed ~= true or not (window and renderer and renderer.viewport
     and renderer.config and chatFrame.isDocked and chatFrame ~= _G.ChatFrame2
     and not window.temporary and not chatFrame.isTemporary and not window.secondaryGroup
     and not renderer.detachedGroup and not renderer.detachedContainer
@@ -193,7 +246,6 @@ function UIManager:RefreshDetailsEmbed()
       record.points[index] = {point[1], state.host, point[3], point[4], point[5]}
     end
     setPoints(record.frame, record.points)
-    record.frame:SetIgnoreParentAlpha(true)
     raiseFrame(record.frame, renderer, record.layers)
     raiseFrame(record.rowframe, renderer, record.layers)
     state.frames[#state.frames + 1] = record
@@ -211,6 +263,7 @@ function UIManager:RefreshDetailsEmbed()
     if renderer.overlay then renderer.overlay:QuickHide() end
   end
   self:ResizeDetailsEmbed(renderer)
+  self:SyncDetailsEmbedSelection()
   reconcileNative(renderer)
 end
 
@@ -237,11 +290,78 @@ function UIManager:HookDetailsEmbed()
   end
 end
 
+local function getDetailsStartupTarget(manager)
+  local details = _G.Details
+  local settings = details and details.chat_tab_embed
+  local embed = details and details.chat_embed
+  if Core.db.profile.detailsChatEmbed ~= true or not (settings and settings.enabled and not details.chat_tab_embed_onframe
+    and type(settings.tab_name) == "string" and settings.tab_name ~= "" and embed
+    and type(embed.GetTab) == "function" and type(embed.DoEmbed) == "function") then return end
+  local chatFrame = embed:GetTab(settings.tab_name)
+  local window = chatFrame and manager:GetChatWindow(chatFrame)
+  -- Details clears the target tab's message groups. Only recover a dedicated docked tab.
+  if window and chatFrame.isDocked and chatFrame ~= _G.ChatFrame1 and chatFrame ~= _G.ChatFrame2
+    and not chatFrame.isTemporary and not window.temporary and not window.secondaryGroup then
+    return details, settings, embed
+  end
+end
+
+function UIManager:BeginDetailsStartupWait()
+  local details, settings = getDetailsStartupTarget(self)
+  if not (details and type(details.GetInstance) == "function") then return end
+  self.detailsStartupAlpha = {}
+  for index = 1, settings.single_window and 1 or 2 do
+    local instance = details:GetInstance(index)
+    local frame = instance and instance.baseframe
+    if frame and frame:GetParent() == _G.UIParent and frame.GetAlpha and frame.SetAlpha then
+      self.detailsStartupAlpha[frame] = frame:GetAlpha()
+      frame:SetAlpha(0)
+    end
+  end
+end
+
+function UIManager:EndDetailsStartupWait()
+  if not self.detailsStartupAlpha then return end
+  for frame, alpha in pairs(self.detailsStartupAlpha) do
+    if frame:GetAlpha() == 0 then frame:SetAlpha(alpha) end
+  end
+  self.detailsStartupAlpha = nil
+end
+
+function UIManager:RecoverDetailsStartupEmbed()
+  local details, _, embed = getDetailsStartupTarget(self)
+  if not details then return end
+  local ok, err = pcall(embed.DoEmbed, embed)
+  if not ok then
+    self.detailsStartupResult = tostring(err)
+  else
+    self.detailsStartupResult = details.chat_tab_embed_onframe and "Attached" or "Details did not attach"
+  end
+  self:RefreshDetailsEmbed()
+end
+
 function UIManager:InitializeDetailsEmbed()
   if self.detailsEmbedEvents then return end
   self.detailsEmbedEvents = CreateFrame("Frame")
   self.detailsEmbedEvents:RegisterEvent("ADDON_LOADED")
-  self.detailsEmbedEvents:SetScript("OnEvent", function () self:ScheduleDetailsEmbed() end)
+  self.detailsEmbedEvents:RegisterEvent("PLAYER_ENTERING_WORLD")
+  self.detailsEmbedEvents:SetScript("OnEvent", function (_, event)
+    self:ScheduleDetailsEmbed()
+    if event == "PLAYER_ENTERING_WORLD" then
+      self.detailsEmbedEvents:UnregisterEvent(event)
+      -- Details defers its own startup attach by five seconds.
+      self:BeginDetailsStartupWait()
+      C_Timer.After(6, function ()
+        self:EndDetailsStartupWait()
+        self:RecoverDetailsStartupEmbed()
+      end)
+    end
+  end)
+  if type(_G.FCFDock_SelectWindow) == "function" and type(hooksecurefunc) == "function" then
+    hooksecurefunc("FCFDock_SelectWindow", function (dock)
+      if dock == _G.GENERAL_CHAT_DOCK then self:SyncDetailsEmbedSelection() end
+    end)
+  end
   Core:Subscribe(Constants.EVENTS.UPDATE_CONFIG, function (key)
     if key == nil or key == "detailsChatEmbed" then self:RefreshDetailsEmbed() end
   end)

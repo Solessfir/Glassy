@@ -576,6 +576,27 @@ function C:OnDebugCommand()
     debugName(dock.selected),
     debugName(_G.SELECTED_DOCK_FRAME)
   )
+  local details = _G.Details
+  local embed = details and details.chat_tab_embed
+  if embed then
+    local adopted = uiManager.detailsEmbedState
+    report[#report + 1] = string.format("Details embed: Glassy=%s Details=%s tab=%s target=%s adopted=%d",
+      tostring(Core.db.profile.detailsChatEmbed), tostring(embed.enabled), tostring(embed.tab_name),
+      debugName(details.chat_tab_embed_onframe), adopted and #adopted.frames or 0)
+    if uiManager.detailsStartupResult then
+      report[#report + 1] = "Details startup retry: "..uiManager.detailsStartupResult
+    end
+    if type(details.GetInstance) == "function" then
+      for index = 1, 2 do
+        local instance = details:GetInstance(index)
+        local meter = instance and instance.baseframe
+        if meter then
+          report[#report + 1] = string.format("Details window %d: parent=%s shown=%s point=%s", index,
+            debugName(meter:GetParent()), tostring(meter:IsShown()), debugPoint(meter))
+        end
+      end
+    end
+  end
   report[#report + 1] = "Combat Log hidden="..tostring(Core.db.profile.combatLogHidden)
   report[#report + 1] = "Dock: "..debugGeometry(dock).." point="..debugPoint(dock)
   report[#report + 1] = "Scroll: "..debugGeometry(scrollFrame).." point="..debugPoint(scrollFrame)

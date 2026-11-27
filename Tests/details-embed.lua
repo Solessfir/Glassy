@@ -8,6 +8,8 @@ local function flush()
 end
 local function frame(parent)
   local object = {parent = parent, points = {}, width = 400, height = 180, shown = true, level = 1}
+  function object:GetAlpha() return self.alpha or 1 end
+  function object:SetAlpha(value) self.alpha = value end
   function object:GetParent() return self.parent end
   function object:SetParent(value) self.parent = value end
   function object:GetName() return self.name end
@@ -23,16 +25,26 @@ local function frame(parent)
   function object:SetFrameLevel(value) self.level = value end
   function object:GetFrameStrata() return self.strata or "MEDIUM" end
   function object:SetFrameStrata(value) self.strata = value end
-  function object:Show() self.shown = true end
+  function object:Show()
+    if self.shown then return end
+    self.shown = true
+    if self.onShow then self.onShow() end
+  end
+  function object:HookScript(event, callback)
+    assert(event == "OnShow")
+    self.onShow = callback
+  end
   function object:Hide() self.shown = false end
   function object:IsShown() return self.shown end
   function object:QuickHide() self:Hide() end
   function object:RegisterEvent(event) self.event = event end
+  function object:UnregisterEvent(event) assert(self.event == event) end
   function object:SetScript(_, callback) self.callback = callback end
   return object
 end
 CreateFrame = function (_, _, parent) return frame(parent) end
 hooksecurefunc = function (object, method, callback)
+  if type(object) == "string" then callback, method, object = method, object, _G end
   local original = object[method]
   object[method] = function (...)
     original(...)
@@ -41,6 +53,7 @@ hooksecurefunc = function (object, method, callback)
 end
 ChatFrame2 = frame()
 GENERAL_CHAT_DOCK = {}
+function FCFDock_SelectWindow(dock, selected) dock.selected = selected end
 local manager = {}
 local core = {
   db = {profile = {}},
@@ -64,6 +77,7 @@ GENERAL_CHAT_DOCK.selected = chat
 local first, second = frame(chat), frame(chat)
 local firstRows, secondRows = frame(first), frame(second)
 first.strata, firstRows.strata = "LOW", "LOW"
+local embedCalls = 0
 local instances = {{baseframe = first, rowframe = firstRows}, {baseframe = second, rowframe = secondRows}}
 local function nativeEmbed(single)
   for index, value in ipairs({first, second}) do
@@ -89,7 +103,11 @@ Details = {
   chat_tab_embed_onframe = chat,
   GetInstance = function (_, index) return instances[index] end,
   chat_embed = {
-    DoEmbed = function () nativeEmbed(Details.chat_tab_embed.single_window) end,
+    DoEmbed = function ()
+      embedCalls = embedCalls + 1
+      Details.chat_tab_embed_onframe = chat
+      nativeEmbed(Details.chat_tab_embed.single_window)
+    end,
     ReleaseEmbed = function ()
       first:ClearAllPoints()
       first:SetParent(nil)
@@ -103,6 +121,13 @@ nativeEmbed(true)
 manager.detailsEmbedEvents.callback()
 assert(not renderer.detailsEmbedHost, "Late addon load must schedule adoption")
 flush()
+assert(not renderer.detailsEmbedHost and renderer.viewport:IsShown(), "Unset integration must leave chat untouched")
+assert(first.points[1][2] == background and not first.ignoreAlpha, "Unset integration must preserve the native embed")
+core.db.profile.detailsChatEmbed = false
+subscriptions.config("detailsChatEmbed")
+assert(not renderer.detailsEmbedHost, "Disabled integration must leave chat untouched")
+core.db.profile.detailsChatEmbed = true
+subscriptions.config("detailsChatEmbed")
 local host = renderer.detailsEmbedAnchor
 assert(renderer.detailsEmbedHost and not renderer.viewport:IsShown() and not renderer.overlay:IsShown())
 assert(first:GetParent() == chat and first.ignoreAlpha and chat:IsShown(), "Keep Details native parent and selected visibility")
@@ -127,10 +152,23 @@ subscriptions.config("detailsChatEmbed")
 assert(renderer.detailsEmbedHost and chat:IsShown(), "Enabling an already-selected host must show its native parent")
 
 Details.chat_tab_embed.single_window = false
+local general = frame()
+FCFDock_SelectWindow(GENERAL_CHAT_DOCK, general)
 Details.chat_embed:DoEmbed()
 assert(#pending == 1)
 flush()
+chat:Show()
+assert(not first.ignoreAlpha and not second.ignoreAlpha,
+  "Startup embeds inherit the unselected native chat frame's zero alpha even when it is shown")
+assert(not first:IsShown() and not second:IsShown(), "Unselected meter windows are explicitly hidden")
+first:Show()
+assert(not first:IsShown(), "Details cannot reveal an embedded window on the wrong tab after startup")
+FCFDock_SelectWindow(GENERAL_CHAT_DOCK, chat)
 assert(first:GetParent() == chat and second:GetParent() == chat and first.ignoreAlpha and second.ignoreAlpha)
+assert(first:IsShown() and second:IsShown(), "Selecting Damage restores the hidden windows")
+FCFDock_SelectWindow(GENERAL_CHAT_DOCK, general)
+assert(not first.ignoreAlpha and not second.ignoreAlpha, "Switching tabs removes both meters from view")
+FCFDock_SelectWindow(GENERAL_CHAT_DOCK, chat)
 assert(first.width == 253 and second.width == 253 and first.height == 233 and second.height == 233,
   "Dual panels must retain native offsets while taking half the width delta and all the height delta")
 renderer.config.width, renderer.config.height = 600, 300
@@ -181,4 +219,32 @@ nativeEmbed(true)
 first.GetPoint = false
 manager:RefreshDetailsEmbed()
 assert(not renderer.detailsEmbedHost, "Unsupported Details frames must be skipped")
+first.GetPoint = second.GetPoint
+Details.chat_tab_embed_onframe = nil
+Details.chat_tab_embed.single_window = false
+Details.chat_tab_embed.tab_name = "DAMAGE"
+Details.chat_embed.GetTab = function (_, name)
+  if name == "DAMAGE" then return chat end
+end
+UIParent = frame()
+first:SetParent(UIParent)
+second:SetParent(UIParent)
+second:SetAlpha(0.75)
+FCFDock_SelectWindow(GENERAL_CHAT_DOCK, general)
+local previousEmbedCalls = embedCalls
+ChatFrame1 = chat
+manager:RecoverDetailsStartupEmbed()
+assert(embedCalls == previousEmbedCalls, "Startup recovery must never embed into General")
+ChatFrame1 = general
+manager.detailsEmbedEvents.callback(nil, "PLAYER_ENTERING_WORLD")
+assert(first:GetAlpha() == 0 and second:GetAlpha() == 0, "Standalone meters must be transparent during startup")
+flush()
+assert(first:GetAlpha() == 1 and second:GetAlpha() == 0.75, "Startup must restore the original meter alpha")
+assert(embedCalls == previousEmbedCalls + 1 and Details.chat_tab_embed_onframe == chat)
+assert(renderer.detailsEmbedHost and not first:IsShown() and not second:IsShown(),
+  "Startup recovery must attach both meters without covering General")
+manager:RecoverDetailsStartupEmbed()
+assert(embedCalls == previousEmbedCalls + 1, "An existing native embed must not be retried")
+FCFDock_SelectWindow(GENERAL_CHAT_DOCK, chat)
+assert(first:IsShown() and second:IsShown(), "Recovered meters must show on the Damage tab")
 print("Details embed tests passed")
