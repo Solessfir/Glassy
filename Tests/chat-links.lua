@@ -21,12 +21,13 @@ local function invite(value, name) return "|cffffff00|Hglassyinvite:"..name.."|h
 local header = "|Hplayer:Elowen-Realm:123:SAY|h[Elowen]|h: "
 for _, value in ipairs({"https://example.com/a?q=1%20b", "www.example.com", "example.com:9987/path",
   "127.0.0.1", "192.168.1.2:9987", "10.0.0.1/path", "hello+wow@example.com", '"W X"@example.com',
-  "example.technology", "https://example.com/Some_(page)"}) do
+  "example.technology", "https://example.com/Some_(page)", "discord.gg", "youtu.be/abc", "ok.so/path"}) do
   assert(module:Format(value) == url(value), value.." must become a URL")
 end
 assert(module:Format("See (https://example.com/a), then example.com!") ==
   "See ("..url("https://example.com/a").."), then "..url("example.com").."!")
-for _, value in ipairs({"256.0.0.1", "1.2.3.4:70000", "example..com", ".example.com", "not.a", "foo", "-bad.com"}) do
+for _, value in ipairs({"256.0.0.1", "1.2.3.4:70000", "example..com", ".example.com", "not.a", "foo", "-bad.com",
+  "ok.so", "Config.lua", "notes.json", "done.it"}) do
   assert(module:Format(value) == value, value.." must not become a URL")
 end
 for _, value in ipairs({"|Hitem:123|h[example.com invite]|h", "|Texample.com:0|t", "|Aexample.com|a",

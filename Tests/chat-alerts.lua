@@ -165,6 +165,8 @@ assert(module:Matches("йог") and module:Matches("ÉLODIE"), "Alert matching u
 profile.chatAlertWords = "literal"
 receive("CHAT_MSG_GUILD", "literal ||cffff0000red||r")
 assert(module.popup.lastText == "Other-Realm: literal ||cffff0000red||r", "Typed pipe markup stays literal in the popup")
+receive("CHAT_MSG_GUILD", "literal |cnIQ4:|Hitem:1|h[Sword]|h|r")
+assert(module.popup.lastText == "Other-Realm: literal [Sword]", "Named colors are not shown as text")
 local savedMedia = media
 media = {}
 assert(module:PlaySound("builtin:READY_CHECK") and played[#played] == 8960,

@@ -162,12 +162,19 @@ function Aliases:Refresh()
 end
 
 function Aliases:OnEnable()
-  self.registered = {}
+  self.registered = self.registered or {}
   for name, method in pairs({alias = "Set", unalias = "Remove", listaliases = "List"}) do
     if not isTaken(name) then self:RegisterChatCommand(name, method) end
   end
-  Core:Subscribe(Constants.EVENTS.UPDATE_CONFIG, function (key)
-    if key == "slashAliasesEnabled" then self:Refresh() end
-  end)
+  if not self.subscribed then
+    self.subscribed = true
+    Core:Subscribe(Constants.EVENTS.UPDATE_CONFIG, function (key)
+      if key == "slashAliasesEnabled" and self:IsEnabled() then self:Refresh() end
+    end)
+  end
   self:Refresh()
+end
+
+function Aliases:OnDisable()
+  for name in pairs(self.registered) do self:Unregister(name) end
 end

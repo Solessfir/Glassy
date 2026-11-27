@@ -4,7 +4,7 @@ local Core = unpack(select(2, ...))
 -- luacheck: push ignore 631
 Core.NewsEntries = {
   {
-    name = "1.9.14 (unreleased)",
+    name = "1.9.14 (2026-11-27)",
     items = {[[
 What's new
 

@@ -71,6 +71,12 @@ function Whispers:HasCapturedLine(lineID)
   return self:IsActive() and positiveNumber(lineID) and self.capturedLines and self.capturedLines[lineID] ~= nil or false
 end
 
+-- Battle.net names are protected and cannot be saved, so chat history keeps those lines instead.
+function Whispers:SavesCapturedLine(lineID)
+  local message = self:HasCapturedLine(lineID) and self.capturedLines[lineID]
+  return message and not message.battleNet or false
+end
+
 function Whispers:ForgetMessage(message)
   if message.lineID and self.capturedLines[message.lineID] == message then
     self.capturedLines[message.lineID] = nil
@@ -167,7 +173,7 @@ function Whispers:Capture(event, text, name, ...)
     name = characterTarget(name)
   end
   local conversation = self:GetConversation(name, kind.battleNet, kind.battleNet and accountID or name)
-  local message = {text = text, outgoing = kind.outgoing, time = currentTime()}
+  local message = {text = text, outgoing = kind.outgoing, time = currentTime(), battleNet = kind.battleNet or nil}
   self.capturedLines = self.capturedLines or {}
   if positiveNumber(lineID) then
     message.lineID = lineID

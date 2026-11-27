@@ -36,6 +36,11 @@ enabled.PlayerNames = false
 assert(rules:AppendMainName("player:ALT-Other:1:SAY", "[ALT]") == "[ALT] (Main)")
 assert(rules:AppendMainName("BNplayer:Alt:1", "[Alt]") == "[Alt]")
 assert(rules:AppendMainName("player:Alt:1:SAY", "|KAlt|k") == "|KAlt|k")
+GetNormalizedRealmName = function () return "MyRealm" end
+profile.chatAltNames = "Bob-MyRealm = Alice\nBob = Anyone"
+assert(rules:AppendMainName("player:Bob:1:SAY", "[Bob]") == "[Bob] (Alice)", "Same-realm links match realm mappings")
+assert(rules:AppendMainName("player:Bob-Other:1:SAY", "[Bob]") == "[Bob] (Anyone)")
+profile.chatAltNames = "Alt = Main\nAlt-Realm = Specific Main"
 enabled.AltNames = true
 assert(tp:ProcessText(raw) == raw, "Prat AltNames takes precedence")
 enabled.AltNames = false
@@ -48,6 +53,7 @@ assert(original == raw, "Substitutions preserve the source")
 assert(rules:Substitute("hello |cff123456hello|r || hello") == "bye |cff123456bye|r || bye")
 assert(rules:Substitute("hello |Hitem:hello|h[hello]") == "bye |Hitem:hello|h[hello]", "Incomplete links stay opaque")
 assert(rules:Substitute("hello |unknown hello") == "bye |unknown hello", "Unknown codes stay opaque")
+assert(rules:Substitute("hello |cnIQ4:hello|r hello") == "bye |cnIQ4:bye|r bye", "Named colors stay opaque")
 assert(rules:Substitute(secret) == secret and tp:ProcessText(secret) == secret)
 profile.chatSubstitutions = "[ => percent %1 %"
 assert(rules:Substitute("[ hi") == "percent %1 % hi", "Plain searches and replacement percent signs are literal")
@@ -65,6 +71,7 @@ profile.chatFilterRulesEnabled = true
 profile.chatFilterRules = "keep|plain|trusted seller\nhide|plain|buy gold\nhide|pattern|^%d+ spam$"
 assert(tp:IsMessageBlacklisted("BUY   gold"), "Plain rules ignore case and whitespace")
 assert(tp:IsMessageBlacklisted(item), "Filters see link labels")
+assert(tp:IsMessageBlacklisted("WTS |cnIQ4:|Hitem:1|h[Sword]|h|r buy gold"), "Filters read past named colors")
 assert(not tp:IsMessageBlacklisted("|Hitem:buy gold|h[flowers]|h"), "Filters do not inspect hyperlink payloads")
 assert(not tp:IsMessageBlacklisted("|Kbuy gold|k |Tbuy gold:12|t |A:buy gold:12:12|a"), "Opaque markup cannot match")
 assert(not tp:IsMessageBlacklisted("trusted seller: buy gold"), "First matching keep rule wins")

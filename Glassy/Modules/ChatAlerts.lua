@@ -30,7 +30,7 @@ local function visibleText(text)
   text = text:gsub("||", "\001")
   if text:find("|K", 1, true) then return end
   return (text:gsub("|H.-|h(.-)|h", "%1"):gsub("|T.-|t", " "):gsub("|A.-|a", " ")
-    :gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):gsub("\001", "|"))
+    :gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|cn[^:|]*:", ""):gsub("|[rWw]", ""):gsub("\001", "|"))
 end
 
 local function containsWord(text, word)

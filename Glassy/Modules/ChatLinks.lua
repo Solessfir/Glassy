@@ -49,6 +49,16 @@ local function canInvite()
   return not can or can()
 end
 
+-- Bare hosts need a familiar suffix so words such as "ok.so" or "Config.lua" stay plain chat.
+local SHORT_TLDS = {}
+for tld in ("com net org edu gov mil int io gg tv co uk de ru fr eu us ca au nl pl es jp cn br be ly fm "
+  .."xyz app dev biz moe kr tw ua cz se fi dk ch at pt gr hu ro tr mx ar cl nz za"):gmatch("%a+") do
+  SHORT_TLDS[tld] = true
+end
+local FILE_EXTENSIONS = {html = true, json = true, yaml = true, toml = true, java = true, docx = true,
+  xlsx = true, pptx = true, jpeg = true, webp = true, tiff = true, wasm = true, conf = true, diff = true,
+  lock = true, bash = true, fish = true}
+
 local function isAddress(value)
   if value:match("^%a[%w+%.%-]*://%S+$") then return true end
   local host = value:match("^([^/?#]+)")
@@ -71,7 +81,10 @@ local function isAddress(value)
   for label in host:gmatch("[^%.]+") do
     if not label:match("^[%w_][%w_%-]*[%w_]$") and not label:match("^[%w_]$") then return false end
   end
-  return true
+  if emailHost or port or value:find("[/?#]") or host:lower():match("^www%.") then return true end
+  tld = tld:lower()
+  if #tld <= 3 then return SHORT_TLDS[tld] == true end
+  return not FILE_EXTENSIONS[tld]
 end
 
 local function urlLink(value, color)

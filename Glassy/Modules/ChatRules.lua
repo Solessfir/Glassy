@@ -127,7 +127,11 @@ local function mapText(text, transform, visible, depth)
     elseif code == "|c" and text:sub(pipe + 2, pipe + 9):match("^%x%x%x%x%x%x%x%x$") then
       finish = pipe + 9
       if visible then replacement = "" end
-    elseif code == "|r" then
+    elseif code == "|c" then
+      -- Retail named colors such as |cnIQ4: end at the first colon.
+      finish = text:find(":", pipe + 2, true)
+      if visible then replacement = "" end
+    elseif code == "|r" or code == "|W" or code == "|w" then
       finish = pipe + 1
       if visible then replacement = "" end
     elseif code == "||" then
@@ -156,9 +160,12 @@ function Rules:AppendMainName(data, shown)
   if not name or name:find("|", 1, true) then return shown end
   name = Utils.lower(name)
   local short = name:match("^([^%-]+)")
+  -- Same-realm player links omit the realm.
+  local realm = short == name and _G.GetNormalizedRealmName and _G.GetNormalizedRealmName()
+  local qualified = plainString(realm) and realm ~= "" and name.."-"..Utils.lower(realm) or name
   local main
   for _, entry in ipairs(entries("alts", profile.chatAltNames)) do
-    if entry[1] == name then main = entry[2]; break end
+    if entry[1] == name or entry[1] == qualified then main = entry[2]; break end
     if entry[1] == short then main = entry[2] end
   end
   return main and (shown.." ("..main..")") or shown

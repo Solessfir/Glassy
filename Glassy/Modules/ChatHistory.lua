@@ -108,7 +108,7 @@ function ChatHistory:Save()
         local text, red, green, blue, _, _, _, event, eventArgs = chatFrame:GetMessageInfo(index)
         local line = {text, red, green, blue}
         local whisperLineID = Helpers.getWhisperLineID(text, event, eventArgs)
-        if readableLine(line) and not (whisperLineID and Core:GetModule("WhisperWindows"):HasCapturedLine(whisperLineID)) then
+        if readableLine(line) and not (whisperLineID and Core:GetModule("WhisperWindows"):SavesCapturedLine(whisperLineID)) then
           line[1] = text:gsub("|K.-|k", "???")
           local timestamp, estimated = receivedAt(Helpers.getHistoryEntry(chatFrame, index))
           line[5] = timestamp or GetServerTime()

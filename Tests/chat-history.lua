@@ -10,7 +10,10 @@ C_Timer = {After = function (delay, callback) assert(delay == 2); delayed = call
 
 local history, uiManager = {}, {state = {windows = {}}, QueueFrameForUpdate = noop}
 local capturedWhispers = {}
-local whisperWindows = {HasCapturedLine = function (_, id) return capturedWhispers[id] end}
+local whisperWindows = {
+  HasCapturedLine = function (_, id) return capturedWhispers[id] end,
+  SavesCapturedLine = function (_, id) return capturedWhispers[id] end,
+}
 local pratHistory = false
 local core = {
   Components = {}, Libs = {AceHook = {}, LibEasing = {}},

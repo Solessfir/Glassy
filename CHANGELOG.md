@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.9.14 (unreleased)
+## 1.9.14 (2026-11-27)
 
 ### What's new
 

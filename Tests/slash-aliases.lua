@@ -24,6 +24,7 @@ hash_SlashCmdList = {["/OTHER"] = function () end}
 hash_ChatTypeInfoList = {["/S"] = "SAY"}
 local management = {}
 function aliases:RegisterChatCommand(name, method) management[name] = method end
+function aliases:IsEnabled() return true end
 
 local utils = {notify = function (text) output[#output + 1] = text end}
 assert(loadfile("Glassy/Modules/SlashAliases.lua"))("Glassy", {core, {EVENTS = {UPDATE_CONFIG = "update"}}, utils})
@@ -66,6 +67,10 @@ assert(not hash_SlashCmdList["/RL"] and not hash_ChatTypeInfoList["/RL"] and sav
 profile.slashAliasesEnabled = true
 listeners.update("slashAliasesEnabled")
 assert(SlashCmdList.GLASSYALIAS_RL)
+aliases:OnDisable()
+assert(not SlashCmdList.GLASSYALIAS_RL and not SLASH_GLASSYALIAS_RL1, "Disabling removes registered aliases")
+aliases:OnEnable()
+assert(SlashCmdList.GLASSYALIAS_RL and SLASH_GLASSYALIAS_RL1 == "/rl", "Re-enabling restores saved aliases")
 aliases:List()
 assert(output[#output]:find("/rl", 1, true))
 aliases:Remove("/rl")

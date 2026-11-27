@@ -67,6 +67,8 @@ receive("CHAT_MSG_BN_WHISPER", "Hidden Battle.net contact", "|Kprivate|k", 10, 1
 receive("CHAT_MSG_BN_WHISPER", "BN hello", "|Kprivate|k", 10, 222)
 local friend = module:GetConversations()[2]
 assert(friend.battleNet and friend.name == "Friend#1234" and friend.target == 222 and friend.unread == 1)
+assert(module:HasCapturedLine(10) and not module:SavesCapturedLine(10), "Chat history keeps Battle.net whispers")
+assert(module:SavesCapturedLine(5), "Whisper windows save character whispers")
 
 C_ChatInfo = {IsChatLineCensored = function (lineID) return lineID == 11 end}
 receive("CHAT_MSG_WHISPER", "censored", "Other", 11)
