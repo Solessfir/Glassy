@@ -1,5 +1,25 @@
 local Core, Constants = unpack(select(2, ...))
 
+local ICON_TEXTURE = "Interface\\AddOns\\Glassy\\Glassy\\Assets\\chatButtonIcons"
+local VOICE_GLYPHS = {
+  ["chatframe-button-icon-voicechat"] = 2,
+  ["chatframe-button-icon-headset"] = 6,
+  ["chatframe-button-icon-speaker-on"] = 2,
+  ["chatframe-button-icon-speaker-off"] = 3,
+  ["chatframe-button-icon-mic-on"] = 4,
+  ["chatframe-button-icon-mic-off"] = 5,
+  ["chatframe-button-icon-mic-silenced"] = 5,
+  ["chatframe-button-icon-mic-silenced-off"] = 5,
+  ["voicechat-icon-speaker"] = 2,
+  ["voicechat-icon-speaker-mute"] = 3,
+  ["voicechat-icon-speaker-silenced"] = 3,
+  ["voicechat-icon-speaker-mutesilenced"] = 3,
+  ["voicechat-icon-mic"] = 4,
+  ["voicechat-icon-mic-mute"] = 5,
+  ["voicechat-icon-mic-silenced"] = 5,
+  ["voicechat-icon-mic-mutesilenced"] = 5,
+}
+
 local BUTTON_NAMES = {
   "QuickJoinToastButton",
   "ChatFrameChannelButton",
@@ -19,6 +39,112 @@ local POSITIONS = {
 
 local ChatButtonsMixin = {}
 Core.Components.ChatButtonsMixin = ChatButtonsMixin
+
+function Core:GetChatButtonColor(hovered)
+  local color = self.db.profile[hovered and "chatButtonsHoverColor" or "chatButtonsColor"]
+  if color and color.r >= 0 then return color end
+  return self:GetThemeColor(hovered and "tabHighlightTextColor" or "tabTextColor")
+end
+
+local function setArtwork(style, texture, red, green, blue, alpha)
+  if not (texture and texture.GetVertexColor and texture.SetVertexColor) then return end
+  if not style.colors[texture] then
+    local original = {texture:GetVertexColor()}
+    if #original == 0 then return end
+    style.colors[texture] = original
+  end
+  texture:SetVertexColor(red, green, blue, alpha)
+end
+
+local function tintIcon(button, style, hovered)
+  if not style.enabled then return end
+  local color = Core:GetChatButtonColor(hovered)
+  local r, g, b, a = color.r, color.g, color.b, color.a or 1
+  style.glyph:SetVertexColor(r, g, b, a)
+  setArtwork(style, button.FriendCount, r, g, b, a)
+  setArtwork(style, button.QueueCount, r, g, b, a)
+end
+
+local function setNativeAlpha(style, native, alpha)
+  style.settingNativeAlpha = true
+  native:SetAlpha(alpha)
+  style.settingNativeAlpha = nil
+end
+
+local function hideNativeIcon(style, native, hide)
+  if not (native and native.SetAlpha and native.GetAlpha) then return end
+  if hide then
+    if style.nativeAlpha == nil then style.nativeAlpha = native:GetAlpha() end
+    setNativeAlpha(style, native, 0)
+  elseif style.nativeAlpha ~= nil then
+    local alpha = style.nativeAlpha
+    style.nativeAlpha = nil
+    setNativeAlpha(style, native, alpha)
+  end
+end
+
+local function updateGlyph(button, style)
+  local native = button.Icon
+  local social = button == _G.QuickJoinToastButton
+  local menu = button == _G.ChatFrameMenuButton
+  local slot = social and 0 or menu and 1 or (native and native.GetAtlas and VOICE_GLYPHS[native:GetAtlas()])
+  if slot and native and native.GetAlpha and native.SetAlpha and style.nativeAlpha == nil then
+    style.nativeAlpha = native:GetAlpha()
+  end
+  if native then setArtwork(style, native, 1, 1, 1, slot and 0 or 1) end
+  hideNativeIcon(style, native, not not slot)
+  if slot then style.icon:SetTexCoord(slot / 8, (slot + 1) / 8, 0, 1) end
+  style.icon:SetShown(slot ~= nil and slot ~= false)
+  style.glyph = slot and style.icon or native
+  tintIcon(button, style, button:IsMouseOver())
+end
+
+local function updateButtonStyle(button, style, enabled)
+  if not enabled then
+    if not style.enabled then return end
+    for texture, original in pairs(style.colors) do texture:SetVertexColor(unpack(original)) end
+    hideNativeIcon(style, button.Icon, false)
+    wipe(style.colors)
+    if style.icon then style.icon:Hide() end
+    style.enabled = false
+    return
+  end
+
+  local social = button == _G.QuickJoinToastButton
+  if not social and button ~= _G.ChatFrameMenuButton and not button.Icon then return end
+
+  if not style.icon then
+    style.icon = button:CreateTexture(nil, "ARTWORK")
+    style.icon:SetSize(16, 16)
+    style.icon:SetPoint("CENTER", 0, social and 6 or 0)
+    style.icon:SetTexture(ICON_TEXTURE)
+    button:HookScript("OnEnter", function () tintIcon(button, style, true) end)
+    button:HookScript("OnLeave", function () tintIcon(button, style, false) end)
+  end
+  if button.Icon and button.Icon ~= style.hookedIcon and button.Icon.SetAtlas then
+    style.hookedIcon = button.Icon
+    _G.hooksecurefunc(button.Icon, "SetAtlas", function ()
+      if style.enabled then updateGlyph(button, style) end
+    end)
+    if button.Icon.SetAlpha and button.Icon.GetAlpha then
+      _G.hooksecurefunc(button.Icon, "SetAlpha", function (native, alpha)
+        -- Blizzard's pressed and released states set alpha on the original icon.
+        if style.enabled and style.nativeAlpha ~= nil and not style.settingNativeAlpha then
+          style.nativeAlpha = alpha
+          setNativeAlpha(style, native, 0)
+        end
+      end)
+    end
+  end
+  style.enabled = true
+  updateGlyph(button, style)
+  setArtwork(style, button.FriendsButton, 1, 1, 1, 0)
+  setArtwork(style, button.QueueButton, 1, 1, 1, 0)
+  setArtwork(style, button.GetNormalTexture and button:GetNormalTexture(), 1, 1, 1, 0)
+  setArtwork(style, button.GetPushedTexture and button:GetPushedTexture(), 1, 1, 1, 0)
+  setArtwork(style, button.GetHighlightTexture and button:GetHighlightTexture(), 1, 1, 1, 0)
+  setArtwork(style, button.GetDisabledTexture and button:GetDisabledTexture(), 1, 1, 1, 0)
+end
 
 function ChatButtonsMixin:CanChangeLayout()
   if _G.InCombatLockdown and _G.InCombatLockdown() then
@@ -66,6 +192,10 @@ end
 function ChatButtonsMixin:Update()
   if not self:CanChangeLayout() then return end
   self:SetShown(not not Core.db.profile.chatButtons)
+  local styled = Core.db.profile.chatButtons and Core.db.profile.chatButtonsStyle == "glassy"
+  for _, button in ipairs(self.buttons) do
+    updateButtonStyle(button, self.knownButtons[button], styled)
+  end
   self:Layout()
 end
 
@@ -75,7 +205,7 @@ function ChatButtonsMixin:CollectButtons()
     local button = _G[name]
     if button then buttons[#buttons + 1] = button end
     if button and not self.knownButtons[button] then
-      self.knownButtons[button] = true
+      self.knownButtons[button] = {colors = {}}
       self.container:AddHoverRegion(button)
       -- Keep Blizzard's click handlers, tooltips, voice state and menu generation intact.
       button:HookScript("OnShow", function () self:Layout() end)
@@ -98,7 +228,9 @@ Core.Components.CreateChatButtons = function (container, dock)
   object:RegisterEvent("PLAYER_REGEN_ENABLED")
   object:SetScript("OnEvent", function () object:CollectButtons() end)
   Core:Subscribe(Constants.EVENTS.UPDATE_CONFIG, function (key)
-    if key == "chatButtons" or key == "chatButtonsSide" or key == "chatButtonsOffsetX" or key == "chatButtonsOffsetY" then
+    if key == "chatButtons" or key == "chatButtonsSide" or key == "chatButtonsStyle" or key == "tabTextColor"
+      or key == "chatButtonsColor" or key == "chatButtonsHoverColor" or key == "tabHighlightTextColor"
+      or key == "chatButtonsOffsetX" or key == "chatButtonsOffsetY" then
       object:Update()
     end
   end)

@@ -90,9 +90,13 @@ end)
 
 local function scenario(env, width, reverse, hidden, staleAnchor)
   local dock = frame("dock", nil, width)
+  local labelY = 0
   GENERAL_CHAT_DOCK = dock
   local core = {
-    Components = {CreateSeparatorFrame = function () return frame("separator") end},
+    Components = {
+      CreateSeparatorFrame = function () return frame("separator") end,
+      GetChatTabContentPadding = function () return nil, labelY end,
+    },
     Libs = {AceHook = AceHook},
     db = {profile = {frameWidth = width, combatLogHidden = hidden,
       headerBackgroundColor = {a = 1}, tabOrder = reverse and {"ChatFrame11", "ChatFrame1", "ChatFrame2"} or {}}},
@@ -163,6 +167,31 @@ local function scenario(env, width, reverse, hidden, staleAnchor)
   core.db.profile.tabBarAlignment = "right"
   dock:LayoutDockedTabs(order)
   assert(first.points.LEFT[4] == space, "Right alignment must use the spare width")
+  if width == 300 then
+    local inbox = frame("inbox", dock, 34)
+    dock.glassyWhisperInbox = inbox
+    inbox:Show()
+    dock:SetWidth(#order * 40 + #order - 1 + 35)
+    FCFDock_UpdateTabs(dock)
+    assert(dock.scrollFrame.points.LEFT[4] == 36 and dock.overflowButton.shown,
+      "Native updates reserve space for the inbox and existing tab overflow")
+    assert(inbox.points.LEFT[2] == dock.scrollFrame and inbox.points.LEFT[4] == -36 and inbox.points.LEFT[5] == 0,
+      "Inbox follows the tab viewport without moving horizontally with the scrolled tabs")
+    core.db.profile.tabBarPosition = "bottom"
+    labelY = 2
+    dock:UpdatePosition()
+    dock:LayoutDockedTabs(order)
+    assert(dock.scrollFrame.points.LEFT[4] == 36 and inbox:GetParent() == dock and inbox.points.LEFT[5] == 2,
+      "The inbox follows the bottom dock and uses the selected style's text offset")
+    inbox:SetWidth(20)
+    dock:LayoutDockedTabs(order)
+    assert(dock.scrollFrame.points.LEFT[4] == 22 and not dock.overflowButton.shown,
+      "Tabs reclaim the extra width when the badge clears")
+    inbox:Hide()
+    dock:LayoutDockedTabs(order)
+    assert(dock.scrollFrame.points.LEFT[4] == 0 and not dock.overflowButton.shown,
+      "Hiding the inbox restores the entire tab row")
+  end
   dock:UnhookAll()
 end
 for _, env in ipairs({"retail", "classic"}) do

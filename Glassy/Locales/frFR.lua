@@ -1,6 +1,14 @@
 local Core = unpack(select(2, ...))
 
 Core:RegisterCompactTranslations("frFR", {
+  WHISPERS = "Chuchotements",
+  EMPTY_WHISPER_INBOX = "Aucun chuchotement pour le moment.",
+  START_WHISPER = "Utilisez /w Nom-Royaume pour démarrer une conversation.",
+  WHISPER_SEND = "Envoyer",
+  WHISPER_SEND_ERROR = "Impossible d’envoyer le message. Votre brouillon est conservé. Essayez /w ou /r dans le chat.",
+  WHISPER_ALERT_SOUND = "Son de notification des chuchotements",
+  WHISPER_BUBBLES = "Bulles de chuchotement",
+  CLOSE_CONVERSATION = "Fermer la conversation",
   SHADOW = "Ombre",
   SHADOW_OUTLINE = "Ombre avec contour",
   SHADOW_THICK = "Ombre avec contour épais",
@@ -93,6 +101,11 @@ Core:RegisterCompactTranslations("frFR", {
   EUI_SKIN_ACTIVE = "Les fenêtres, les couleurs des libellés et la police par défaut de Glassy suivent son style.",
   EUI_SKIN_OFF = "L’habillage de Glassy est désactivé dans les options des addons tiers d’EllesmereUI.",
   NEWER_VERSION_AVAILABLE = "Une version plus récente est disponible : %s",
+  BUTTON_STYLE = "Style des boutons",
+  BUTTON_COLOR = "Couleur des boutons",
+  BUTTON_HOVER_COLOR = "Couleur des boutons au survol",
+  INBOX_BUTTON_COLOR = "Couleur du bouton de la boîte de réception",
+  INBOX_BUTTON_HOVER_COLOR = "Couleur du bouton de la boîte de réception au survol",
 }, function(label)
   return label and ("Configurer : " .. label .. ".") or "Configurer ce paramètre."
 end)

@@ -5,6 +5,11 @@ local GetLocale = _G.GetLocale
 Core.Locale = type(GetLocale) == "function" and GetLocale() or "enUS"
 
 local english = {
+  BUTTON_STYLE = "Button style",
+  BUTTON_COLOR = "Button color",
+  BUTTON_HOVER_COLOR = "Button hover color",
+  INBOX_BUTTON_COLOR = "Inbox button color",
+  INBOX_BUTTON_HOVER_COLOR = "Inbox button hover color",
   SHADOW = "Shadow",
   SHADOW_OUTLINE = "Shadow Outline",
   SHADOW_THICK = "Shadow Thick",
@@ -261,6 +266,14 @@ local english = {
   EUI_CHAT_ENABLED = "EllesmereUI Chat is enabled.",
   EUI_CHAT_CONFLICT = "It restyles the same chat frames as Glassy. Disable the EllesmereUI Chat addon, then reload.",
   EUI_SKIN_ACTIVE = "Glassy's windows, label colors, and default font follow its style.",
+  WHISPERS = "Whispers",
+  EMPTY_WHISPER_INBOX = "No whispers yet.",
+  START_WHISPER = "Use /w Name-Realm to start a conversation.",
+  WHISPER_SEND = "Send",
+  WHISPER_SEND_ERROR = "Unable to send. Your draft was kept. Try /w or /r in chat.",
+  WHISPER_ALERT_SOUND = "Whisper notification sound",
+  WHISPER_BUBBLES = "Whisper message bubbles",
+  CLOSE_CONVERSATION = "Close conversation",
   EUI_SKIN_OFF = "Glassy's skin is turned off in EllesmereUI's Third-Party Addons options.",
 }
 

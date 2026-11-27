@@ -110,7 +110,8 @@ assert(saved[1].messages[100].text == "Token ???" and saved[1].messages[100].lin
 module.conversations, module.capturedLines, module.restored = nil, {}, nil
 module:ApplySettings()
 alice = module:GetConversations()[1]
-assert(#module:GetConversations() == 1 and #alice.messages == 100 and alice.unread == 0)
+assert(#module:GetConversations() == 1 and #alice.messages == 100 and alice.unread == saved[1].unread and alice.unread > 0)
+assert(alice.lineID == nil and alice.guid == nil, "Reloaded conversations cannot report old session messages")
 module:ApplySettings()
 assert(#alice.messages == 100 and core.db.char.whisperWindows == nil, "Saved messages restore only once")
 core.db.profile.dedicatedWhisperWindows = false
@@ -129,8 +130,21 @@ updateConfig("saveChatHistory")
 shutdown()
 assert(#core.db.char.whisperWindows == 0, "Disabling history clears persisted transcripts")
 
+module.conversations, module.capturedLines = {}, {}
 for index = 1, 60 do receive("CHAT_MSG_WHISPER", "hello", "Contact"..index, 2000 + index) end
-assert(#module:GetConversations() == 50 and not module:HasCapturedLine(999) and not module:HasCapturedLine(2001))
+assert(#module:GetConversations() == 60 and module:HasCapturedLine(2001), "Unread conversations survive the soft cap")
+module:MarkRead(module:GetConversations()[2])
+receive("CHAT_MSG_WHISPER", "hello", "Contact61", 2061)
+assert(#module:GetConversations() == 60 and not module:HasCapturedLine(2002) and module:HasCapturedLine(2001),
+  "Only a read conversation may be evicted")
+core.db.profile.saveChatHistory = true
+shutdown()
+module.conversations, module.capturedLines, module.restored = nil, {}, nil
+module:ApplySettings()
+assert(#module:GetConversations() == 60 and module:GetConversations()[1].name == "Contact1"
+  and module:GetConversations()[1].unread == 1, "Reload preserves every unread character conversation")
+module:CloseConversation(module:GetConversations()[1])
+assert(#module:GetConversations() == 59, "Explicit close can dismiss an unread conversation")
 modes.whisperMode = "popout"
 core.db.profile.dedicatedWhisperWindows = false
 module:ApplySettings()
@@ -153,5 +167,59 @@ modes.bnWhisperMode = nil
 core.db.profile.dedicatedWhisperWindows = true
 module:ApplySettings()
 receive("CHAT_MSG_WHISPER", "Classic", "ClassicFriend", 3000)
-assert(module:GetConversations()[50].name == "ClassicFriend" and modes.bnWhisperMode == nil)
+assert(module:GetConversations()[#module:GetConversations()].name == "ClassicFriend" and modes.bnWhisperMode == nil)
+
+local opened, deactivated
+local nativeBox = {GetText = function () return "" end,
+  GetAttribute = function (_, key) return key == "chatType" and "WHISPER" or "NativeFriend" end}
+ChatFrameUtil.GetActiveWindow = function () return nativeBox end
+ChatFrameUtil.DeactivateChat = function (box) deactivated = box end
+function module:OpenConversation(conversation, focus) opened = {conversation, focus}; return true end
+module:StartWhisper("NativeFriend")
+assert(opened[1].name == "NativeFriend" and opened[2] and deactivated == nativeBox)
+nativeBox.GetAttribute = function (_, key) return key == "chatType" and "WHISPER" or "Native Friend-Moon Guard" end
+module:StartWhisper("Native Friend-Moon Guard")
+assert(opened[1].name == "Native Friend-Moon Guard" and deactivated == nativeBox,
+  "Native multi-word character and realm names can open dedicated replies")
+C_ChatInfo.SendChatMessage = function (...) sent = {...} end
+assert(module:Send(opened[1], "multi-word reply") and sent[4] == "Native Friend-Moon Guard")
+nativeBox.GetAttribute = function (_, key) return key == "chatType" and "WHISPER" or "NativeFriend" end
+opened, deactivated = nil, nil
+nativeBox.GetText = function () return "native draft" end
+module:StartWhisper("NativeFriend")
+assert(not opened and not deactivated, "Native drafts remain native")
+nativeBox.GetText = function () return secret end
+module:StartWhisper("NativeFriend")
+assert(not opened, "Unreadable native state is never intercepted")
+nativeBox.GetText = function () return "" end
+InCombatLockdown = function () return true end
+module:StartWhisper("NativeFriend")
+assert(not opened, "Combat retains the native Whisper action")
+InCombatLockdown = nil
+C_ChatInfo.InChatMessagingLockdown = function () return true end
+module:StartWhisper("NativeFriend")
+assert(not opened, "Messaging lockdown retains the native Whisper action")
+C_ChatInfo.InChatMessagingLockdown = nil
+BNet_GetBNetIDAccount = function (name) assert(name == "|Kfriend|k"); return 222 end
+C_BattleNet.GetAccountInfoByID = function () return {battleTag = "Friend#1234"} end
+nativeBox.GetAttribute = function (_, key) return key == "chatType" and "BN_WHISPER" or "|Kfriend|k" end
+module:StartWhisper("|Kfriend|k", true)
+assert(opened[1].battleNet and opened[1].target == 222 and opened[1].name == "Friend#1234")
+opened = nil
+BNet_GetBNetIDAccount = function () return secret end
+module:StartWhisper("|Kfriend|k", true)
+assert(not opened, "Unreadable Battle.net account IDs retain native handling")
+
+local sounds = 0
+SOUNDKIT = {TELL_MESSAGE = 123}
+PlaySound = function (kit, channel) assert(kit == 123 and channel == "Master"); sounds = sounds + 1 end
+core.db.profile.whisperWindowsSound = true
+receive("CHAT_MSG_WHISPER", "sound", "SoundFriend", 4001)
+receive("CHAT_MSG_WHISPER", "throttled", "SoundFriend", 4002)
+receive("CHAT_MSG_WHISPER_INFORM", "silent", "SoundFriend", 4003)
+assert(sounds == 1, "Notification sound is optional, incoming-only, and throttled")
+core.db.profile.whisperWindowsSound = false
+module.lastSound = nil
+receive("CHAT_MSG_WHISPER", "silent", "SoundFriend", 4004)
+assert(sounds == 1)
 print("PASS: whisper conversations, safe capture, bounded persistence, CVar restoration and sending")

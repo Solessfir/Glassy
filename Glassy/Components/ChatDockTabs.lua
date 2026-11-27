@@ -157,6 +157,8 @@ end
 
 function ChatDockMixin:LayoutDockedTabs(orderedFrames, keepSelectedVisible, gap)
   local child = self.scrollFrame.child
+  local inbox = self.glassyWhisperInbox
+  local inboxInset = inbox and inbox:IsShown() and (inbox:GetWidth() + 2) or 0
   local totalWidth = 0
   local offsets = {}
   local hasPreviousSlot = false
@@ -164,7 +166,12 @@ function ChatDockMixin:LayoutDockedTabs(orderedFrames, keepSelectedVisible, gap)
   self.scrollFrame:SetScript("OnUpdate", nil)
   -- Remove native tab anchors before moving tabs into their scroll child.
   self.scrollFrame:ClearAllPoints()
-  self.scrollFrame:SetPoint("LEFT", self, "LEFT", 0, 0)
+  self.scrollFrame:SetPoint("LEFT", self, "LEFT", inboxInset, 0)
+  if inboxInset > 0 then
+    local _, labelY = Core.Components.GetChatTabContentPadding()
+    inbox:ClearAllPoints()
+    inbox:SetPoint("LEFT", self.scrollFrame, "LEFT", -inboxInset, labelY)
+  end
 
   for index, chatFrame in ipairs(orderedFrames) do
     local tab = _G[chatFrame:GetName().."Tab"]
@@ -200,7 +207,7 @@ function ChatDockMixin:LayoutDockedTabs(orderedFrames, keepSelectedVisible, gap)
     totalWidth = totalWidth + gap.width
   end
 
-  local dockWidth = self:GetWidth()
+  local dockWidth = math.max(1, self:GetWidth() - inboxInset)
   local overflowWidth = self.overflowButton.width or self.overflowButton:GetWidth() or 16
   local hasOverflow = totalWidth > dockWidth
   local availableWidth = dockWidth
@@ -335,7 +342,7 @@ function ChatDockMixin:UpdateTabDrag(elapsed)
     local lastFrame = drag.remainingFrames[#drag.remainingFrames]
     insertHighlight:SetPoint("CENTER", _G[lastFrame:GetName().."Tab"], "RIGHT", 0, 0)
   else
-    insertHighlight:SetPoint("CENTER", self, "LEFT", 0, 0)
+    insertHighlight:SetPoint("CENTER", self.scrollFrame, "LEFT", 0, 0)
   end
   insertHighlight:Show()
 end

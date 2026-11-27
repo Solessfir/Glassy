@@ -1,6 +1,14 @@
 local Core = unpack(select(2, ...))
 
 local values = {
+  WHISPERS = "Susurros",
+  EMPTY_WHISPER_INBOX = "Aún no hay susurros.",
+  START_WHISPER = "Usa /w Nombre-Reino para iniciar una conversación.",
+  WHISPER_SEND = "Enviar",
+  WHISPER_SEND_ERROR = "No se pudo enviar. Tu borrador se conserva. Prueba /w o /r en el chat.",
+  WHISPER_ALERT_SOUND = "Sonido de aviso de susurros",
+  WHISPER_BUBBLES = "Burbujas de susurro",
+  CLOSE_CONVERSATION = "Cerrar conversación",
   SHADOW = "Sombra",
   SHADOW_OUTLINE = "Sombra con contorno",
   SHADOW_THICK = "Sombra con contorno grueso",
@@ -95,6 +103,11 @@ local values = {
   EUI_SKIN_ACTIVE = "Las ventanas, los colores de las etiquetas y la fuente predeterminada de Glassy siguen su estilo.",
   EUI_SKIN_OFF = "El aspecto de Glassy está desactivado en las opciones de addons de terceros de EllesmereUI.",
   NEWER_VERSION_AVAILABLE = "Hay una versión más reciente disponible: %s",
+  BUTTON_STYLE = "Estilo de botones",
+  BUTTON_COLOR = "Color de botones",
+  BUTTON_HOVER_COLOR = "Color de botones al pasar el cursor",
+  INBOX_BUTTON_COLOR = "Color del botón de la bandeja de entrada",
+  INBOX_BUTTON_HOVER_COLOR = "Color del botón de la bandeja de entrada al pasar el cursor",
 }
 
 local function describe(label)

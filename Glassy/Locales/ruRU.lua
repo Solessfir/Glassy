@@ -1,6 +1,19 @@
 local Core = unpack(select(2, ...))
 
 Core:RegisterTranslations("ruRU", {
+  BUTTON_STYLE = "Стиль кнопок",
+  BUTTON_COLOR = "Цвет кнопок",
+  BUTTON_HOVER_COLOR = "Цвет кнопок при наведении",
+  INBOX_BUTTON_COLOR = "Цвет кнопки входящих сообщений",
+  INBOX_BUTTON_HOVER_COLOR = "Цвет кнопки входящих сообщений при наведении",
+  WHISPERS = "Шёпот",
+  EMPTY_WHISPER_INBOX = "Пока нет сообщений шёпотом.",
+  START_WHISPER = "Начните беседу командой /w Имя-Сервер.",
+  WHISPER_SEND = "Отправить",
+  WHISPER_SEND_ERROR = "Не удалось отправить. Черновик сохранён. Попробуйте /w или /r в чате.",
+  WHISPER_ALERT_SOUND = "Звук уведомления о шёпоте",
+  WHISPER_BUBBLES = "Облачка сообщений шёпота",
+  CLOSE_CONVERSATION = "Закрыть беседу",
   SHADOW = "Тень",
   SHADOW_OUTLINE = "Тень и контур",
   SHADOW_THICK = "Тень и толстый контур",

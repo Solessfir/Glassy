@@ -1,6 +1,19 @@
 local Core = unpack(select(2, ...))
 
 Core:RegisterCompactTranslations("itIT", {
+  BUTTON_STYLE = "Stile dei pulsanti",
+  BUTTON_COLOR = "Colore dei pulsanti",
+  BUTTON_HOVER_COLOR = "Colore dei pulsanti al passaggio del mouse",
+  INBOX_BUTTON_COLOR = "Colore del pulsante della posta in arrivo",
+  INBOX_BUTTON_HOVER_COLOR = "Colore del pulsante della posta in arrivo al passaggio del mouse",
+  WHISPERS = "Sussurri",
+  EMPTY_WHISPER_INBOX = "Non ci sono ancora sussurri.",
+  START_WHISPER = "Usa /w Nome-Reame per iniziare una conversazione.",
+  WHISPER_SEND = "Invia",
+  WHISPER_SEND_ERROR = "Impossibile inviare il messaggio. La bozza è conservata. Prova /w o /r nella chat.",
+  WHISPER_ALERT_SOUND = "Suono di notifica dei sussurri",
+  WHISPER_BUBBLES = "Fumetti dei sussurri",
+  CLOSE_CONVERSATION = "Chiudi conversazione",
   SHADOW = "Ombra",
   SHADOW_OUTLINE = "Ombra con contorno",
   SHADOW_THICK = "Ombra con contorno spesso",

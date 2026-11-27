@@ -1,6 +1,14 @@
 local Core = unpack(select(2, ...))
 
 Core:RegisterCompactTranslations("deDE", {
+  WHISPERS = "Flüstern",
+  EMPTY_WHISPER_INBOX = "Noch keine Flüsternachrichten.",
+  START_WHISPER = "Beginne eine Unterhaltung mit /w Name-Realm.",
+  WHISPER_SEND = "Senden",
+  WHISPER_SEND_ERROR = "Senden fehlgeschlagen. Der Entwurf bleibt erhalten. Versuche /w oder /r im Chat.",
+  WHISPER_ALERT_SOUND = "Flüsterton",
+  WHISPER_BUBBLES = "Nachrichtenblasen für Flüstern",
+  CLOSE_CONVERSATION = "Unterhaltung schließen",
   SHADOW = "Schatten",
   SHADOW_OUTLINE = "Schatten mit Kontur",
   SHADOW_THICK = "Schatten mit dicker Kontur",
@@ -96,6 +104,11 @@ Core:RegisterCompactTranslations("deDE", {
   EUI_SKIN_ACTIVE = "Glassys Fenster, Beschriftungsfarben und Standardschrift folgen seinem Stil.",
   EUI_SKIN_OFF = "Glassys Skin ist in den Optionen für Drittanbieter-Addons von EllesmereUI ausgeschaltet.",
   NEWER_VERSION_AVAILABLE = "Eine neuere Version ist verfügbar: %s",
+  BUTTON_STYLE = "Schaltflächenstil",
+  BUTTON_COLOR = "Schaltflächenfarbe",
+  BUTTON_HOVER_COLOR = "Schaltflächenfarbe beim Darüberfahren",
+  INBOX_BUTTON_COLOR = "Farbe der Posteingangsschaltfläche",
+  INBOX_BUTTON_HOVER_COLOR = "Farbe der Posteingangsschaltfläche beim Darüberfahren",
 }, function(label)
   return label and (label .. " konfigurieren.") or "Diese Einstellung konfigurieren."
 end)

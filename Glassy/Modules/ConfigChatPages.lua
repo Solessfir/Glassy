@@ -29,6 +29,11 @@ local function profileOption(key, option, updateKey)
   return option
 end
 
+function C:SetCommandHistoryEnabled(enabled)
+  Core.db.profile.saveCommandHistory = enabled
+  if not enabled then Core.db.char.commandHistory = nil end
+end
+
 function C.CreateFontOption(setting, order)
   local inheritedFont = L("Use UI font")
   return {
@@ -318,6 +323,25 @@ local function getTabOptions()
     return not Core.db.profile.chatButtons
   end
 
+  local function hoverColorOption(key, name, order, getColor, disabled)
+    return {
+      name = name,
+      desc = "Set the highlight color and opacity. Uses the tab hover label color by default.",
+      type = "color",
+      hasAlpha = true,
+      order = order,
+      disabled = disabled,
+      get = function ()
+        local color = getColor()
+        return color.r, color.g, color.b, color.a or 1
+      end,
+      set = function (_, r, g, b, a)
+        Core.db.profile[key] = {r = r, g = g, b = b, a = a}
+        Core:Dispatch(UpdateConfig(key))
+      end,
+    }
+  end
+
   return {
     name = "Tabs",
     type = "group",
@@ -500,8 +524,33 @@ local function getTabOptions()
           whisperWindowsAutoOpen = whisperOption("whisperWindowsAutoOpen", "Open on incoming whisper",
             "Open a conversation for a new whisper without focusing the reply box. Default: off.", 2,
             function () return not Core.db.profile.dedicatedWhisperWindows end),
+          whisperWindowsSound = whisperOption("whisperWindowsSound", "Whisper notification sound",
+            "Play an extra notification sound for incoming dedicated whispers. Default: off.", 3,
+            function () return not Core.db.profile.dedicatedWhisperWindows end),
+          whisperWindowsBubbles = whisperOption("whisperWindowsBubbles", "Whisper message bubbles",
+            "Show incoming and outgoing messages in separate left and right bubbles. Default: off.", 4,
+            function () return not Core.db.profile.dedicatedWhisperWindows end),
+          whisperInboxColor = {
+            name = "Inbox button color",
+            desc = "Set the whisper inbox icon and unread count color and opacity. Uses the tab label color by default.",
+            type = "color",
+            hasAlpha = true,
+            order = 4.5,
+            disabled = function () return not Core.db.profile.dedicatedWhisperWindows end,
+            get = function ()
+              local color = Core:GetWhisperInboxColor()
+              return color.r, color.g, color.b, color.a or 1
+            end,
+            set = function (_, r, g, b, a)
+              Core.db.profile.whisperInboxColor = {r = r, g = g, b = b, a = a}
+              Core:Dispatch(UpdateConfig("whisperInboxColor"))
+            end,
+          },
+          whisperInboxHoverColor = hoverColorOption("whisperInboxHoverColor", "Inbox button hover color", 4.75,
+            function () return Core:GetWhisperInboxColor(true) end,
+            function () return not Core.db.profile.dedicatedWhisperWindows end),
           keepWhisperTabs = whisperOption("keepWhisperTabs", "Keep whisper tabs",
-            "Reopen character whisper tabs with their last 100 messages after a reload or login. Applies when dedicated windows are off. Default: on.", 3,
+            "Reopen character whisper tabs with their last 100 messages after a reload or login. Applies when dedicated windows are off. Default: on.", 5,
             function () return Core.db.profile.dedicatedWhisperWindows end),
         },
       },
@@ -517,21 +566,51 @@ local function getTabOptions()
             type = "toggle",
             order = 1,
           }),
+          chatButtonsStyle = profileOption("chatButtonsStyle", {
+            name = "Button style",
+            desc = "Choose Glassy's styling or the game's artwork. Default: Glassy.",
+            type = "select",
+            order = 2,
+            values = {blizzard = L("Blizzard"), glassy = L("Glassy")},
+            sorting = {"blizzard", "glassy"},
+            disabled = chatButtonsDisabled,
+          }),
+          chatButtonsColor = {
+            name = "Button color",
+            desc = "Set the Glassy buttons' color and opacity. Uses the tab label color by default.",
+            type = "color",
+            hasAlpha = true,
+            order = 2.25,
+            disabled = function ()
+              return chatButtonsDisabled() or Core.db.profile.chatButtonsStyle ~= "glassy"
+            end,
+            get = function ()
+              local color = Core:GetChatButtonColor()
+              return color.r, color.g, color.b, color.a or 1
+            end,
+            set = function (_, r, g, b, a)
+              Core.db.profile.chatButtonsColor = {r = r, g = g, b = b, a = a}
+              Core:Dispatch(UpdateConfig("chatButtonsColor"))
+            end,
+          },
+          chatButtonsHoverColor = hoverColorOption("chatButtonsHoverColor", "Button hover color", 2.4,
+            function () return Core:GetChatButtonColor(true) end,
+            function () return chatButtonsDisabled() or Core.db.profile.chatButtonsStyle ~= "glassy" end),
           chatButtonsSide = profileOption("chatButtonsSide", {
             name = "Button position",
             type = "select",
-            order = 2,
+            order = 3,
             values = {left = L("Left"), right = L("Right"), topleft = L("Top left"), topright = L("Top right"),
               bottomleft = L("Bottom left"), bottomright = L("Bottom right")},
             sorting = {"left", "right", "topleft", "topright", "bottomleft", "bottomright"},
             disabled = chatButtonsDisabled,
           }),
           chatButtonsOffsetX = profileOption("chatButtonsOffsetX", {
-            name = "Horizontal offset", type = "range", order = 3, min = -50, max = 50, step = 1,
+            name = "Horizontal offset", type = "range", order = 4, min = -50, max = 50, step = 1,
             disabled = chatButtonsDisabled,
           }),
           chatButtonsOffsetY = profileOption("chatButtonsOffsetY", {
-            name = "Vertical offset", type = "range", order = 4, min = -50, max = 50, step = 1,
+            name = "Vertical offset", type = "range", order = 5, min = -50, max = 50, step = 1,
             disabled = chatButtonsDisabled,
           }),
         },
@@ -544,7 +623,7 @@ local function getTabOptions()
         args = {
           detailsChatEmbed = {
             name = "Details! Chat Tab Embed",
-            desc = "Show Details! meters in their docked chat tab. Choose the tab in Details! settings.",
+            desc = "In Details! settings, enable Chat Tab Embed and enter the name of a dedicated docked chat tab.",
             type = "toggle",
             order = 1,
             get = function () return Core.db.profile.detailsChatEmbed end,

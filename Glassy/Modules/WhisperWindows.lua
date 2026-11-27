@@ -86,8 +86,16 @@ function Whispers:GetConversation(name, battleNet, target)
       return conversation
     end
   end
-  if #conversations >= MAX_CONVERSATIONS then
-    local oldest = table.remove(conversations, 1)
+  while #conversations >= MAX_CONVERSATIONS do
+    local removable
+    for index, contact in ipairs(conversations) do
+      if contact.unread == 0 and not (self.IsConversationPinned and self:IsConversationPinned(contact)) then
+        removable = index
+        break
+      end
+    end
+    if not removable then break end
+    local oldest = table.remove(conversations, removable)
     for _, message in ipairs(oldest.messages) do self:ForgetMessage(message) end
   end
   local conversation = {name = name, battleNet = battleNet, target = target, unread = 0, messages = {}}
@@ -97,6 +105,45 @@ end
 
 function Whispers:MarkRead(conversation)
   conversation.unread = 0
+end
+
+function Whispers:CloseConversation(conversation)
+  for index, contact in ipairs(self:GetConversations()) do
+    if contact == conversation then
+      table.remove(self.conversations, index)
+      for _, message in ipairs(contact.messages) do self:ForgetMessage(message) end
+      if self.UpdateViews then self:UpdateViews() end
+      return
+    end
+  end
+end
+
+function Whispers:StartWhisper(name, battleNet)
+  if not self:IsActive() or not readableText(name) then return end
+  if not battleNet and name:find("[|:/\\%c]") then return end
+  if _G.InCombatLockdown and _G.InCombatLockdown() then return end
+  local chatInfo = _G.C_ChatInfo
+  if chatInfo and chatInfo.InChatMessagingLockdown and chatInfo.InChatMessagingLockdown() then return end
+  local util = _G.ChatFrameUtil
+  local getActive = (util and util.GetActiveWindow) or _G.ChatEdit_GetActiveWindow
+  local deactivate = (util and util.DeactivateChat) or _G.ChatEdit_DeactivateChat
+  local box = getActive and getActive()
+  if not box or not deactivate or not self.OpenConversation then return end
+  local text, chatType, target = box:GetText(), box:GetAttribute("chatType"), box:GetAttribute("tellTarget")
+  if not canAccess(text) or text ~= "" or not readableText(chatType) or not readableText(target) then return end
+  local conversation
+  if battleNet then
+    if chatType ~= "BN_WHISPER" or target ~= name or not _G.BNet_GetBNetIDAccount then return end
+    local ok, accountID = pcall(_G.BNet_GetBNetIDAccount, name)
+    if not ok or not positiveNumber(accountID) then return end
+    name = battleNetName(name, accountID)
+    if not name then return end
+    conversation = self:GetConversation(name, true, accountID)
+  else
+    if chatType ~= "WHISPER" or characterTarget(target):lower() ~= characterTarget(name):lower() then return end
+    conversation = self:GetConversation(characterTarget(name), false, characterTarget(name))
+  end
+  if self:OpenConversation(conversation, true) and getActive() == box then deactivate(box) end
 end
 
 function Whispers:Capture(event, text, name, ...)
@@ -129,7 +176,17 @@ function Whispers:Capture(event, text, name, ...)
   local messages = conversation.messages
   messages[#messages + 1] = message
   if #messages > MAX_MESSAGES then self:ForgetMessage(table.remove(messages, 1)) end
-  if not kind.outgoing then conversation.unread = conversation.unread + 1 end
+  if not kind.outgoing then
+    conversation.unread = conversation.unread + 1
+    conversation.lineID = positiveNumber(lineID) and lineID or nil
+    if Core.db.profile.whisperWindowsSound and _G.PlaySound and _G.SOUNDKIT and _G.SOUNDKIT.TELL_MESSAGE then
+      local now = _G.GetTime and _G.GetTime() or currentTime()
+      if not self.lastSound or now - self.lastSound >= 1 then
+        self.lastSound = now
+        pcall(_G.PlaySound, _G.SOUNDKIT.TELL_MESSAGE, "Master")
+      end
+    end
+  end
   if self.UpdateViews then self:UpdateViews(conversation, not kind.outgoing and Core.db.profile.whisperWindowsAutoOpen == true) end
 end
 
@@ -139,7 +196,7 @@ function Whispers:Save()
   if Core.db.profile.saveChatHistory ~= false then
     for _, conversation in ipairs(self:GetConversations()) do
       if not conversation.battleNet then
-        local record = {name = conversation.name, messages = {}}
+        local record = {name = conversation.name, unread = conversation.unread, messages = {}}
         for _, message in ipairs(conversation.messages) do
           record.messages[#record.messages + 1] = {
             text = message.text:gsub("|K.-|k", "???"), outgoing = message.outgoing, time = message.time,
@@ -158,12 +215,13 @@ function Whispers:Restore()
   local saved = Core.db.char.whisperWindows
   Core.db.char.whisperWindows = nil
   if Core.db.profile.saveChatHistory == false or type(saved) ~= "table" then return end
-  for index = math.max(1, #saved - MAX_CONVERSATIONS + 1), #saved do
+  for index = 1, #saved do
     local record = saved[index]
     if type(record) == "table" and readableText(record.name) and not record.name:find("|K", 1, true)
       and type(record.messages) == "table" then
       local name = characterTarget(record.name)
       local conversation = self:GetConversation(name, false, name)
+      if positiveNumber(record.unread) then conversation.unread = math.floor(record.unread) end
       for line = math.max(1, #record.messages - MAX_MESSAGES + 1), #record.messages do
         local message = record.messages[line]
         if type(message) == "table" and readableText(message.text) and canAccess(message.outgoing)
@@ -188,7 +246,7 @@ function Whispers:Send(conversation, text)
   if conversation.battleNet then
     if not positiveNumber(conversation.target) or not readableText(conversation.name)
       or conversation.name:find("|K", 1, true) then return false end
-  elseif not readableText(conversation.target) or conversation.target:find("[%s|/\\%c]") then
+  elseif not readableText(conversation.target) or conversation.target:find("[|:/\\%c]") then
     return false
   end
   local chatInfo = _G.C_ChatInfo
@@ -254,7 +312,18 @@ function Whispers:OnEnable()
   self.eventFrame:SetScript("OnEvent", function (_, event, ...) self:Capture(event, ...) end)
   Core.db.RegisterCallback(self, "OnDatabaseShutdown", function () self:Save() end)
   Core:Subscribe(Constants.EVENTS.UPDATE_CONFIG, function (key)
-    if key == "dedicatedWhisperWindows" or key == "whisperWindowsAutoOpen" or key == "saveChatHistory" then self:ApplySettings() end
+    if key == "dedicatedWhisperWindows" or key == "whisperWindowsAutoOpen" or key == "whisperWindowsBubbles" or key == "saveChatHistory" then self:ApplySettings() end
   end)
+  local hook = _G.hooksecurefunc
+  if hook then
+    if _G.ChatFrameUtil and _G.ChatFrameUtil.SendTell then
+      hook(_G.ChatFrameUtil, "SendTell", function (name) self:StartWhisper(name) end)
+    end
+    if _G.ChatFrame_SendTell then hook("ChatFrame_SendTell", function (name) self:StartWhisper(name) end) end
+    if _G.ChatFrameUtil and _G.ChatFrameUtil.SendBNetTell then
+      hook(_G.ChatFrameUtil, "SendBNetTell", function (name) self:StartWhisper(name, true) end)
+    end
+    if _G.ChatFrame_SendBNetTell then hook("ChatFrame_SendBNetTell", function (name) self:StartWhisper(name, true) end) end
+  end
   self:ApplySettings()
 end

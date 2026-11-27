@@ -1,6 +1,19 @@
 local Core = unpack(select(2, ...))
 
 Core:RegisterCompactTranslations("koKR", {
+  BUTTON_STYLE = "버튼 스타일",
+  BUTTON_COLOR = "버튼 색상",
+  BUTTON_HOVER_COLOR = "마우스 오버 버튼 색상",
+  INBOX_BUTTON_COLOR = "받은 편지함 버튼 색상",
+  INBOX_BUTTON_HOVER_COLOR = "마우스 오버 받은 편지함 버튼 색상",
+  WHISPERS = "귓속말",
+  EMPTY_WHISPER_INBOX = "아직 귓속말이 없습니다.",
+  START_WHISPER = "/w 이름-서버로 대화를 시작하세요.",
+  WHISPER_SEND = "보내기",
+  WHISPER_SEND_ERROR = "보낼 수 없습니다. 작성한 내용은 유지됩니다. 채팅에서 /w 또는 /r을 사용해 보세요.",
+  WHISPER_ALERT_SOUND = "귓속말 알림음",
+  WHISPER_BUBBLES = "귓속말 말풍선",
+  CLOSE_CONVERSATION = "대화 닫기",
   SHADOW = "그림자",
   SHADOW_OUTLINE = "그림자와 외곽선",
   SHADOW_THICK = "그림자와 두꺼운 외곽선",

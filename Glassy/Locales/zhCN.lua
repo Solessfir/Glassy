@@ -1,6 +1,19 @@
 local Core = unpack(select(2, ...))
 
 Core:RegisterCompactTranslations("zhCN", {
+  BUTTON_STYLE = "按钮样式",
+  BUTTON_COLOR = "按钮颜色",
+  BUTTON_HOVER_COLOR = "按钮悬停颜色",
+  INBOX_BUTTON_COLOR = "收件箱按钮颜色",
+  INBOX_BUTTON_HOVER_COLOR = "收件箱按钮悬停颜色",
+  WHISPERS = "密语",
+  EMPTY_WHISPER_INBOX = "还没有密语。",
+  START_WHISPER = "使用 /w 名字-服务器 开始对话。",
+  WHISPER_SEND = "发送",
+  WHISPER_SEND_ERROR = "无法发送。草稿已保留。请尝试在聊天中使用 /w 或 /r。",
+  WHISPER_ALERT_SOUND = "密语提示音",
+  WHISPER_BUBBLES = "密语消息气泡",
+  CLOSE_CONVERSATION = "关闭对话",
   SHADOW = "阴影",
   SHADOW_OUTLINE = "阴影描边",
   SHADOW_THICK = "阴影粗描边",
